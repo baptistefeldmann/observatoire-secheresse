@@ -1,0 +1,33 @@
+# Paramètres du projet.
+#
+# Pour adapter l'observatoire à un autre département, seul le bloc `territoire`
+# de ce fichier et le fichier `zones.yaml` sont à modifier (voir README).
+
+territoire:
+  code_departement: "85"     # code INSEE, sert de filtre aux API (Hub'Eau, geo.api.gouv.fr)
+  nom: "Vendée"
+  slug: "vendee"             # minuscules, chiffres et _ : noms de fichiers (ocs_<annee>_<slug>.tif)
+
+# CRS de stockage et de calcul. EPSG:2154 couvre la métropole ; un département
+# d'outre-mer nécessite la projection officielle locale (ex. EPSG:2975 pour La Réunion).
+crs: "EPSG:2154"
+
+# L'emprise est dérivée du contour départemental (geo.api.gouv.fr), jamais saisie à la main.
+emprise:
+  tampon_m: 1000
+
+periode_reference:
+  hydro_meteo:
+    debut: 1991
+    fin: 2020
+    annees_min: 15           # en deçà, pas d'indice ; entre annees_min et la période complète, avertissement
+  sentinel2:                 # [V2]
+    debut: 2018
+    fin: 2025
+
+ingestion:
+  fenetre_reingestion_jours: 90   # captation des corrections a posteriori de Hub'Eau
+
+chemins:
+  data: data
+  rasters: rasters

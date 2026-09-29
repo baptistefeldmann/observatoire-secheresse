@@ -1,0 +1,31 @@
+# PostGIS : couche de service, reconstructible avec `make db-rebuild`.
+# Le nom du projet Compose et le port viennent de .env, ce qui permet de faire
+# tourner plusieurs départements sur la même machine sans collision.
+name: ${COMPOSE_PROJECT_NAME:-secheresse}
+
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-secheresse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?à définir dans .env}
+      POSTGRES_DB: ${POSTGRES_DB:-secheresse}
+      POSTGRES_LECTEUR_USER: ${POSTGRES_LECTEUR_USER:-lecteur}
+      POSTGRES_LECTEUR_PASSWORD: ${POSTGRES_LECTEUR_PASSWORD:?à définir dans .env}
+    # Par défaut, PostGIS n'écoute que sur la machine hôte : l'accès distant (QGIS
+    # sur un autre poste) passe par un tunnel SSH, voir docs/acces_distant.md.
+    ports:
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Fichier monté seul : monter le dossier masquerait le script PostGIS de l'image.
+      - ./docker/postgis/20_role_lecteur.sh:/docker-entrypoint-initdb.d/20_role_lecteur.sh:ro
+    healthcheck:
+      # Par TCP : pendant l'initialisation, le serveur temporaire n'écoute que sur le socket.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

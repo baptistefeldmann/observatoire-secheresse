@@ -1,0 +1,14 @@
+# Service PostgreSQL utilisé par le projet QGIS (connexion « service=secheresse_<slug> »).
+#
+# À copier sur chaque poste qui ouvre le projet, hors du dépôt :
+#   - Windows : fichier désigné par la variable d'environnement PGSERVICEFILE
+#   - Linux   : ~/.pg_service.conf
+#
+# Aucun mot de passe ici : il va dans pgpass (voir docs/acces_distant.md).
+# Depuis un portable, host/port désignent l'extrémité locale du tunnel SSH.
+
+[secheresse_vendee]
+host=localhost
+port=5433
+dbname=secheresse_vendee
+user=lecteur

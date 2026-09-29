@@ -1,0 +1,12 @@
+# Points d'accès des sources de données. Indépendant du département.
+
+hubeau:
+  piezometrie: https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/
+  hydrometrie: https://hubeau.eaufrance.fr/api/v2/hydrometrie/
+  ecoulement: https://hubeau.eaufrance.fr/api/v1/ecoulement/
+
+geo_api: https://geo.api.gouv.fr/
+
+http:
+  timeout_s: 60
+  tentatives: 5          # reprises avec backoff exponentiel (tenacity)

@@ -1,0 +1,24 @@
+# Secrets
+.env
+
+# Rasters Sentinel-2 : régénérables, ni Git ni DVC
+/rasters/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# QGIS
+*.qgz~
+*.qgs~
+.qgis_*
+
+# Divers
+.DS_Store

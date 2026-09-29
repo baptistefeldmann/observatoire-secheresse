@@ -1,0 +1,13 @@
+# Échelle commune à 7 classes, alignée sur le BSH (SPEC §6.3).
+# Les seuils s'appliquent aux valeurs standardisées : classe k si seuils[k-2] < v <= seuils[k-1].
+
+seuils: [-1.28, -0.84, -0.25, 0.25, 0.84, 1.28]
+
+classes:
+  - {classe: 1, libelle: "Très bas / extrêmement sec"}
+  - {classe: 2, libelle: "Bas / modérément sec"}
+  - {classe: 3, libelle: "Modérément bas"}
+  - {classe: 4, libelle: "Normal"}
+  - {classe: 5, libelle: "Modérément haut"}
+  - {classe: 6, libelle: "Haut"}
+  - {classe: 7, libelle: "Très haut / extrêmement humide"}

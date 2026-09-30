@@ -7,6 +7,18 @@ hubeau:
 
 geo_api: https://geo.api.gouv.fr/
 
+# Référentiels SANDRE (WFS, GeoJSON) pour le découpage en zones (docs/methodologie.md, D5)
+sandre:
+  masses_eau:
+    wfs: https://services.sandre.eaufrance.fr/geo/sandre
+    couche: sa:PolygMasseDEauSouterraine_VEDL2019_FXX   # polygones par horizon
+    couche_noms: sa:MasseDEauSouterraine_VEDL2019_FXX   # noms des masses d'eau
+    horizon: 1                                          # masse d'eau affleurante
+  zones_alerte:
+    wfs: https://services.sandre.eaufrance.fr/geo/zas
+    couche: sa:ZAS_FXX
+    statut: Validé
+
 # Météo-France SIM quotidienne, jeu data.gouv.fr « Données changement climatique - SIM quotidienne »
 # Un fichier CSV compressé par année (QUOT_SIM2_<annee>) + QUOT_SIM2_latest (60 jours glissants).
 sim:

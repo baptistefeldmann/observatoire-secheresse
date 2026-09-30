@@ -1,0 +1,202 @@
+{
+ "count": 3,
+ "first": "https://hubeau.eaufrance.fr/api/v2/hydrometrie/referentiel/stations?code_departement=85&format=json&page=1&size=3",
+ "last": "https://hubeau.eaufrance.fr/api/v2/hydrometrie/referentiel/stations?code_departement=85&format=json&page=14&size=3",
+ "prev": null,
+ "next": null,
+ "api_version": "2.0.1",
+ "data": [
+  {
+   "code_site": "M7022410",
+   "libelle_site": "La Sèvre Nantaise à Saint-Mesmin [La Branle]",
+   "code_station": "M702241010",
+   "libelle_station": "La Sèvre Nantaise à Saint-Mesmin [La Branle]",
+   "type_station": "STD",
+   "coordonnee_x_station": 417965.0,
+   "coordonnee_y_station": 6641142.0,
+   "code_projection": 26,
+   "longitude_station": -0.700056248,
+   "latitude_station": 46.810942065,
+   "influence_locale_station": 1,
+   "commentaire_station": null,
+   "altitude_ref_alti_station": 145.48,
+   "code_systeme_alti_site": 3,
+   "code_commune_station": "85254",
+   "libelle_commune": "SAINT-MESMIN",
+   "code_departement": "85",
+   "code_region": "52",
+   "libelle_region": "PAYS DE LA LOIRE",
+   "code_cours_eau": "M7--0240",
+   "libelle_cours_eau": "la Sèvre Nantaise",
+   "uri_cours_eau": "http://id.eaufrance.fr/CEA/M7--0240",
+   "descriptif_station": null,
+   "date_maj_station": "2025-03-31T00:00:00Z",
+   "date_ouverture_station": "1994-10-17T00:00:00Z",
+   "date_fermeture_station": null,
+   "commentaire_influence_locale_station": null,
+   "code_regime_station": 1,
+   "qualification_donnees_station": 20,
+   "code_finalite_station": "1 2",
+   "type_contexte_loi_stat_station": 1,
+   "type_loi_station": 2,
+   "code_sandre_reseau_station": [
+    "POH017",
+    "POH120",
+    "RIC008",
+    "BSH003",
+    "RIC107",
+    "BSH056",
+    "BSH058",
+    "RIC257",
+    "RIC307",
+    "POH039",
+    "POH902",
+    "BSH103",
+    "BSH156",
+    "BSH158"
+   ],
+   "date_debut_ref_alti_station": "1994-10-17T00:00:00Z",
+   "date_activation_ref_alti_station": "2025-03-31T00:00:00Z",
+   "date_maj_ref_alti_station": "2025-03-31T00:00:00Z",
+   "libelle_departement": "VENDEE",
+   "en_service": true,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.7000562479908241,
+     46.81094206506815
+    ]
+   }
+  },
+  {
+   "code_site": "M7032430",
+   "libelle_site": "La Sèvre Nantaise à Saint-Laurent-sur-Sèvre",
+   "code_station": "M703243010",
+   "libelle_station": "La Sèvre Nantaise à Saint-Laurent-sur-Sèvre",
+   "type_station": "STD",
+   "coordonnee_x_station": 404452.9226772,
+   "coordonnee_y_station": 6658247.699142,
+   "code_projection": 26,
+   "longitude_station": -0.888085069,
+   "latitude_station": 46.958935747,
+   "influence_locale_station": 1,
+   "commentaire_station": null,
+   "altitude_ref_alti_station": 109.26,
+   "code_systeme_alti_site": 1,
+   "code_commune_station": "85238",
+   "libelle_commune": "SAINT-LAURENT-SUR-SEVRE",
+   "code_departement": "85",
+   "code_region": "52",
+   "libelle_region": "PAYS DE LA LOIRE",
+   "code_cours_eau": "M7--0240",
+   "libelle_cours_eau": "la Sèvre Nantaise",
+   "uri_cours_eau": "http://id.eaufrance.fr/CEA/M7--0240",
+   "descriptif_station": null,
+   "date_maj_station": "2025-06-04T00:00:00Z",
+   "date_ouverture_station": "2005-01-01T00:00:00Z",
+   "date_fermeture_station": null,
+   "commentaire_influence_locale_station": null,
+   "code_regime_station": 1,
+   "qualification_donnees_station": 16,
+   "code_finalite_station": null,
+   "type_contexte_loi_stat_station": 1,
+   "type_loi_station": 2,
+   "code_sandre_reseau_station": [
+    "POH017",
+    "POH120",
+    "RIC008",
+    "RIC107",
+    "RIC257",
+    "RIC307",
+    "POH039",
+    "POH902"
+   ],
+   "date_debut_ref_alti_station": "2005-01-01T00:00:00Z",
+   "date_activation_ref_alti_station": "2025-06-04T00:00:00Z",
+   "date_maj_ref_alti_station": "2025-06-04T00:00:00Z",
+   "libelle_departement": "VENDEE",
+   "en_service": true,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.8880850690943017,
+     46.958935747129885
+    ]
+   }
+  },
+  {
+   "code_site": "M7112410",
+   "libelle_site": "La Sèvre Nantaise à Tiffauges",
+   "code_station": "M711241010",
+   "libelle_station": "La Sèvre Nantaise à Tiffauges - Ancienne Station",
+   "type_station": "STD",
+   "coordonnee_x_station": 387601.0,
+   "coordonnee_y_station": 6665762.0,
+   "code_projection": 26,
+   "longitude_station": -1.114538039,
+   "latitude_station": 47.01881824,
+   "influence_locale_station": 1,
+   "commentaire_station": "Station utilisée pour la prévision des crues jusqu'en 2021. L'échelle de la nouvelle station a été calée pour que les hauteurs de crue entre les stations soient corrélées.",
+   "altitude_ref_alti_station": 42.87,
+   "code_systeme_alti_site": 3,
+   "code_commune_station": "85293",
+   "libelle_commune": "TIFFAUGES",
+   "code_departement": "85",
+   "code_region": "52",
+   "libelle_region": "PAYS DE LA LOIRE",
+   "code_cours_eau": "M7--0240",
+   "libelle_cours_eau": "la Sèvre Nantaise",
+   "uri_cours_eau": "http://id.eaufrance.fr/CEA/M7--0240",
+   "descriptif_station": "Ancienne Station",
+   "date_maj_station": "2025-12-03T00:00:00Z",
+   "date_ouverture_station": "1967-10-01T00:00:00Z",
+   "date_fermeture_station": null,
+   "commentaire_influence_locale_station": null,
+   "code_regime_station": 1,
+   "qualification_donnees_station": 20,
+   "code_finalite_station": "1 2",
+   "type_contexte_loi_stat_station": 1,
+   "type_loi_station": 2,
+   "code_sandre_reseau_station": [
+    "POH017",
+    "POH120",
+    "BSH003",
+    "BSH056",
+    "POH039",
+    "POH902",
+    "BSH103",
+    "BSH156"
+   ],
+   "date_debut_ref_alti_station": "1967-10-01T00:00:00Z",
+   "date_activation_ref_alti_station": "2019-07-18T00:00:00Z",
+   "date_maj_ref_alti_station": "2020-02-24T00:00:00Z",
+   "libelle_departement": "VENDEE",
+   "en_service": true,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.114538038550049,
+     47.018818239714534
+    ]
+   }
+  }
+ ]
+}

@@ -1,4 +1,4 @@
-.PHONY: help install dvc-auth up down db-roles ingest reference hebdo db-rebuild config test lint format
+.PHONY: help install dvc-auth up down db-roles referentiels ingest reference hebdo db-rebuild config test lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -28,6 +28,9 @@ db-roles:  ## (Re)crée le rôle en lecture seule pour QGIS et le dashboard
 
 config:  ## Valide et affiche la configuration du territoire
 	$(PIPELINE) config
+
+referentiels:  ## Communes, mailles SIM et stations -> data/referentiels/
+	$(PIPELINE) referentiels
 
 ingest:  ## Ingestion complète de l'historique
 	$(PIPELINE) ingest

@@ -52,6 +52,33 @@ Pondérations qui en résultent (avec D2) :
 | Boulogne | `M811261020`, `M811261010` | aucun recouvrement, stations sur deux communes | non |
 | Yon à Nesmy / Chaillé | `N342301021`, `N342301020` | 5 jours communs seulement | non, à revoir (rapport des surfaces de bassin) |
 
+## D5 — Découpage du territoire en zones
+
+*2026-09-30*
+
+**Constat.** Les zones de la spec n'avaient ni contour ni règle de construction. Or il faut un contour pour rattacher les stations à une zone, agréger les mailles météo et cartographier les résultats. Deux référentiels étaient candidats : les masses d'eau souterraine, qui suivent une logique hydrogéologique, et les zones d'alerte sécheresse, qui suivent une logique administrative et contiennent souvent trop peu de stations.
+
+**Décision.** La géométrie d'une zone est l'**union de masses d'eau souterraine affleurantes** (SANDRE, EDL 2019, horizon 1). Elle peut être **croisée avec l'union de zones d'alerte** (SANDRE `ZAS`, statut « Validé », code `CdZAS`). La construction est décrite dans `config/zones.yaml` et appliquée par `pipeline/zonage.py`.
+
+- Les zones sont rendues disjointes dans l'ordre du fichier. Un chevauchement de plus de `fragment_max_km2` (20 km²) est une erreur.
+- Les fragments et les lacunes de moins de 20 km², dus aux limites qui ne coïncident pas entre référentiels et aux contours du littoral, sont rattachés à la zone voisine qui partage la plus longue frontière commune. Au-delà, c'est une erreur de configuration. Le territoire doit être couvert à 99,99 %.
+- Une station est rattachée à la zone qui la contient, sinon à la plus proche à moins de `emprise.tampon_m` (stations du littoral).
+
+Vendée : 12 zones.
+
+| Zone | Construction | Surface | SPI 3 mois | IPS | Débits |
+|---|---|---|---|---|---|
+| Sud-Vendée sédimentaire | FRGG034, FRGG041, FRGG042 | 971 km² | 0,25 | 0,50 | 0,25 |
+| Marais poitevin | FRGG126, FRGG127 | 705 km² | 0,30 | 0,40 | 0,30 |
+| Marais breton | FRGG017, FRGG025, FRGG031 | 576 km² | 0,30 | 0,40 | 0,30 |
+| Île de Noirmoutier | FRGG036 | 50 km² | 0,40 | 0,60 | 0 |
+| Île d'Yeu | FRGG035 | 24 km² | 0,40 | 0,60 | 0 |
+| Bocage – 7 sous-zones | masses d'eau de socle × zones d'alerte superficielles (Lay et Lay réalimenté, Vie et Jaunay, Maines, Côtiers vendéens, Sèvre nantaise, Logne-Boulogne-Ognon, Vendée et Autize superficiels) | 297 à 1 465 km² | 0,40 | 0,15 | 0,45 |
+
+- Les îles forment des zones à part entière. Faute de cours d'eau jaugé, leur indice composite repose sur le SPI et l'IPS.
+- Le bocage (4 429 km²) est découpé par les zones d'alerte superficielles VigiEau, pour une lecture par bassin versant proche de celle des arrêtés de restriction.
+- Le découpage est figé dans `data/referentiels/zones.parquet`, versionné par DVC. Il ne change que par une reconstruction volontaire des référentiels, par exemple après la révision d'un arrêté-cadre ou de l'état des lieux DCE.
+
 ## Règles issues des données
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.

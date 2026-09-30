@@ -52,6 +52,7 @@ def test_ponderations_ne_sommant_pas_a_un(copie_config: Path) -> None:
                     "zone_id": "A",
                     "libelle": "A",
                     "type_zone": "hydrogeol",
+                    "masses_eau": ["FRGG001"],
                     "ponderations": {"spi_3": 0.5, "ips": 0.3},
                 }
             ]
@@ -70,6 +71,7 @@ def test_composante_inconnue(copie_config: Path) -> None:
                     "zone_id": "A",
                     "libelle": "A",
                     "type_zone": "hydrogeol",
+                    "masses_eau": ["FRGG001"],
                     "ponderations": {"spi3": 1.0},
                 }
             ]
@@ -80,7 +82,13 @@ def test_composante_inconnue(copie_config: Path) -> None:
 
 
 def test_zone_en_double(copie_config: Path) -> None:
-    zone = {"zone_id": "A", "libelle": "A", "type_zone": "alerte", "ponderations": {"debit": 1.0}}
+    zone = {
+        "zone_id": "A",
+        "libelle": "A",
+        "type_zone": "alerte",
+        "masses_eau": ["FRGG001"],
+        "ponderations": {"debit": 1.0},
+    }
     _modifier(copie_config / "zones.yaml", {"zones": [zone, zone]})
     with pytest.raises(ValidationError, match="en double"):
         charger_config(copie_config)
@@ -118,6 +126,7 @@ def test_onde_hors_composite(copie_config: Path) -> None:
         "zone_id": "A",
         "libelle": "A",
         "type_zone": "hydrogeol",
+        "masses_eau": ["FRGG001"],
         "ponderations": {"spi_3": 0.85, "onde": 0.15},
     }
     _modifier(copie_config / "zones.yaml", {"zones": [zone]})

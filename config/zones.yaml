@@ -1,30 +1,100 @@
 # Zones de lecture du territoire et pondérations de l'indice composite (SPEC §6.4).
 # Fichier spécifique au département : à réécrire entièrement pour un autre territoire.
 #
-# Composantes reconnues : spi_3, ips, debit. Les poids d'une zone doivent sommer à 1.
-# ONDE n'entre pas dans le composite en V1 : couche affichée à part (docs/methodologie.md, D3).
+# Géométrie d'une zone (docs/methodologie.md, D5) : union des masses d'eau souterraine
+# affleurantes listées (codes SANDRE EDL 2019, ex. FRGG042), éventuellement croisée avec
+# l'union des zones d'alerte sécheresse listées (codes SANDRE CdZAS). Les zones doivent
+# couvrir le territoire sans se chevaucher ; les fragments de moins de `fragment_max_km2`
+# issus des croisements sont rattachés à la zone voisine de plus longue frontière commune.
 #
-# Le découpage géométrique des zones (masses d'eau BDLISA, zones d'alerte VigiEau...)
-# reste à définir.
+# Composantes reconnues : spi_3, ips, debit. Les poids d'une zone doivent sommer à 1.
+# ONDE n'entre pas dans le composite en V1 : couche affichée à part (D3).
+
+fragment_max_km2: 20
+
+# Valeurs réutilisées plus bas (ancres YAML), sans effet par elles-mêmes
+definitions:
+  # Masses d'eau de socle du bocage, découpées par les zones d'alerte superficielles
+  bocage: &bocage [FRGG026, FRGG027, FRGG028, FRGG029, FRGG030, FRGG033, FRGG037, FRGG125, FRGG148]
+  poids_bocage: &poids_bocage {spi_3: 0.40, ips: 0.15, debit: 0.45}   # D2
+  poids_iles: &poids_iles {spi_3: 0.40, ips: 0.60, debit: 0.0}        # D5 : pas de cours d'eau jaugé
 
 zones:
   - zone_id: SUD_VENDEE
     libelle: Sud-Vendée sédimentaire
     type_zone: hydrogeol
+    masses_eau: [FRGG034, FRGG041, FRGG042]
     ponderations: {spi_3: 0.25, ips: 0.50, debit: 0.25}
-
-  - zone_id: MARAIS_BRETON
-    libelle: Marais breton
-    type_zone: hydrogeol
-    ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
 
   - zone_id: MARAIS_POITEVIN
     libelle: Marais poitevin
     type_zone: hydrogeol
+    masses_eau: [FRGG126, FRGG127]
     ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
 
-  # IPS à 0,15 : nappes de socle peu profondes, en partie redondantes avec les débits (D2).
-  - zone_id: BOCAGE
-    libelle: Bocage (socle armoricain)
+  - zone_id: MARAIS_BRETON
+    libelle: Marais breton
     type_zone: hydrogeol
-    ponderations: {spi_3: 0.40, ips: 0.15, debit: 0.45}
+    masses_eau: [FRGG017, FRGG025, FRGG031]
+    ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
+
+  - zone_id: ILE_NOIRMOUTIER
+    libelle: Île de Noirmoutier
+    type_zone: hydrogeol
+    masses_eau: [FRGG036]
+    ponderations: *poids_iles
+
+  - zone_id: ILE_YEU
+    libelle: Île d'Yeu
+    type_zone: hydrogeol
+    masses_eau: [FRGG035]
+    ponderations: *poids_iles
+
+  - zone_id: BOCAGE_LAY
+    libelle: Bocage - Lay
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [339, 341]            # Lay, Lay réalimenté
+    ponderations: *poids_bocage
+
+  - zone_id: BOCAGE_VIE_JAUNAY
+    libelle: Bocage - Vie et Jaunay
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [337]
+    ponderations: *poids_bocage
+
+  - zone_id: BOCAGE_MAINES
+    libelle: Bocage - Maines
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [334]
+    ponderations: *poids_bocage
+
+  - zone_id: BOCAGE_COTIERS_VENDEENS
+    libelle: Bocage - Côtiers vendéens
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [338]
+    ponderations: *poids_bocage
+
+  - zone_id: BOCAGE_SEVRE_NANTAISE
+    libelle: Bocage - Sèvre nantaise
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [333]
+    ponderations: *poids_bocage
+
+  - zone_id: BOCAGE_LOGNE_BOULOGNE
+    libelle: Bocage - Logne, Boulogne, Ognon et Grand Lieu
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [335]
+    ponderations: *poids_bocage
+
+  - zone_id: BOCAGE_VENDEE
+    libelle: Bocage - Vendée
+    type_zone: hydrogeol
+    masses_eau: *bocage
+    zones_alerte: [342, 353]            # Vendée superficiel, Autize superficiel
+    ponderations: *poids_bocage

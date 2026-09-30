@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 import os
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
@@ -61,6 +61,7 @@ class PeriodesReference(_Modele):
 
 class Ingestion(_Modele):
     fenetre_reingestion_jours: int = Field(ge=0)
+    piezo_inactif_apres_jours: int = Field(ge=1)
 
 
 class Chemins(_Modele):
@@ -127,6 +128,8 @@ class Zone(_Modele):
     zone_id: str = Field(pattern=r"^[A-Z0-9_]+$")
     libelle: str
     type_zone: Literal["hydrogeol", "alerte"]
+    masses_eau: list[str] = Field(min_length=1)  # codes SANDRE EDL 2019 (CdEuMasseDEau)
+    zones_alerte: list[int] = []  # codes SANDRE CdZAS ; vide = pas de croisement
     ponderations: dict[Composante, float]
 
     @field_validator("ponderations")
@@ -140,7 +143,9 @@ class Zone(_Modele):
         return valeur
 
 
-class Zones(_Modele):
+class Zonage(_Modele):
+    fragment_max_km2: float = Field(gt=0)
+    definitions: dict[str, Any] = {}  # ancres YAML, ignorées
     zones: list[Zone] = Field(min_length=1)
 
     @field_validator("zones")
@@ -219,9 +224,28 @@ class Http(_Modele):
     tentatives: int = Field(ge=1)
 
 
+class CoucheMassesEau(_Modele):
+    wfs: str
+    couche: str
+    couche_noms: str
+    horizon: int
+
+
+class CoucheZonesAlerte(_Modele):
+    wfs: str
+    couche: str
+    statut: str
+
+
+class Sandre(_Modele):
+    masses_eau: CoucheMassesEau
+    zones_alerte: CoucheZonesAlerte
+
+
 class Sources(_Modele):
     hubeau: HubEau
     geo_api: str
+    sandre: Sandre
     sim: Sim
     sentinel2: Sentinel2
     http: Http
@@ -233,7 +257,7 @@ class Sources(_Modele):
 class Config(_Modele):
     projet: Projet
     classes: Classes
-    zones: list[Zone]
+    zonage: Zonage
     stations: Stations
     sources: Sources
 
@@ -253,7 +277,7 @@ def charger_config(dossier: Path | None = None) -> Config:
     return Config(
         projet=Projet.model_validate(_lire_yaml(dossier / "projet.yaml")),
         classes=Classes.model_validate(_lire_yaml(dossier / "classes.yaml")),
-        zones=Zones.model_validate(_lire_yaml(dossier / "zones.yaml")).zones,
+        zonage=Zonage.model_validate(_lire_yaml(dossier / "zones.yaml")),
         stations=(
             Stations.model_validate(_lire_yaml(fichier_stations))
             if fichier_stations.is_file()

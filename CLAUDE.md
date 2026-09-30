@@ -27,6 +27,7 @@ Lire `docs/SPEC.md` avant toute tâche : c'est la référence pour l'architectur
 ```
 make config        # valide et affiche la configuration du territoire
 make up            # démarre PostGIS
+make referentiels  # communes, mailles SIM, stations -> data/referentiels/
 make ingest        # ingestion complète de l'historique
 make reference     # calcul des normales
 make hebdo         # job hebdomadaire

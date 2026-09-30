@@ -133,8 +133,9 @@ Toutes les sources sont ouvertes et gratuites. Les identifiants (Météo-France,
 ### 4.5 Référentiels (V1)
 
 - Communes et contour départemental : `https://geo.api.gouv.fr/departements/85/communes?format=geojson&geometry=contour` (contour obtenu par fusion).
-- Masses d'eau souterraine : champs `codes_masse_eau_edl` / `noms_masse_eau_edl` des stations piézométriques, référentiel BDLISA pour les contours.
-- Zones d'alerte sécheresse : jeu de données VigiEau sur data.gouv.fr et API SANDRE des zones d'alerte. Candidates naturelles pour le découpage en zones du dashboard.
+- Masses d'eau souterraine : WFS SANDRE (`PolygMasseDEauSouterraine_VEDL2019_FXX`, horizon 1, codes identiques aux champs `codes_masse_eau_edl` des stations piézométriques).
+- Zones d'alerte sécheresse : WFS SANDRE (`ZAS_FXX`, statut « Validé », code `CdZAS`) ; l'API VigiEau donne les mêmes zones sans géométrie.
+- Découpage en zones : union de masses d'eau, éventuellement croisée avec des zones d'alerte ([méthodologie, D5](methodologie.md)) ; `data/referentiels/zones.parquet`.
 
 ### 4.6 Sentinel-2 L2A (V2)
 
@@ -291,7 +292,10 @@ Moyenne pondérée des indices standardisés disponibles pour la zone, avec les 
 |---|---|---|---|---|
 | Sud-Vendée sédimentaire | 0,25 | 0,50 | 0,25 | — |
 | Marais (breton, poitevin) | 0,30 | 0,40 | 0,30 | — |
-| Bocage (socle) | 0,40 | 0,15 | 0,45 | — |
+| Îles (Noirmoutier, Yeu) | 0,40 | 0,60 | 0 | — |
+| Bocage (socle), 7 sous-zones par bassin versant | 0,40 | 0,15 | 0,45 | — |
+
+Le découpage en 12 zones est décrit en D5 de la méthodologie.
 
 Quand un indice est absent (station en panne, donnée piézométrique trop ancienne), les poids restants sont renormalisés et l'indice composite porte l'information du nombre de composantes utilisées. Le détail des composantes est stocké dans `idx.composite_zone.detail`.
 

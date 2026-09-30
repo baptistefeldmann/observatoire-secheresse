@@ -1,0 +1,16 @@
+{
+ "resources": [
+  {
+   "title": "SHP_SIM_FRANCE.shp",
+   "url": "https://sim.test/SHP_SIM_FRANCE.shp"
+  },
+  {
+   "title": "SHP_SIM_FRANCE.shx",
+   "url": "https://sim.test/SHP_SIM_FRANCE.shx"
+  },
+  {
+   "title": "SHP_SIM_FRANCE.dbf",
+   "url": "https://sim.test/SHP_SIM_FRANCE.dbf"
+  }
+ ]
+}

@@ -27,6 +27,8 @@ periode_reference:
 
 ingestion:
   fenetre_reingestion_jours: 90   # captation des corrections a posteriori de Hub'Eau
+  # Hub'Eau Piézométrie ne donne pas de statut : station « en service » si mesure récente
+  piezo_inactif_apres_jours: 365
 
 indices:
   ips:

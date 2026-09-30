@@ -1,0 +1,80 @@
+"""Réponses API enregistrées (tests/fixtures/) servies par un transport httpx simulé."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from pathlib import Path
+
+import httpx
+import pytest
+
+from pipeline.config import Config, Zonage, Zone, charger_config
+from pipeline.http import ClientHttp
+
+RACINE = Path(__file__).resolve().parents[1]
+FIXTURES = Path(__file__).parent / "fixtures"
+
+# (hôte, fin du chemin, couche WFS ou None) -> fichier de fixture
+ROUTES = {
+    ("hubeau.eaufrance.fr", "/niveaux_nappes/stations", None): "hubeau/piezo_stations.json",
+    ("hubeau.eaufrance.fr", "/hydrometrie/referentiel/stations", None):
+        "hubeau/hydro_stations.json",
+    ("hubeau.eaufrance.fr", "/ecoulement/stations", None): "hubeau/onde_stations.json",
+    ("geo.api.gouv.fr", "/departements/85/communes", None): "geoapi/communes_85.geojson",
+    ("www.data.gouv.fr", "/datasets/6569b27598256cc583c917a7/", None): "sim/jeu_datagouv.json",
+    ("sim.test", "/SHP_SIM_FRANCE.shp", None): "sim/SHP_SIM_FRANCE.shp",
+    ("sim.test", "/SHP_SIM_FRANCE.shx", None): "sim/SHP_SIM_FRANCE.shx",
+    ("sim.test", "/SHP_SIM_FRANCE.dbf", None): "sim/SHP_SIM_FRANCE.dbf",
+    ("services.sandre.eaufrance.fr", "/geo/sandre", "sa:PolygMasseDEauSouterraine_VEDL2019_FXX"):
+        "sandre/masses_eau_polygones.json",
+    ("services.sandre.eaufrance.fr", "/geo/sandre", "sa:MasseDEauSouterraine_VEDL2019_FXX"):
+        "sandre/masses_eau_noms.json",
+}  # fmt: skip
+
+# Zonage adapté aux deux communes des fixtures (île de Noirmoutier)
+ZONAGE_FIXTURES = Zonage(
+    fragment_max_km2=20,
+    zones=[
+        Zone(
+            zone_id="ILE_NOIRMOUTIER",
+            libelle="Île de Noirmoutier",
+            type_zone="hydrogeol",
+            masses_eau=["FRGG036"],
+            ponderations={"spi_3": 0.4, "ips": 0.6},
+        )
+    ],
+)
+
+
+def repondre(requete: httpx.Request) -> httpx.Response:
+    for (hote, fin, couche), fichier in ROUTES.items():
+        if (
+            requete.url.host == hote
+            and requete.url.path.endswith(fin)
+            and (couche is None or requete.url.params.get("TYPENAMES") == couche)
+        ):
+            return httpx.Response(200, content=(FIXTURES / fichier).read_bytes())
+    return httpx.Response(404, text=f"pas de fixture pour {requete.url}")
+
+
+@pytest.fixture
+def config(tmp_path: Path) -> Config:
+    """Configuration du dépôt, `data/` redirigé vers un dossier temporaire et zonage réduit à
+    l'emprise des fixtures."""
+    base = charger_config(RACINE / "config")
+    chemins = base.projet.chemins.model_copy(update={"data": tmp_path / "data"})
+    projet = base.projet.model_copy(update={"chemins": chemins})
+    return base.model_copy(update={"projet": projet, "zonage": ZONAGE_FIXTURES})
+
+
+@pytest.fixture
+def fabrique_client(config: Config) -> Callable[..., ClientHttp]:
+    def fabriquer(gestionnaire: Callable[[httpx.Request], httpx.Response] = repondre) -> ClientHttp:
+        return ClientHttp(config.sources.http, httpx.MockTransport(gestionnaire), attente_max_s=0)
+
+    return fabriquer
+
+
+@pytest.fixture
+def client(fabrique_client: Callable[..., ClientHttp]) -> ClientHttp:
+    return fabrique_client()

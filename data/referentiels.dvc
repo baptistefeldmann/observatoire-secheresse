@@ -1,0 +1,6 @@
+outs:
+- md5: 04678632dc9092a19722ebd6bd85188a.dir
+  size: 4016048
+  nfiles: 4
+  hash: md5
+  path: referentiels

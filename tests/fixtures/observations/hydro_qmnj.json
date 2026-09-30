@@ -1,0 +1,19 @@
+{
+ "count": 2,
+ "first": "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab?code_entite=M702241010&grandeur_hydro_elab=QmnJ&date_debut_obs_elab=2026-09-20&format=json&fields=date_obs_elab,resultat_obs_elab,libelle_statut&cursor=&size=20000",
+ "prev": null,
+ "next": null,
+ "api_version": "2.0.1",
+ "data": [
+  {
+   "date_obs_elab": "2026-09-22",
+   "resultat_obs_elab": 137.0,
+   "libelle_statut": "Donnée corrigée"
+  },
+  {
+   "date_obs_elab": "2026-09-23",
+   "resultat_obs_elab": 142.0,
+   "libelle_statut": "Donnée brute"
+  }
+ ]
+}

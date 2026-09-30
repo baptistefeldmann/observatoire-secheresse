@@ -1,0 +1,1270 @@
+{
+ "count": 30,
+ "first": "https://hubeau.eaufrance.fr/api/v1/ecoulement/observations?code_departement=85&date_observation_min=2026-09-20&format=json&page=1&size=5000",
+ "last": null,
+ "prev": null,
+ "next": null,
+ "api_version": "1.2.0",
+ "data": [
+  {
+   "code_station": "N5201711",
+   "libelle_station": "L'Autize à Saint-Pierre-le-Vieux",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N5201711",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85265",
+   "libelle_commune": "SAINT-PIERRE-LE-VIEUX",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 416164.407596307,
+   "coordonnee_y_station": 6595774.084962607,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N---0070",
+   "libelle_cours_eau": "l'Autize",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N---0070",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.402124534,
+   "longitude": -0.69580679,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.6958067899684518,
+     46.40212453363411
+    ]
+   }
+  },
+  {
+   "code_station": "N7114011",
+   "libelle_station": "La Mère à Breuil-Barret",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N7114011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85289",
+   "libelle_commune": "LA TARDIERE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 417955.69702951843,
+   "coordonnee_y_station": 6624338.486777152,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N7114000",
+   "libelle_cours_eau": "la Mère",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N7114000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "1f",
+   "libelle_ecoulement": "Ecoulement visible faible",
+   "latitude": 46.659803876,
+   "longitude": -0.689884206,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.6898842056792356,
+     46.659803875915415
+    ]
+   }
+  },
+  {
+   "code_station": "M7112411",
+   "libelle_station": "La Crume à Tiffauges",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M7112411",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85119",
+   "libelle_commune": "LES LANDES-GENUSSON",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 387936.41826389666,
+   "coordonnee_y_station": 6662850.417445533,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M7114000",
+   "libelle_cours_eau": "la Crûme",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M7114000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.99279682,
+   "longitude": -1.108134995,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.1081349953188675,
+     46.99279681978499
+    ]
+   }
+  },
+  {
+   "code_station": "M7400001",
+   "libelle_station": "Le Longuenais à Mesnard-la-Barotière",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M7400001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85144",
+   "libelle_commune": "MESNARD-LA-BAROTIERE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 388010.65208503034,
+   "coordonnee_y_station": 6648262.409920204,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M7406100",
+   "libelle_cours_eau": "le Longuenais",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M7406100",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "2",
+   "libelle_ecoulement": "Ecoulement non visible",
+   "latitude": 46.861664282,
+   "longitude": -1.097203764,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.097203764279563,
+     46.86166428237061
+    ]
+   }
+  },
+  {
+   "code_station": "N2040001",
+   "libelle_station": "La Vertonne à Grosbreuil",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N2040001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85099",
+   "libelle_commune": "LE GIROUARD",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 345503.982466736,
+   "coordonnee_y_station": 6616746.305945152,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N2044000",
+   "libelle_cours_eau": "la Vertonne",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N2044000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.55718159,
+   "longitude": -1.629974344,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.6299743435039005,
+     46.55718158950837
+    ]
+   }
+  },
+  {
+   "code_station": "M7420001",
+   "libelle_station": "La Petite Maine aux Essarts",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M7420001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85084",
+   "libelle_commune": "LES ESSARTS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 377825.885531339,
+   "coordonnee_y_station": 6640980.560548192,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M74-0310",
+   "libelle_cours_eau": "la Petite Maine",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M74-0310",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "1f",
+   "libelle_ecoulement": "Ecoulement visible faible",
+   "latitude": 46.791360032,
+   "longitude": -1.22559125,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.2255912495851526,
+     46.791360031599595
+    ]
+   }
+  },
+  {
+   "code_station": "N0204211",
+   "libelle_station": "Le Pont Habert à Challans",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N0204211",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85096",
+   "libelle_commune": "LA GARNACHE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 329382.03552056337,
+   "coordonnee_y_station": 6653057.411915423,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N0204200",
+   "libelle_cours_eau": "le Pont Habert",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N0204200",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.874812919,
+   "longitude": -1.869227724,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.8692277235644879,
+     46.87481291864062
+    ]
+   }
+  },
+  {
+   "code_station": "N3308211",
+   "libelle_station": "La Doulaye aux Pineaux",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3308211",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85175",
+   "libelle_commune": "LES PINEAUX",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 381324.8208371809,
+   "coordonnee_y_station": 6619612.163791392,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N3308200",
+   "libelle_cours_eau": "la Doulaye",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N3308200",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.600900516,
+   "longitude": -1.165016217,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.1650162172532355,
+     46.600900515959474
+    ]
+   }
+  },
+  {
+   "code_station": "N3410002",
+   "libelle_station": "Le Guyon à Venansault",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3410002",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85300",
+   "libelle_commune": "VENANSAULT",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 355581.78542252944,
+   "coordonnee_y_station": 6631079.716634998,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N3414000",
+   "libelle_cours_eau": "le Guyon",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N3414000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.691276185,
+   "longitude": -1.509319548,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.5093195479705044,
+     46.69127618542808
+    ]
+   }
+  },
+  {
+   "code_station": "N1110001",
+   "libelle_station": "Le Ligneron à Soullans",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N1110001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85071",
+   "libelle_commune": "COMMEQUIERS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 329788.0116780685,
+   "coordonnee_y_station": 6643670.801196059,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": null,
+   "libelle_cours_eau": "le Ligneron",
+   "uri_cours_eau": null,
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.790682578,
+   "longitude": -1.856332441,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.8563324407386146,
+     46.790682577915824
+    ]
+   }
+  },
+  {
+   "code_station": "N1203021",
+   "libelle_station": "L'Idavière à Landeronde",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N1203021",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85118",
+   "libelle_commune": "LANDERONDE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 350533.3139126514,
+   "coordonnee_y_station": 6627293.336200965,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N1205100",
+   "libelle_cours_eau": "l'Idavière",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N1205100",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.65462658,
+   "longitude": -1.572402937,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.5724029368602699,
+     46.654626579887065
+    ]
+   }
+  },
+  {
+   "code_station": "N7121811",
+   "libelle_station": "La Longèves à Fontenay-le-Comte",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N7121811",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85092",
+   "libelle_commune": "FONTENAY-LE-COMTE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 405724.6995434535,
+   "coordonnee_y_station": 6602196.440784779,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N---0121",
+   "libelle_cours_eau": "la Longèves",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N---0121",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.455408158,
+   "longitude": -0.835590789,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.8355907890010805,
+     46.45540815778492
+    ]
+   }
+  },
+  {
+   "code_station": "M7100001",
+   "libelle_station": "Le Blanc à la Verrie",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M7100001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85302",
+   "libelle_commune": "LA VERRIE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 401244.04821896064,
+   "coordonnee_y_station": 6658147.531364446,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M7104100",
+   "libelle_cours_eau": "le Blanc",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M7104100",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.956605246,
+   "longitude": -0.930164739,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.930164738687464,
+     46.95660524564725
+    ]
+   }
+  },
+  {
+   "code_station": "M7413011",
+   "libelle_station": "La Lignée à la Boissière-de-Montaigu",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M7413011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85025",
+   "libelle_commune": "LA BOISSIERE-DE-MONTAIGU",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 382242.69575353514,
+   "coordonnee_y_station": 6658287.598710608,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M7415300",
+   "libelle_cours_eau": "la Lignée",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M7415300",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.949083085,
+   "longitude": -1.179774151,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.1797741512897149,
+     46.94908308488672
+    ]
+   }
+  },
+  {
+   "code_station": "N0210001",
+   "libelle_station": "Les Godinières à Challans",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N0210001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85047",
+   "libelle_commune": "CHALLANS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 330621.6819441487,
+   "coordonnee_y_station": 6647927.979541862,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N0214000",
+   "libelle_cours_eau": "les Godinières",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N0214000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.829402401,
+   "longitude": -1.848849014,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.8488490141282223,
+     46.82940240104912
+    ]
+   }
+  },
+  {
+   "code_station": "N1001511",
+   "libelle_station": "La Vie  au Poiré-sur-Vie",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N1001511",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85178",
+   "libelle_commune": "LE POIRE-SUR-VIE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 358071.4018199996,
+   "coordonnee_y_station": 6640677.414063147,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N1--0150",
+   "libelle_cours_eau": "la Vie",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N1--0150",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "1f",
+   "libelle_ecoulement": "Ecoulement visible faible",
+   "latitude": 46.77883023,
+   "longitude": -1.483922166,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.4839221661724282,
+     46.7788302296742
+    ]
+   }
+  },
+  {
+   "code_station": "N1014011",
+   "libelle_station": "La Petite Boulogne à Saint-Etienne-du-Bois",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N1014011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85210",
+   "libelle_commune": "SAINT-ETIENNE-DU-BOIS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 350186.8712219315,
+   "coordonnee_y_station": 6647018.539197417,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N1014000",
+   "libelle_cours_eau": "la Petite Boulogne",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N1014000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.831753275,
+   "longitude": -1.591917114,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.5919171141346025,
+     46.831753275100496
+    ]
+   }
+  },
+  {
+   "code_station": "N1203022",
+   "libelle_station": "Le Jaunay à Venansault",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N1203022",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85300",
+   "libelle_commune": "VENANSAULT",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 350945.0185536147,
+   "coordonnee_y_station": 6631144.8253494045,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N1204100",
+   "libelle_cours_eau": "le Jaunay",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N1204100",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "2",
+   "libelle_ecoulement": "Ecoulement non visible",
+   "latitude": 46.689462529,
+   "longitude": -1.569941452,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.5699414518078516,
+     46.68946252856864
+    ]
+   }
+  },
+  {
+   "code_station": "N3113011",
+   "libelle_station": "La Vouraie à Saint-Hilaire-le-Vouhis",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3113011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85034",
+   "libelle_commune": "BOURNEZEAU",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 379629.1399172544,
+   "coordonnee_y_station": 6627875.442433417,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N3117000",
+   "libelle_cours_eau": "la Vouraie",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N3117000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.674393394,
+   "longitude": -1.19286626,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.1928662603074947,
+     46.67439339383388
+    ]
+   }
+  },
+  {
+   "code_station": "N3210001",
+   "libelle_station": "La Smagne à Saint-Laurent-de-la-Salle",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3210001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85237",
+   "libelle_commune": "SAINT-LAURENT-DE-LA-SALLE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 400604.3981923741,
+   "coordonnee_y_station": 6613851.410627148,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N32-0300",
+   "libelle_cours_eau": "la Smagne",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N32-0300",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.557968685,
+   "longitude": -0.909736597,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.909736597245296,
+     46.557968684749866
+    ]
+   }
+  },
+  {
+   "code_station": "N3403011",
+   "libelle_station": "L'Yon à la Ferrière",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3403011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85089",
+   "libelle_commune": "LA FERRIERE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 371859.222371428,
+   "coordonnee_y_station": 6633272.603589286,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N34-0300",
+   "libelle_cours_eau": "l'Yon",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N34-0300",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.71916023,
+   "longitude": -1.298198302,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.2981983016663907,
+     46.7191602297492
+    ]
+   }
+  },
+  {
+   "code_station": "N3410001",
+   "libelle_station": "L'Amboise à Saint-André-d'Ornay",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3410001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85191",
+   "libelle_commune": "LA ROCHE-SUR-YON",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 359254.67948933045,
+   "coordonnee_y_station": 6628623.310086393,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N3416100",
+   "libelle_cours_eau": "l'Amboise",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N3416100",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "1f",
+   "libelle_ecoulement": "Ecoulement visible faible",
+   "latitude": 46.671071099,
+   "longitude": -1.459520314,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.4595203144241398,
+     46.67107109856713
+    ]
+   }
+  },
+  {
+   "code_station": "N2013011",
+   "libelle_station": "L'Auzance à Sainte-Flaive-des-Loups",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N2013011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85211",
+   "libelle_commune": "SAINTE-FLAIVE-DES-LOUPS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 349465.7643464693,
+   "coordonnee_y_station": 6625153.787972713,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N20-0300",
+   "libelle_cours_eau": "l'Auzance",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N20-0300",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.634836875,
+   "longitude": -1.584715818,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.58471581777968,
+     46.63483687455419
+    ]
+   }
+  },
+  {
+   "code_station": "N2024011",
+   "libelle_station": "La Ciboule au Girouard",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N2024011",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85211",
+   "libelle_commune": "SAINTE-FLAIVE-DES-LOUPS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 344699.50574350485,
+   "coordonnee_y_station": 6618548.427771118,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N2024000",
+   "libelle_cours_eau": "la Ciboule",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N2024000",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.572955602,
+   "longitude": -1.641839276,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.6418392760765002,
+     46.57295560228275
+    ]
+   }
+  },
+  {
+   "code_station": "N3010001",
+   "libelle_station": "La Maine à Chavagnes les Redoux",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3010001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85066",
+   "libelle_commune": "CHAVAGNES-LES-REDOUX",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 400710.18425386335,
+   "coordonnee_y_station": 6629433.020314923,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N3014600",
+   "libelle_cours_eau": "la Maine",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N3014600",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.698144699,
+   "longitude": -0.918446514,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.9184465137760637,
+     46.69814469857357
+    ]
+   }
+  },
+  {
+   "code_station": "N3100001",
+   "libelle_station": "La Louisière à Rochetrejoux",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3100001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85031",
+   "libelle_commune": "LE BOUPERE",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 396303.74203180475,
+   "coordonnee_y_station": 6640657.46228325,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N3106700",
+   "libelle_cours_eau": "la Louisière",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N3106700",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.797099112,
+   "longitude": -0.983448094,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.9834480940628169,
+     46.79709911196218
+    ]
+   }
+  },
+  {
+   "code_station": "N3100002",
+   "libelle_station": "Le Petit Lay à St Paul en pareds",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N3100002",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85109",
+   "libelle_commune": "LES HERBIERS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 396056.3230538286,
+   "coordonnee_y_station": 6644455.434631794,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N31-0300",
+   "libelle_cours_eau": "le Petit Lay",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N31-0300",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "1f",
+   "libelle_ecoulement": "Ecoulement visible faible",
+   "latitude": 46.831139628,
+   "longitude": -0.989202457,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -0.9892024572566089,
+     46.83113962781531
+    ]
+   }
+  },
+  {
+   "code_station": "M7433111",
+   "libelle_station": "Le Bouvreau aux Brouzils",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M7433111",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85038",
+   "libelle_commune": "LES BROUZILS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 370480.88819956896,
+   "coordonnee_y_station": 6654544.912941433,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M7434800",
+   "libelle_cours_eau": "le Bouvreau",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M7434800",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.90972982,
+   "longitude": -1.331486048,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.3314860484522952,
+     46.90972982015201
+    ]
+   }
+  },
+  {
+   "code_station": "M8100001",
+   "libelle_station": "La Boulogne à Dompierre-sur-Yon",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/M8100001",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "85081",
+   "libelle_commune": "DOMPIERRE-SUR-YON",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 370431.5247741037,
+   "coordonnee_y_station": 6640767.932164879,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "M8--0260",
+   "libelle_cours_eau": "la Boulogne",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/M8--0260",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.785846486,
+   "longitude": -1.322230717,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.3222307165067742,
+     46.78584648643591
+    ]
+   }
+  },
+  {
+   "code_station": "N0113032",
+   "libelle_station": "Le Falleron à Falleron",
+   "uri_station": "http://id.eaufrance.fr/SiteHydro/N0113032",
+   "code_departement": "85",
+   "libelle_departement": "Vendée",
+   "code_commune": "44206",
+   "libelle_commune": "TOUVOIS",
+   "code_region": "52",
+   "libelle_region": "Pays de la Loire",
+   "code_bassin": "04",
+   "libelle_bassin": "Loire-Bretagne",
+   "coordonnee_x_station": 344544.4440393964,
+   "coordonnee_y_station": 6652366.910956065,
+   "code_projection_station": "26",
+   "libelle_projection_station": "RGF93 / Lambert 93",
+   "code_cours_eau": "N01-0300",
+   "libelle_cours_eau": "le Falleron",
+   "uri_cours_eau": "http://id.eaufrance.fr/CoursEau_Carthage2017/N01-0300",
+   "code_campagne": "111021",
+   "code_reseau": "0000000134",
+   "libelle_reseau": "Onde OFB",
+   "uri_reseau": "http://id.eaufrance.fr/dc/0000000134",
+   "date_observation": "2026-09-25",
+   "code_ecoulement": "3",
+   "libelle_ecoulement": "Assec",
+   "latitude": 46.876848313,
+   "longitude": -1.669960201,
+   "geometry": {
+    "type": "Point",
+    "crs": {
+     "type": "name",
+     "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+     }
+    },
+    "coordinates": [
+     -1.6699602011203298,
+     46.87684831335271
+    ]
+   }
+  }
+ ]
+}

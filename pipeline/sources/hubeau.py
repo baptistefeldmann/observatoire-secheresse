@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import Any
 
 import geopandas as gpd
+import httpx
 import pandas as pd
 from shapely.geometry import shape
 
@@ -38,3 +40,22 @@ def valeur(ligne: Any, champ: str) -> Any:
     if isinstance(v, float) and pd.isna(v):
         return None
     return v
+
+
+def par_station(
+    codes: list[str], lire: Callable[[str], list[dict[str, Any]]], source: str
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Applique `lire` à chaque station ; une station en échec est signalée sans bloquer les
+    autres (SPEC §7.2). Renvoie les enregistrements et la liste des erreurs."""
+    enregistrements: list[dict[str, Any]] = []
+    erreurs: list[str] = []
+    for i, code in enumerate(codes, 1):
+        try:
+            lus = lire(code)
+        except (httpx.HTTPError, RuntimeError, ValueError) as exc:
+            erreurs.append(f"{source}:{code} : {exc}")
+            log.warning("%s:%s en échec : %s", source, code, exc)
+            continue
+        enregistrements += [{**e, "code": code} for e in lus]
+        log.info("%s %d/%d %s : %d valeurs", source, i, len(codes), code, len(lus))
+    return enregistrements, erreurs

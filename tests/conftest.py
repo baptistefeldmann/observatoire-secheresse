@@ -36,6 +36,17 @@ ROUTES = {
     ("services-eu1.arcgis.com", "/FeatureServer/0/query", ("resultOffset", "4")):
         "retenues/arcgis_page_2.json",
     ("geobretagne.fr", "/geoserver/dreal_b/wfs", None): "retenues/national.json",
+    # Observations : un seul piézomètre et une seule station hydrométrique ont une fixture ;
+    # les autres stations des fixtures répondent 404 (erreurs par station, SPEC §7.2).
+    ("hubeau.eaufrance.fr", "/niveaux_nappes/chroniques", ("code_bss", "05068X0028/SP010")):
+        "observations/piezo_chroniques.json",
+    ("hubeau.eaufrance.fr", "/hydrometrie/obs_elab", ("code_entite", "M702241010")):
+        "observations/hydro_qmnj.json",
+    ("hubeau.eaufrance.fr", "/ecoulement/observations", None):
+        "observations/onde_observations.json",
+    ("hubeau.eaufrance.fr", "/ecoulement/campagnes", None): "observations/onde_campagnes.json",
+    ("sim.test", "/QUOT_SIM2_2026.csv.gz", None): "sim/QUOT_SIM2_2026.csv.gz",
+    ("sim.test", "/QUOT_SIM2_latest.csv.gz", None): "sim/QUOT_SIM2_latest.csv.gz",
 }  # fmt: skip
 
 # Zonage adapté aux deux communes des fixtures (île de Noirmoutier)

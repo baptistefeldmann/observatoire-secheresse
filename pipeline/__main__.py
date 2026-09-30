@@ -64,11 +64,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.commande == "ingest":
         _referentiels(config)
-        client = ClientHttp(config.sources.http)
-        for source, chemins in ingestion.ingerer(config, client, date.today()).items():
-            print(f"{source:<16} -> {len(chemins)} fichier(s) dans {chemins[0].parent}")
-        print("Autres sources (piézo, débits, ONDE, SIM) : étape 2 en cours.", file=sys.stderr)
-        return 0
+        rapport = ingestion.ingerer(config, ClientHttp(config.sources.http), date.today())
+        for source, n in rapport.lignes.items():
+            print(
+                f"{source:<16} {n:>9} valeurs, {len(rapport.fichiers.get(source, ()))} fichier(s)"
+            )
+        for erreur in rapport.erreurs:
+            print(f"ERREUR {erreur}", file=sys.stderr)
+        return 1 if rapport.erreurs else 0
 
     print(f"« {args.commande} » n'est pas encore implémenté.", file=sys.stderr)
     return 2

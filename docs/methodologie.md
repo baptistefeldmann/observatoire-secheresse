@@ -97,6 +97,19 @@ Vendée : 12 zones.
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.
 
+### Ingestion des observations (`data/raw/`)
+
+| Table | Source | Contenu des colonnes |
+|---|---|---|
+| `obs.piezo_jour` | Hub'Eau `chroniques` | `niveau_ngf` = `niveau_nappe_eau` ; `profondeur` = altitude du repère − niveau ; `qualification` = `statut` (donnée brute, contrôlée niveau 1 ou 2, interprétée) |
+| `obs.debit_jour` | Hub'Eau `obs_elab`, grandeur `QmnJ` | `qmj_ls` en l/s ; `qualification` = `libelle_statut` (donnée validée, pré-validée, brute) ; les stations successives d'un même site restent distinctes, leur raccordement (D4) intervient au calcul des indices |
+| `obs.onde` | Hub'Eau `observations` et `campagnes` | `modalite` = `code_ecoulement` (1 visible, 1a acceptable, 1f faible, 2 non visible, 3 assec) ; `type_campagne` = usuelle ou complémentaire |
+| `obs.meteo_jour` | SIM quotidienne, un fichier par année plus les 60 derniers jours | `precip_mm` = `PRELIQ` + `PRENEI` ; `etp_mm` = `ETP` ; `swi` = `SWI` en fraction ; historique à partir de l'année précédant la période de référence (1990) |
+| `obs.retenue_semaine` | voir D6 | volume et capacité en m³ |
+
+- Historique complet pour Hub'Eau ; en suivi hebdomadaire, réingestion des `fenetre_reingestion_jours` derniers jours. Une valeur corrigée à la source remplace l'ancienne, une valeur inchangée garde sa date d'ingestion.
+- Une station ou une source en échec est consignée dans le rapport d'exécution sans bloquer les autres (SPEC §7.2).
+
 ## Points ouverts
 
 - **Critère d'année exploitable** pour la période de référence. Le spike a utilisé, à titre provisoire, au moins 10 mois avec une mesure pour la piézométrie et au moins 330 jours de `QmnJ` pour les débits. À fixer avant `make reference`.

@@ -17,7 +17,11 @@ def ecrire_parquet(table: pd.DataFrame, chemin: Path) -> None:
 
 
 def _identiques(a: pd.DataFrame, b: pd.DataFrame) -> pd.Series:
-    return ((a == b) | (a.isna() & b.isna())).all(axis=1)
+    """Lignes aux valeurs identiques, deux valeurs manquantes étant égales. Avec les types
+    nullables (`string`), `<NA> == "x"` vaut `<NA>` et non False : on le force à False, sinon
+    une valeur manquante complétée à la source ne serait jamais mise à jour."""
+    egales = (a == b).fillna(False).astype(bool)
+    return (egales | (a.isna() & b.isna())).all(axis=1)
 
 
 def fusionner_par_annee(
@@ -26,15 +30,16 @@ def fusionner_par_annee(
     prefixe: str,
     cles: Sequence[str],
     valeurs: Sequence[str],
+    colonne_date: str = "date",
 ) -> list[Path]:
-    """Fusionne des observations dans `<dossier>/<prefixe>_<annee>.parquet` (année de `date`).
+    """Fusionne des observations dans `<dossier>/<prefixe>_<annee>.parquet` (année de la date).
 
     Une observation déjà stockée et inchangée garde sa ligne d'origine (dont `ingere_le`) ;
     une observation corrigée à la source remplace l'ancienne. Idempotent : relancer avec les
     mêmes données réécrit des fichiers identiques.
     """
     chemins = []
-    annees = pd.to_datetime(nouveau["date"]).dt.year
+    annees = pd.to_datetime(nouveau[colonne_date]).dt.year
     for annee, bloc in nouveau.groupby(annees):
         chemin = dossier / f"{prefixe}_{annee}.parquet"
         bloc = bloc.set_index(list(cles))

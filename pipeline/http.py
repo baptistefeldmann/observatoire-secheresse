@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -40,6 +41,12 @@ class ClientHttp:
             retry=retry_if_exception(_transitoire),
             reraise=True,
         )(self._get_brut)
+        self._telecharger = retry(
+            stop=stop_after_attempt(parametres.tentatives),
+            wait=wait_exponential(min=min(1, attente_max_s), max=attente_max_s),
+            retry=retry_if_exception(_transitoire),
+            reraise=True,
+        )(self._telecharger_brut)
 
     def _get_brut(self, url: str, params: dict[str, Any] | None) -> httpx.Response:
         reponse = self._client.get(url, params=params)
@@ -51,6 +58,16 @@ class ClientHttp:
 
     def contenu(self, url: str) -> bytes:
         return self._get(url, None).content
+
+    def _telecharger_brut(self, url: str, chemin: Path) -> None:
+        with self._client.stream("GET", url) as reponse, chemin.open("wb") as fichier:
+            reponse.raise_for_status()
+            for bloc in reponse.iter_bytes():
+                fichier.write(bloc)
+
+    def telecharger(self, url: str, chemin: Path) -> None:
+        """Téléchargement en flux d'un fichier volumineux, rejoué en entier si interrompu."""
+        self._telecharger(url, chemin)
 
     def pages_hubeau(self, url: str, params: dict[str, Any]) -> Iterator[dict[str, Any]]:
         """Enregistrements de toutes les pages, en suivant `next` (pages v1 comme curseur v2).

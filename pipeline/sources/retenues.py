@@ -25,7 +25,15 @@ from shapely.geometry.base import BaseGeometry
 
 from pipeline.config import Config, SourceRetenues
 from pipeline.http import ClientHttp
-from pipeline.schema import COLONNES_STATION, identifiant_station, metadonnees, normaliser, vide
+from pipeline.schema import (
+    COLONNES_STATION,
+    OBS_RETENUE,
+    identifiant_station,
+    metadonnees,
+    normaliser,
+    normaliser_observations,
+    vide,
+)
 
 log = logging.getLogger(__name__)
 
@@ -174,14 +182,13 @@ def ingerer_observations(
         {
             "station_id": [identifiant_station(SOURCE, c) for c in gdf["code"]],
             "date": gdf["date"],
-            "volume_m3": gdf["volume_m3"].astype("float64"),
-            "capacite_m3": gdf["capacite_m3"].astype("float64"),
+            "volume_m3": gdf["volume_m3"],
+            "capacite_m3": gdf["capacite_m3"],
             "source_donnee": origine,
             "ingere_le": aujourd_hui,
         }
-    ).astype({"station_id": "string", "source_donnee": "string"})
+    )
     doublons = obs.duplicated(["station_id", "date"])
     if doublons.any():
         log.warning("%d relevé(s) en double (même retenue, même date) écartés", int(doublons.sum()))
-        obs = obs[~doublons]
-    return obs.sort_values(["station_id", "date"], ignore_index=True)
+    return normaliser_observations(obs, OBS_RETENUE, ["station_id", "date"])

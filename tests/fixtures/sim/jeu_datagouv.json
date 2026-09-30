@@ -11,6 +11,14 @@
   {
    "title": "SHP_SIM_FRANCE.dbf",
    "url": "https://sim.test/SHP_SIM_FRANCE.dbf"
+  },
+  {
+   "title": "QUOT_SIM2_2026",
+   "url": "https://sim.test/QUOT_SIM2_2026.csv.gz"
+  },
+  {
+   "title": "QUOT_SIM2_latest",
+   "url": "https://sim.test/QUOT_SIM2_latest.csv.gz"
   }
  ]
 }

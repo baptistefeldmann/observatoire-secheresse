@@ -62,3 +62,19 @@ def test_releve_corrige_remplace_l_ancien(tmp_path: Path) -> None:
     assert len(table) == 1
     assert table.loc[0, "volume_m3"] == 2.5
     assert table.loc[0, "ingere_le"] == date(2026, 1, 12)
+
+
+def test_valeur_manquante_completee_a_la_source(tmp_path: Path) -> None:
+    def obs(qualification: str | None, ingere_le: date) -> pd.DataFrame:
+        table = _obs({date(2026, 1, 4): 2.0}, ingere_le)
+        table["qualification"] = pd.Series([qualification], dtype="string")
+        return table
+
+    valeurs = ["volume_m3", "qualification"]
+    stockage.fusionner_par_annee(obs(None, date(2026, 1, 5)), tmp_path, "r", CLES, valeurs)
+    [chemin] = stockage.fusionner_par_annee(
+        obs("validée", date(2026, 1, 12)), tmp_path, "r", CLES, valeurs
+    )
+    table = pd.read_parquet(chemin)
+    assert table.loc[0, "qualification"] == "validée"
+    assert table.loc[0, "ingere_le"] == date(2026, 1, 12)

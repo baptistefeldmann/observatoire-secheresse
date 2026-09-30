@@ -63,3 +63,43 @@ def vide(colonnes: dict[str, str], crs: str) -> gpd.GeoDataFrame:
     """Table sans ligne au schéma donné (ex. aucune retenue sur le territoire)."""
     donnees = pd.DataFrame({c: pd.Series(dtype=t) for c, t in colonnes.items()})
     return gpd.GeoDataFrame(donnees, geometry=gpd.GeoSeries([], crs=crs), crs=crs)
+
+
+# Tables d'observation (`obs.*`, SPEC §5.3) : colonne -> type ; "date" = date sans heure.
+OBS_PIEZO = {
+    "station_id": "string", "date": "date", "niveau_ngf": "float64", "profondeur": "float64",
+    "qualification": "string", "ingere_le": "date",
+}  # fmt: skip
+OBS_DEBIT = {
+    "station_id": "string", "date": "date", "qmj_ls": "float64", "qualification": "string",
+    "ingere_le": "date",
+}  # fmt: skip
+OBS_ONDE = {
+    "station_id": "string", "date_campagne": "date", "modalite": "string",
+    "type_campagne": "string", "ingere_le": "date",
+}  # fmt: skip
+OBS_METEO = {
+    "maille_id": "int64", "date": "date", "precip_mm": "float64", "etp_mm": "float64",
+    "swi": "float64", "ingere_le": "date",
+}  # fmt: skip
+OBS_RETENUE = {
+    "station_id": "string", "date": "date", "volume_m3": "float64", "capacite_m3": "float64",
+    "source_donnee": "string", "ingere_le": "date",
+}  # fmt: skip
+
+
+def normaliser_observations(
+    table: pd.DataFrame, colonnes: dict[str, str], cles: list[str]
+) -> pd.DataFrame:
+    """Colonnes et types du schéma, doublons de clé retirés (le dernier gagne), tri par clé."""
+    manquantes = set(colonnes) - set(table.columns)
+    if manquantes:
+        raise ValueError(f"colonnes manquantes : {sorted(manquantes)}")
+    resultat = pd.DataFrame(index=table.index)
+    for colonne, type_ in colonnes.items():
+        if type_ == "date":
+            resultat[colonne] = pd.to_datetime(table[colonne]).dt.date
+        else:
+            resultat[colonne] = table[colonne].astype(type_)  # type: ignore[call-overload]
+    resultat = resultat.drop_duplicates(cles, keep="last")
+    return resultat.sort_values(cles, ignore_index=True)

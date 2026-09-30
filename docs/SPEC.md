@@ -127,8 +127,8 @@ Toutes les sources sont ouvertes et gratuites. Les identifiants (Météo-France,
 
 - Données quotidiennes de la chaîne Safran-Isba-Modcou, sur une grille d'environ 8 km, publiées sur data.gouv.fr (jeu « Données changement climatique - SIM quotidienne »).
 - Variables utiles : précipitations (liquides + solides), ETP, humidité des sols (SWI).
-- Alternative ou complément : API Données Publiques Climatologie du portail `portail-api.meteofrance.fr` (données station), compte gratuit requis.
-- **À valider en V0** : délai de mise à disposition des données SIM les plus récentes (si le décalage dépasse quelques jours, prévoir un complément par stations ou par l'API).
+- **Validé en V0** ([spike n°1](spikes/01_sim_meteo.md)) : délai d'un jour (fichier `QUOT_SIM2_latest`, 60 jours glissants), un fichier CSV par année depuis 1958, grille de 8 km en Lambert II étendu (coordonnées en hectomètres), 145 mailles pour la Vendée avec un tampon de 1 km, identifiées par `num_maille`.
+- L'API Données Publiques Climatologie de `portail-api.meteofrance.fr` (données station, compte gratuit) n'est pas nécessaire en V1.
 
 ### 4.5 Référentiels (V1)
 
@@ -445,7 +445,7 @@ observatoire-secheresse/
 
 | Sujet | Risque / question | Piste |
 |---|---|---|
-| Latence SIM | Données trop tardives pour un suivi hebdomadaire | Complément par stations Météo-France (API) — à trancher après le spike V0 |
+| Latence SIM | Données trop tardives pour un suivi hebdomadaire | Levé par le spike V0 n°1 : délai d'un jour |
 | Couverture piézométrique | Peu de piézomètres sur le socle, publication par lots | Poids faible de l'IPS dans le bocage, critère de fraîcheur (méthodologie, D1 et D2) |
 | Corrections a posteriori | Indices qui changent rétroactivement | Fenêtre de réingestion de 90 jours, tags DVC hebdomadaires |
 | Nuages (Sentinel-2) | Composites incomplets | Décades au lieu de semaines, bande de qualité, seuil minimal de pixels valides |

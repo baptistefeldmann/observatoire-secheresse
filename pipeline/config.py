@@ -188,6 +188,14 @@ class HubEau(_Modele):
     ecoulement: str
 
 
+class Sim(_Modele):
+    api_datagouv: str
+    jeu_datagouv: str
+    crs_grille: str
+    unite_coordonnees_m: float = Field(gt=0)
+    pas_grille_m: float = Field(gt=0)
+
+
 class Http(_Modele):
     timeout_s: float = Field(gt=0)
     tentatives: int = Field(ge=1)
@@ -196,6 +204,7 @@ class Http(_Modele):
 class Sources(_Modele):
     hubeau: HubEau
     geo_api: str
+    sim: Sim
     http: Http
 
 

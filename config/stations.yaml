@@ -1,0 +1,11 @@
+# Traitements propres à certaines stations du territoire. Fichier facultatif.
+
+# Stations hydrométriques successives d'un même site, fusionnées en une série unique
+# (docs/methodologie.md, D4). Pour chaque date, la valeur retenue est celle de la
+# première station de la liste qui en dispose. Un raccordement n'est ajouté qu'après
+# vérification de la concordance des séries sur leur période commune.
+raccordements_hydro:
+  - site: M7112410
+    libelle: La Sèvre Nantaise à Tiffauges
+    stations: [M711241020, M711241010]
+    verification: "2005-2022 : 5 128 jours communs, corrélation (log) 0,994, rapport médian 0,99"

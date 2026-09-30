@@ -19,7 +19,8 @@ from pyproj.exceptions import CRSError
 DOSSIER_CONFIG_DEFAUT = Path("config")
 VARIABLE_DOSSIER_CONFIG = "SECHERESSE_CONFIG"
 
-Composante = Literal["spi_3", "ips", "debit", "onde"]
+# ONDE n'entre pas dans le composite en V1 (docs/methodologie.md, D3) : affiché seul.
+Composante = Literal["spi_3", "ips", "debit"]
 
 
 class _Modele(BaseModel):
@@ -67,12 +68,21 @@ class Chemins(_Modele):
     rasters: Path
 
 
+class ParametresIps(_Modele):
+    fraicheur_max_jours: int = Field(ge=1)
+
+
+class Indices(_Modele):
+    ips: ParametresIps
+
+
 class Projet(_Modele):
     territoire: Territoire
     crs: str
     emprise: Emprise
     periode_reference: PeriodesReference
     ingestion: Ingestion
+    indices: Indices
     chemins: Chemins
 
     @field_validator("crs")
@@ -143,6 +153,32 @@ class Zones(_Modele):
         return valeur
 
 
+# --- stations.yaml (facultatif) ----------------------------------------------
+
+
+class RaccordementHydro(_Modele):
+    """Stations successives d'un même site, fusionnées en une seule série."""
+
+    site: str
+    libelle: str
+    stations: list[str] = Field(min_length=2)  # priorité décroissante
+    verification: str
+
+
+class Stations(_Modele):
+    raccordements_hydro: list[RaccordementHydro] = []
+
+    @field_validator("raccordements_hydro")
+    @classmethod
+    def _verifier_unicite(cls, valeur: list[RaccordementHydro]) -> list[RaccordementHydro]:
+        codes = [c for r in valeur for c in r.stations]
+        doublons = sorted({c for c in codes if codes.count(c) > 1})
+        if doublons:
+            liste = ", ".join(doublons)
+            raise ValueError(f"station présente dans plusieurs raccordements : {liste}")
+        return valeur
+
+
 # --- sources.yaml ------------------------------------------------------------
 
 
@@ -170,6 +206,7 @@ class Config(_Modele):
     projet: Projet
     classes: Classes
     zones: list[Zone]
+    stations: Stations
     sources: Sources
 
 
@@ -184,10 +221,16 @@ def charger_config(dossier: Path | None = None) -> Config:
     """Charge et valide les fichiers de `dossier` (par défaut `$SECHERESSE_CONFIG` ou `config/`)."""
     if dossier is None:
         dossier = Path(os.environ.get(VARIABLE_DOSSIER_CONFIG, DOSSIER_CONFIG_DEFAUT))
+    fichier_stations = dossier / "stations.yaml"
     return Config(
         projet=Projet.model_validate(_lire_yaml(dossier / "projet.yaml")),
         classes=Classes.model_validate(_lire_yaml(dossier / "classes.yaml")),
         zones=Zones.model_validate(_lire_yaml(dossier / "zones.yaml")).zones,
+        stations=(
+            Stations.model_validate(_lire_yaml(fichier_stations))
+            if fichier_stations.is_file()
+            else Stations()
+        ),
         sources=Sources.model_validate(_lire_yaml(dossier / "sources.yaml")),
     )
 

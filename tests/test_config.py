@@ -96,3 +96,30 @@ def test_seuils_et_classes_incoherents(copie_config: Path) -> None:
     _modifier(copie_config / "classes.yaml", {"seuils": [-1.0, 0.0, 1.0]})
     with pytest.raises(ValidationError, match="une classe de plus"):
         charger_config(copie_config)
+
+
+def test_stations_yaml_facultatif(copie_config: Path) -> None:
+    (copie_config / "stations.yaml").unlink()
+    assert charger_config(copie_config).stations.raccordements_hydro == []
+
+
+def test_station_dans_deux_raccordements(copie_config: Path) -> None:
+    raccordement = {"site": "S", "libelle": "S", "stations": ["A", "B"], "verification": "-"}
+    _modifier(
+        copie_config / "stations.yaml",
+        {"raccordements_hydro": [raccordement, {**raccordement, "stations": ["B", "C"]}]},
+    )
+    with pytest.raises(ValidationError, match="plusieurs raccordements"):
+        charger_config(copie_config)
+
+
+def test_onde_hors_composite(copie_config: Path) -> None:
+    zone = {
+        "zone_id": "A",
+        "libelle": "A",
+        "type_zone": "hydrogeol",
+        "ponderations": {"spi_3": 0.85, "onde": 0.15},
+    }
+    _modifier(copie_config / "zones.yaml", {"zones": [zone]})
+    with pytest.raises(ValidationError):
+        charger_config(copie_config)

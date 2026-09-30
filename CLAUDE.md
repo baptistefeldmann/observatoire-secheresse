@@ -1,6 +1,6 @@
 # CLAUDE.md — Observatoire de la sécheresse Vendée
 
-Lire `docs/SPEC.md` avant toute tâche : c'est la référence pour l'architecture, les sources, le schéma de données et la méthodologie.
+Lire `docs/SPEC.md` avant toute tâche : c'est la référence pour l'architecture, les sources, le schéma de données et la méthodologie. Les décisions de méthode prises depuis (identifiants D1, D2…) sont dans `docs/methodologie.md` et priment sur la spec en cas d'écart.
 
 ## Règles du projet
 
@@ -12,7 +12,7 @@ Lire `docs/SPEC.md` avant toute tâche : c'est la référence pour l'architectur
 - `rasters/` n'est ni versionné par Git ni par DVC.
 - Les secrets (Météo-France, Copernicus, DagsHub) sont lus depuis `.env`. Ne jamais les écrire dans le code, la configuration versionnée ou les projets QGIS. Maintenir `.env.example` à jour.
 - Toute étape du pipeline est idempotente.
-- **Généricité territoriale** : aucune référence à la Vendée dans le code (code département, noms de zones, emprise, noms de fichiers). Tout ce qui est propre au territoire vit dans `config/projet.yaml` (bloc `territoire`) et `config/zones.yaml` ; les noms de fichiers utilisent `territoire.slug`.
+- **Généricité territoriale** : aucune référence à la Vendée dans le code (code département, noms de zones, emprise, noms de fichiers). Tout ce qui est propre au territoire vit dans `config/projet.yaml` (bloc `territoire`), `config/zones.yaml` et `config/stations.yaml` (facultatif) ; les noms de fichiers utilisent `territoire.slug`.
 
 ## Conventions de code
 

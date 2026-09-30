@@ -1,29 +1,30 @@
 # Zones de lecture du territoire et pondérations de l'indice composite (SPEC §6.4).
 # Fichier spécifique au département : à réécrire entièrement pour un autre territoire.
 #
-# Composantes reconnues : spi_3, ips, debit, onde. Les poids d'une zone doivent sommer à 1.
-# Un poids nul signifie que la composante n'est pas pertinente pour la zone (ex. nappes sur socle).
+# Composantes reconnues : spi_3, ips, debit. Les poids d'une zone doivent sommer à 1.
+# ONDE n'entre pas dans le composite en V1 : couche affichée à part (docs/methodologie.md, D3).
 #
 # Le découpage géométrique des zones (masses d'eau BDLISA, zones d'alerte VigiEau...)
-# reste à définir après les spikes V0.
+# reste à définir.
 
 zones:
   - zone_id: SUD_VENDEE
     libelle: Sud-Vendée sédimentaire
     type_zone: hydrogeol
-    ponderations: {spi_3: 0.20, ips: 0.45, debit: 0.20, onde: 0.15}
+    ponderations: {spi_3: 0.25, ips: 0.50, debit: 0.25}
 
   - zone_id: MARAIS_BRETON
     libelle: Marais breton
     type_zone: hydrogeol
-    ponderations: {spi_3: 0.25, ips: 0.35, debit: 0.25, onde: 0.15}
+    ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
 
   - zone_id: MARAIS_POITEVIN
     libelle: Marais poitevin
     type_zone: hydrogeol
-    ponderations: {spi_3: 0.25, ips: 0.35, debit: 0.25, onde: 0.15}
+    ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
 
+  # IPS à 0,15 : nappes de socle peu profondes, en partie redondantes avec les débits (D2).
   - zone_id: BOCAGE
     libelle: Bocage (socle armoricain)
     type_zone: hydrogeol
-    ponderations: {spi_3: 0.35, ips: 0.00, debit: 0.40, onde: 0.25}
+    ponderations: {spi_3: 0.40, ips: 0.15, debit: 0.45}

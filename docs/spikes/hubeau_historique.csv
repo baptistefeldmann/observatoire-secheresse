@@ -1,0 +1,98 @@
+source,code,libelle,masse_eau,duree_s,part_brute,premiere,derniere,n_mesures,pas_median_j,annees_exploitables,annees_ref,retard_j,en_service,cours_eau,part_validee
+piezo,05068X0028/SP010,L'Epine forage du terrain-neuf (L'Epine-85),Ile de Noirmoutier,2.8,0.04725868725868726,1990-12-11,2026-09-18,12950,1.0,35,30,11.0,,,
+piezo,05604X0162/SF1,Forage du Breuil( Notre Dame de Riez - 85),Sables et calcaires du bassin tertiaire de Jaunay libre,1.3,0.10869565217391304,2011-01-01,2026-09-18,5520,1.0,14,10,11.0,,,
+piezo,06101X0202/SP1,"forage du Gd Nati (Oulmes,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.7,0.047881837364064275,1987-07-10,2026-09-18,12322,1.0,38,30,11.0,,,
+piezo,05867X0152/SR1,"forage du Gros Noyer (Fontenay le Comte,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.5,0.02019691996970462,1987-08-31,2026-02-24,11883,1.0,37,29,217.0,,,
+piezo,05861X0113/SF2,"forage de la la Ville Morte(Thiré,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.7,0.06097253716301335,1987-09-20,2026-09-18,11907,1.0,37,29,11.0,,,
+piezo,05857X0185/SF2,"forage (péault,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,0.1,0.5518072289156627,1986-10-10,2002-03-10,415,5.0,6,3,8969.0,,,
+piezo,05596X0058/SF2,Forage de Ker Bossy ( Ile d'Yeu - 85),Ile d'Yeu,1.3,0.2411774832156998,2010-10-19,2026-09-18,5809,1.0,15,10,11.0,,,
+piezo,05865X0098/SF2,"forage du Gd Crochet (Nalliers,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.5,0.007506098705197973,1990-07-31,2026-08-10,10658,1.0,35,30,50.0,,,
+piezo,05634X0013/SF3," forage du Tail (lPouzauges,85)",Bassin versant de la Sèvre Nantaise,2.0,0.018595703751202307,1995-05-10,2026-04-21,9357,1.0,29,24,161.0,,,
+piezo,05348X0255/P3,Forage du Préneau (Challans - 85),Sables et calcaires du bassin tertiaire du marais breton libre,1.2,0.11378144949305295,2011-01-06,2026-06-23,5326,1.0,14,10,98.0,,,
+piezo,06102X0606/P3,"forage d'Aziré (Benet,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,0.5,0.5828162291169451,1990-08-25,2005-09-21,2095,1.0,14,14,7678.0,,,
+piezo,05342X0034/F4,"FORAGE IFREMER(BOUIN,85)",Sables et calcaires du bassin tertiaire du marais breton captif,2.2,0.007573492775286498,1997-10-16,2026-03-10,10035,1.0,26,21,203.0,,,
+piezo,06074X0096/F4,"forage de l'Aurière (Longeville,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.2,0.0364963503649635,1990-09-05,2026-09-18,10138,1.0,33,28,11.0,,,
+piezo,05342X0035/SF5,"Bouin forage du Polder du Dain (Bouin,85)",Sables et calcaires du bassin tertiaire du marais breton captif,1.0,0.0,1997-10-16,2011-05-05,4829,1.0,13,13,5626.0,,,
+piezo,05334X0011/SF7,"l'Epine forage de Brémaud (l'Epine,85)",Ile de Noirmoutier,2.3,0.01565936482801091,1993-02-08,2026-03-04,11367,1.0,31,27,209.0,,,
+piezo,05341X0104/SF7,"Beauvoir forage du Petit Champ de Bataille (Beauvoir,85)",Sables et calcaires du bassin tertiaire du marais breton captif,2.2,0.002879167827621436,1993-11-26,2026-03-09,10767,1.0,30,25,204.0,,,
+piezo,05602X0071/PA28,,Sables et calcaires du bassin tertiaire du marais breton captif,0.2,0.0,2016-05-26,2019-06-21,1122,1.0,2,2,2657.0,,,
+piezo,06082X0060/F9,"forage des Caillettes(St Benoist sur Mer,85)",,1.9,0.04664536741214057,1996-11-15,2026-09-18,9390,1.0,28,23,11.0,,,
+piezo,05625X0006/SC," forage des Ajoncs (la Roche sur Yon,85)",Bassin versant de socle du marais poitevin,0.0,,,,0,,0,0,,,,
+piezo,05342X0082/FE,,Sables et calcaires du bassin tertiaire du marais breton captif,0.7,0.03369122547204739,2018-04-30,2026-03-10,2701,1.0,6,1,203.0,,,
+piezo,06092X0584/FORAGE,"forage du Breuil (le Langon,85)",Calcaires et marnes sous Flandrien du Lias et Dogger du Sud Vendée captifs,2.4,0.054574215660427104,1992-06-30,2026-09-18,11379,1.0,32,27,11.0,,,
+piezo,06093X0118/FORAGE,"forage de Chottard (Montreuil,85)",Calcaires et marnes sous Flandrien du Lias et Dogger du Sud Vendée captifs,2.1,0.008455808335011073,1992-05-31,2026-08-11,9934,1.0,32,27,49.0,,,
+piezo,05342X0078/FORAGE,"Bouin forage polder du Dain (Bouin,85)",Sables et calcaires du bassin tertiaire du marais breton captif,2.4,0.011216566005176877,1993-11-26,2026-03-10,11590,1.0,32,27,203.0,,,
+piezo,06074X0120/F,,Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,1.0,0.09099307159353348,2014-05-27,2026-05-13,4330,1.0,11,6,139.0,,,
+piezo,05342X0080/F,"Beauvoir forage de la Madelaine(Beauvoir,85)",Sables et calcaires du bassin tertiaire du marais breton captif,0.0,,,,0,,0,0,,,,
+piezo,06091X0541/F,"forage de la Bonde coteau (Ste Radégaonde des Noyers,85)",Calcaires et marnes sous Flandrien du Lias et Dogger du Sud Vendée captifs,2.2,0.10391071930976273,1990-08-20,2026-09-04,10663,1.0,35,30,25.0,,,
+piezo,06094X0181/F,"forage de Chalais (St Pierre le Vieux,85)",Calcaires et marnes sous Flandrien du Lias et Dogger du Sud Vendée captifs,2.2,0.07655550024888004,1989-08-20,2026-09-18,10045,1.0,34,29,11.0,,,
+piezo,05363X0222/F,,Bassin versant de la Sèvre Nantaise,0.0,0.0,1990-09-11,1996-12-18,68,32.0,5,5,10877.0,,,
+piezo,05342X0052/F,,Sables et calcaires du bassin tertiaire du marais breton captif,0.8,0.010419522895530574,2016-01-01,2026-03-10,3647,1.0,10,5,203.0,,,
+piezo,05863X0203/F,"FORAGE (ST MARTIN DES FONTAINES,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.3,0.038925019127773526,1994-12-09,2026-08-11,10456,1.0,30,25,49.0,,,
+piezo,06094X0143/F,"forage de Billaude (Doix,85)",Calcaires et marnes sous Flandrien du Lias et Dogger du Sud Vendée captifs,1.8,0.07094907407407407,1996-05-15,2026-09-18,8640,1.0,29,24,11.0,,,
+piezo,05342X0073/F,"Bouin forage du Pont Guérineau (Bouin,85)",Sables et calcaires du bassin tertiaire du marais breton captif,2.3,0.0311284046692607,1993-11-26,2026-03-10,11051,1.0,31,26,203.0,,,
+piezo,05857X0144/F,"FORAGE (LUÇON,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.4,0.03885104032406555,1985-10-10,2026-08-10,10862,1.0,40,30,50.0,,,
+piezo,05068X0054/F,Forage du Bon Port (L'Epine-85),Ile de Noirmoutier,2.5,0.033925016589250165,1991-11-01,2026-03-04,12056,1.0,32,27,209.0,,,
+piezo,05635X0154/F,"forage du stade (chantonnay,85)",Calcaires du Dogger du bassin de Chantonnay libre,1.4,0.07062436028659161,2006-09-26,2026-08-13,6839,1.0,19,14,47.0,,,
+piezo,05858X0116/F,forage Ste-Germaine (Luçon - 85),Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,1.9,0.0,1992-10-05,2018-06-11,8415,1.0,22,22,3032.0,,,
+piezo,05625X0036/F," forage des Ajoncs (la Roche sur Yon,85)",Bassin versant de socle du marais poitevin,2.5,0.06626201315123925,1993-11-23,2026-09-17,11862,1.0,32,27,12.0,,,
+piezo,05612X0007/F,Forage du stade (Chapelle Palluau - 85),Bassin versant de la Vie - Jaunay,1.3,0.0666445623342175,2009-04-09,2026-08-25,6032,1.0,16,11,35.0,,,
+piezo,05076X0019/F,Forage les Murs (Bouin-85),Sables et calcaires du bassin tertiaire du marais breton captif,2.5,0.04218143310977762,1994-01-14,2026-09-18,11332,1.0,30,25,11.0,,,
+piezo,05366X0035/PIEZO,"Les Brouzils forage de Chambord (Brouzils,85)",Bassin versant de la Sèvre Nantaise,2.2,0.0505907300817934,1992-11-05,2026-09-18,9903,1.0,32,27,11.0,,,
+piezo,05863X0206/PIEZO,"forage des vergnères(St Martin des Fontaines,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.3,0.0170114459729077,1995-03-31,2026-08-11,9523,1.0,31,26,49.0,,,
+piezo,06094X0207/PIEZO,"forage (Fontaines,85)",,0.1,0.3159509202453988,1996-05-15,2001-02-20,326,5.0,2,2,9352.0,,,
+piezo,05842X0011/P,"puits(La Mothe Achard,85)",Bassin versant de l'Auzance - Vertonne - petits côtiers,2.0,0.067754362111942,1991-08-05,2026-07-08,8826,1.0,33,28,83.0,,,
+piezo,05366X0017/P,,Bassin versant de la Sèvre Nantaise,0.1,0.0,1990-09-11,1998-03-17,82,32.0,6,6,10423.0,,,
+piezo,05866X0091/SR,"forage du bourg (Pétosse,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.6,0.0764270976616231,1992-05-31,2026-09-18,11632,1.0,33,28,11.0,,,
+piezo,05861X0077/SR,"forage de la fontaine communale (Corpe,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,0.0,,,,0,,0,0,,,,
+piezo,05076X0001/S,Forage Port des Brochets (bouin-85),Sables et calcaires du bassin tertiaire du marais breton captif,2.3,0.014078998826750098,1993-11-26,2025-09-30,10228,1.0,25,21,364.0,,,
+piezo,05858X0203/S,"forage de la Chaume (Corpe,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.6,0.051765512512855674,1993-01-05,2026-08-10,11668,1.0,33,28,50.0,,,
+piezo,05865X0126/S,"forage du Tous Vents (St Aubin la Plaine,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.4,0.05167883211678832,1988-12-20,2026-09-18,10275,1.0,37,30,11.0,,,
+piezo,05865X0068/S,"forage du Petit Magnil (St Etienne de Brillouet,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.6,0.024345658496053177,1985-09-30,2026-08-10,12035,1.0,39,29,50.0,,,
+piezo,BSS004AXJB/X,F2,,0.2,0.24696969696969698,2022-05-01,2025-07-17,660,1.0,0,0,439.0,,,
+piezo,BSS004AXHK/X,F1,,0.2,0.24696969696969698,2022-05-01,2025-07-17,660,1.0,0,0,439.0,,,
+piezo,06102X0620/PZ,"forage d'Aziré (Benet,85)",Calcaires et marnes sous Flandrien du Lias et Dogger du Sud Vendée captifs,2.0,0.06102180812941538,1990-08-25,2026-09-18,9767,1.0,35,30,11.0,,,
+piezo,05857X0145/PZ,"FORAGE (LUÇON,85)",Calcaires et marnes du Lias et Dogger du Sud-Vendée libres,2.5,0.03135368281353683,1985-10-10,2026-09-18,12056,1.0,40,30,11.0,,,
+piezo,05334X0017/PZ,"La Guérinière rue des Francs (la Guérinière,85)",Ile de Noirmoutier,0.8,0.38453333333333334,1992-12-15,2005-02-03,3750,1.0,12,12,7908.0,,,
+piezo,05854X0047/PZ,"forage du Bois Sorin (bournezeau,85)",Bassin versant de socle du marais poitevin,2.2,0.010033777071329228,1992-05-15,2026-08-10,10066,1.0,33,28,50.0,,,
+hydro,M702241010,La Sèvre Nantaise à Saint-Mesmin [La Branle],,30.1,,1994-10-18,2026-09-23,11643,1.0,31,26,6.0,True,la Sèvre Nantaise,0.8531306364339087
+hydro,M703243010,La Sèvre Nantaise à Saint-Laurent-sur-Sèvre,,11.2,,,,0,,0,0,,True,la Sèvre Nantaise,
+hydro,M711241010,La Sèvre Nantaise à Tiffauges - Ancienne Station,,47.9,,1967-10-07,2022-08-25,20024,1.0,54,30,1496.0,True,la Sèvre Nantaise,0.9635437475029964
+hydro,M711241020,La Sèvre Nantaise à Tiffauges,,18.6,,2005-11-09,2026-09-27,6623,1.0,17,12,2.0,True,la Sèvre Nantaise,0.41401177714026877
+hydro,M741301010,La Maine à Saint-Fulgent [Plessis des Landes],,24.8,,1990-12-01,2026-09-27,13073,1.0,35,30,2.0,True,la Maine,0.8962747647823759
+hydro,M743311010,La Petite Maine à Saint-Georges-de-Montaigu [Fromage],,21.5,,1996-10-16,2026-09-27,10939,1.0,29,24,2.0,True,la Petite Maine,0.9084925495931987
+hydro,M811261010,La Boulogne à Rocheservière - La Vacherie,,14.8,,1981-07-17,2006-09-29,6341,1.0,13,7,7305.0,False,la Boulogne,0.9044314776849077
+hydro,M811261020,La Boulogne à Saint-Philbert-de-Bouaine - Le Petit Roquet,,16.4,,2008-05-29,2026-09-25,6686,1.0,17,12,4.0,True,la Boulogne,0.819323960514508
+hydro,M812401010,L'Issoire à Saint-Philbert-de-Bouaine [La Tribouille],,17.5,,1994-09-07,2026-09-27,7437,1.0,18,13,2.0,True,l'Issoire,0.9350544574425171
+hydro,N011301010,Le Falleron à Falleron,,25.2,,1972-11-21,2026-09-27,19394,1.0,49,30,2.0,True,,0.7983396926884604
+hydro,N020421010,Le Pont Abert à la Coudrie à Challans,,21.2,,1995-11-14,2026-09-27,11226,1.0,30,25,2.0,True,le Pont Abert à la Coudrie,0.5879208979155531
+hydro,N100151010,La Vie à la Chapelle-Palluau,,19.0,,1994-10-07,2026-09-24,11587,1.0,31,26,5.0,True,la Vie,0.7263312332786743
+hydro,N101401010,La Petite Boulogne à la Chapelle-Palluau [La Birochère],,20.4,,1997-06-21,2026-09-27,10519,1.0,25,20,2.0,True,la Petite Boulogne,0.699591215895047
+hydro,N120301010,Le Jaunay à Landevieille [Savarière],,10.4,,1969-12-01,1976-12-31,2588,1.0,7,0,18169.0,False,le Jaunay,1.0
+hydro,N120302010,Le Jaunay à la Chapelle-Hermier [Reveillère],,33.7,,1979-02-03,2026-09-27,15716,1.0,40,24,2.0,True,le Jaunay,0.8225375413591245
+hydro,N120302020,Le Jaunay à la Chapelle-Hermier [Reveillère] - Lavaud,,9.8,,1995-12-16,1998-02-04,782,1.0,2,2,10464.0,False,le Jaunay,0.9539641943734015
+hydro,N201301010,L'Auzance à Vairé [Petit Besson],,13.3,,1998-09-18,2014-08-31,5421,1.0,11,11,4412.0,False,l'Auzance,0.7489393100903893
+hydro,N202401010,La Ciboule à la Chapelle-Achard [La Renelière],,24.9,,1981-11-14,2026-09-27,15009,1.0,26,18,2.0,True,la Ciboule,0.5344793124125524
+hydro,N300161010,Le Lay [Grand] à Saint-Prouant [Monsireigne],,31.8,,1968-01-01,2026-09-27,21455,1.0,58,30,2.0,True,le Lay,0.9404334653926824
+hydro,N302401010,Le Loing à Chantonnay [St-Philbert du Pont Charrault],,31.6,,1968-01-01,2026-09-27,21410,1.0,57,30,2.0,True,le Loing,0.9556749182624942
+hydro,N303161010,Le Lay à Chantonnay [St-Philbert du Pont Charraud],,5.0,,1970-01-01,1975-01-28,1133,1.0,3,0,18872.0,False,le Lay,1.0
+hydro,N311301010,Le Petit Lay à Saint-Hilaire-le-Vouhis,,24.3,,1968-01-01,2026-09-27,19005,1.0,51,23,2.0,True,le Petit Lay,0.8925545908971323
+hydro,N322201010,La Smagne à Sainte-Pexine [Les Mottes],,43.9,,1968-01-01,2026-09-27,20323,1.0,50,29,2.0,True,la Smagne,0.9579786448851055
+hydro,N330161010,Le Lay à Mareuil-sur-Lay-Dissais,,34.7,,1969-01-01,2026-09-27,19619,1.0,51,30,2.0,True,le Lay,0.96610428666089
+hydro,N330411010,Le Marillet à Château-Guibert [Barilleraie],,10.4,,1968-01-01,1984-12-30,6015,1.0,14,0,15248.0,False,le Marillet,1.0
+hydro,N330412010,Le Marillet à Saint-Florent-des-Bois [La Clopinière],,22.6,,1984-10-01,2026-09-27,15337,1.0,41,30,2.0,True,le Marillet,0.9535111169068267
+hydro,N330413010,Le Marillet à Mareuil-sur-Lay-Dissais [Moulin Fleury],,18.1,,2003-12-23,2026-09-27,8308,1.0,22,17,2.0,True,le Marillet,0.9512518054886856
+hydro,N330821010,La Doulaye à Moutiers-sur-le-Lay,,23.2,,1969-01-01,1998-04-30,9254,1.0,13,3,10379.0,False,la Doulaye,0.9869245731575534
+hydro,N340301010,L'Yon à Dompierre-sur-Yon,,34.8,,1982-01-01,2026-09-27,16341,1.0,44,30,2.0,True,l'Yon,0.9596107949329906
+hydro,N342301010,L'Yon à Nesmy - Brancaire,,11.8,,1965-01-01,1970-12-31,1825,1.0,5,0,20361.0,False,l'Yon,1.0
+hydro,N342301020,L'Yon à Nesmy - Moulin de Rambourg,,19.3,,2001-10-12,2024-01-14,6823,1.0,17,17,989.0,False,l'Yon,0.9440128975523963
+hydro,N342301021,L'Yon à Chaillé-sous-les-Ormeaux - Rassouillet,,8.5,,2022-12-27,2026-09-27,1364,1.0,3,0,2.0,True,l'Yon,0.8035190615835777
+hydro,N350421010,Le Graon au Champ-Saint-Père,,5.6,,1968-01-01,1969-12-31,731,1.0,2,0,20726.0,False,le Graon,1.0
+hydro,N352000101,Le Lay [Estuaire] à l'Aiguillon-sur-Mer - Le Lay à l'Aiguillon-sur-Mer,,5.7,,,,0,,0,0,,True,le Lay,
+hydro,N510171001,L'Autise à Saint-Hilaire-des-Loges,,36.3,,1971-06-25,2026-07-20,19897,1.0,52,28,71.0,True,,0.8798813891541438
+hydro,N520171001,L'Autise à Nieul-sur-l'Autise,,15.1,,1979-11-02,1979-12-31,60,1.0,0,0,17074.0,False,,1.0
+hydro,N602000101,La Sèvre niortaise à Maillé [Bazoin],,5.1,,,,0,,0,0,,True,,
+hydro,N710181010,La Vendée à Foussais-Payré [Pont d'Izard],,19.6,,1998-02-12,2026-09-27,10415,1.0,27,22,2.0,True,,0.7673547767642823
+hydro,N711401010,La Mère à Antigny [Moulin-Texier],,24.2,,1997-08-01,2026-09-27,10596,1.0,28,23,2.0,True,la Mère,0.7675537938844847
+hydro,N712181010,La Vendée à Pissotte [Pont de Crochet],,26.6,,1993-04-15,2026-08-05,12136,1.0,32,27,55.0,True,,0.8022412656558998
+hydro,N712181201,La Longèves à Fontenay-le-Comte - pont du Gué Migné,,11.1,,2017-07-11,2026-09-20,3185,1.0,6,1,9.0,True,la Longèves,0.18053375196232338

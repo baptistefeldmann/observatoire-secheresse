@@ -14,10 +14,15 @@ def _afficher_config(config: Config) -> None:
     print(f"CRS        : {config.projet.crs}")
     ref = config.projet.periode_reference.hydro_meteo
     print(f"Référence  : {ref.debut}-{ref.fin} (minimum {ref.annees_min} ans)")
+    fraicheur = config.projet.indices.ips.fraicheur_max_jours
+    print(f"IPS        : station exclue du composite au-delà de {fraicheur} j sans mesure")
     print("Zones      :")
     for zone in config.zones:
         poids = ", ".join(f"{k}={v:.2f}" for k, v in zone.ponderations.items())
         print(f"  - {zone.zone_id:<16} {zone.libelle} [{poids}]")
+    print("Raccordements hydro :")
+    for r in config.stations.raccordements_hydro:
+        print(f"  - {r.site:<16} {r.libelle} [{' > '.join(r.stations)}]")
 
 
 COMMANDES_A_VENIR = {

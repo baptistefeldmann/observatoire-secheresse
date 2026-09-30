@@ -28,6 +28,12 @@ periode_reference:
 ingestion:
   fenetre_reingestion_jours: 90   # captation des corrections a posteriori de Hub'Eau
 
+indices:
+  ips:
+    # Un piézomètre dont la dernière mesure est plus ancienne n'entre pas dans le
+    # composite de la semaine (docs/methodologie.md, D1).
+    fraicheur_max_jours: 45
+
 chemins:
   data: data
   rasters: rasters

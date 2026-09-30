@@ -17,7 +17,7 @@ Deux clients consomment les mêmes données : un dashboard web et QGIS.
 ### Principes directeurs
 
 1. **Indices standardisés, jamais de valeurs brutes mélangées.** Chaque variable est comparée à sa propre normale (même station ou même pixel, même période de l'année) avant toute agrégation.
-2. **Lecture par zone hydrogéologique.** La Vendée n'est pas homogène : Sud-Vendée sédimentaire (nappes du Lias-Dogger), marais (breton et poitevin), bocage sur socle armoricain (quasi sans nappe exploitable). Les pondérations de l'indice composite diffèrent par zone.
+2. **Lecture par zone hydrogéologique.** La Vendée n'est pas homogène : Sud-Vendée sédimentaire (nappes du Lias-Dogger), marais (breton et poitevin), bocage sur socle armoricain (nappes peu profondes et réactives). Les pondérations de l'indice composite diffèrent par zone.
 3. **Deux axes distincts** (à partir de la V3) : l'état de la ressource (sécheresse physique) et la pression de la demande. Leur croisement donne la tension. La population et les prélèvements ne sont jamais injectés dans l'indice physique.
 4. **Reproductibilité.** Les données tabulaires sont versionnées (DVC) ; les rasters Sentinel-2 ne le sont pas, car ils sont régénérables à partir de l'archive Copernicus et du code versionné.
 5. **Généricité territoriale.** La Vendée est l'instance de référence, mais le code ne contient aucune référence au territoire. Le département, son `slug` (utilisé dans les noms de fichiers) et les zones sont définis dans `config/projet.yaml` et `config/zones.yaml` ; adapter l'outil à un autre département ne demande que ces deux fichiers, un `.env` et un remote DVC propres.
@@ -103,7 +103,8 @@ Toutes les sources sont ouvertes et gratuites. Les identifiants (Météo-France,
 - Endpoints : `stations`, `chroniques` (historique journalier validé), `chroniques_tr` (temps réel horaire, ~1700 piézomètres en France)
 - Filtre : `code_departement=85`
 - Formats : JSON, GeoJSON, CSV. Pas de clé.
-- État constaté (sept. 2026) : 56 stations en Vendée, dont 41 avec des mesures en 2026, concentrées sur le Sud-Vendée (Lias-Dogger) et le marais breton. Le bocage est quasiment non couvert.
+- État constaté (sept. 2026) : 56 stations en Vendée, dont 41 avec des mesures en 2026, concentrées sur le Sud-Vendée (Lias-Dogger) et le marais breton ; le socle en compte 9, dont 5 avec au moins 15 ans de référence. Aucune station en temps réel, publication par lots : voir le [spike n°2](spikes/02-03_hubeau_historique.md).
+- Seul `niveau_nappe_eau` (cote NGF) est exploitable : `profondeur_nappe` en est une copie ([méthodologie](methodologie.md)).
 - Identifiant stable : `code_bss` (et `bss_id` depuis v1.4.3).
 
 ### 4.2 Hub'Eau — Hydrométrie (V1)
@@ -118,9 +119,9 @@ Toutes les sources sont ouvertes et gratuites. Les identifiants (Météo-France,
 
 - Base : `https://hubeau.eaufrance.fr/api/v1/ecoulement/`
 - Endpoints : `stations`, `campagnes`, `observations`
-- Observations visuelles de l'OFB (écoulement visible / non visible / assec), campagnes de fin mai à fin septembre, pas de mesure continue.
+- Observations visuelles de l'OFB (écoulement visible / non visible / assec), campagnes d'avril à novembre en Vendée (usuelles mensuelles, complémentaires en période de sécheresse), pas de mesure continue. Historique depuis 2012.
 - État constaté : 30 stations actives en Vendée.
-- Traitement : proportion de stations en assec ou en rupture d'écoulement par zone et par campagne. Hors saison, la couche est affichée comme « hors période de suivi », jamais comme zéro.
+- Traitement : proportion de stations en assec ou en rupture d'écoulement par zone et par campagne. **Couche affichée à part, hors indice composite en V1** (méthodologie, D3). Hors saison, la couche est affichée comme « hors période de suivi », jamais comme zéro.
 
 ### 4.4 Météo-France — SIM / SAFRAN (V1)
 
@@ -258,9 +259,9 @@ Le champ `version_methodo` permet de faire coexister plusieurs versions de la m�
 | Variable | Indice | Principe |
 |---|---|---|
 | Précipitations | SPI 1, 3 et 6 mois | Ajustement d'une loi gamma sur les cumuls glissants de la période de référence, transformation en variable normale centrée réduite |
-| Nappes | IPS (indicateur piézométrique standardisé) | Niveau moyen mensuel standardisé par rapport à l'historique de la station pour le même mois, classé en 7 niveaux (très bas → très haut), méthode BRGM |
+| Nappes | IPS (indicateur piézométrique standardisé) | Niveau moyen mensuel standardisé par rapport à l'historique de la station pour le même mois, classé en 7 niveaux (très bas → très haut), méthode BRGM. Station exclue du composite si sa dernière mesure est trop ancienne (méthodologie, D1) |
 | Débits | Indice de débit standardisé | Percentile du débit moyen sur 7 jours par rapport aux débits de la même période sur la référence |
-| Écoulement (ONDE) | Part de stations en assec ou rupture | Par zone et par campagne, uniquement en saison |
+| Écoulement (ONDE) | Part de stations en assec ou rupture | Par zone et par campagne, uniquement en saison. Non standardisé : hors composite en V1 (méthodologie, D3) |
 | Végétation [V2] | Anomalie NDVI et NDMI | Écart standardisé par pixel au composite de même période de la référence, puis agrégé **par classe d'occupation du sol** et par zone |
 
 Note sur les indices spectraux : pour le stress hydrique de la végétation, utiliser le **NDMI** (aussi appelé NDWI de Gao) = (B08 − B11) / (B08 + B11). Le NDWI de McFeeters = (B03 − B08) / (B03 + B08) sert à détecter l'eau libre : il est utile pour suivre la surface des barrages-réservoirs, pas pour le stress de la végétation.
@@ -283,15 +284,15 @@ Les seuils sont paramétrables dans `config/classes.yaml`.
 
 ### 6.4 Indice composite par zone
 
-Moyenne pondérée des indices standardisés disponibles pour la zone, avec les poids définis dans `ref.zone.ponderations`. Proposition initiale, à affiner :
+Moyenne pondérée des indices standardisés disponibles pour la zone, avec les poids définis dans `ref.zone.ponderations` (alimentés par `config/zones.yaml`). Pondérations V1, après les décisions D2 et D3 de la [méthodologie](methodologie.md) :
 
-| Zone | SPI 3 mois | IPS nappes | Débits | ONDE (été) | NDVI/NDMI [V2] |
-|---|---|---|---|---|---|
-| Sud-Vendée sédimentaire | 0,20 | 0,45 | 0,20 | 0,15 | — |
-| Marais | 0,25 | 0,35 | 0,25 | 0,15 | — |
-| Bocage (socle) | 0,35 | 0,00 | 0,40 | 0,25 | — |
+| Zone | SPI 3 mois | IPS nappes | Débits | NDVI/NDMI [V2] |
+|---|---|---|---|---|
+| Sud-Vendée sédimentaire | 0,25 | 0,50 | 0,25 | — |
+| Marais (breton, poitevin) | 0,30 | 0,40 | 0,30 | — |
+| Bocage (socle) | 0,40 | 0,15 | 0,45 | — |
 
-Quand un indice est absent (hors saison ONDE, station en panne), les poids restants sont renormalisés et l'indice composite porte l'information du nombre de composantes utilisées. Le détail des composantes est stocké dans `idx.composite_zone.detail`.
+Quand un indice est absent (station en panne, donnée piézométrique trop ancienne), les poids restants sont renormalisés et l'indice composite porte l'information du nombre de composantes utilisées. Le détail des composantes est stocké dans `idx.composite_zone.detail`.
 
 ---
 
@@ -445,7 +446,7 @@ observatoire-secheresse/
 | Sujet | Risque / question | Piste |
 |---|---|---|
 | Latence SIM | Données trop tardives pour un suivi hebdomadaire | Complément par stations Météo-France (API) — à trancher après le spike V0 |
-| Couverture piézométrique | Bocage sans piézomètre | Poids nul des nappes dans le bocage (§6.4) |
+| Couverture piézométrique | Peu de piézomètres sur le socle, publication par lots | Poids faible de l'IPS dans le bocage, critère de fraîcheur (méthodologie, D1 et D2) |
 | Corrections a posteriori | Indices qui changent rétroactivement | Fenêtre de réingestion de 90 jours, tags DVC hebdomadaires |
 | Nuages (Sentinel-2) | Composites incomplets | Décades au lieu de semaines, bande de qualité, seuil minimal de pixels valides |
 | Historique court de sécheresses | Surapprentissage en V4 | Méthodes simples (régressions, analogues) avant tout modèle d'apprentissage |

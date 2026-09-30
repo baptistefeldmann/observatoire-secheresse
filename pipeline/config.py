@@ -196,6 +196,24 @@ class Sim(_Modele):
     pas_grille_m: float = Field(gt=0)
 
 
+class Sentinel2(_Modele):
+    stac: str
+    collection: str
+    nuages_max_scene_pct: float = Field(ge=0, le=100)
+    scl_valides: list[int] = Field(min_length=1)
+    resolution_m: float = Field(gt=0)
+    offset_boa: float
+    baseline_offset: str
+    facteur_echelle: int = Field(gt=0)
+
+    @field_validator("scl_valides")
+    @classmethod
+    def _verifier_scl(cls, valeur: list[int]) -> list[int]:
+        if any(not 0 <= c <= 11 for c in valeur):
+            raise ValueError("les classes SCL valent de 0 à 11")
+        return valeur
+
+
 class Http(_Modele):
     timeout_s: float = Field(gt=0)
     tentatives: int = Field(ge=1)
@@ -205,6 +223,7 @@ class Sources(_Modele):
     hubeau: HubEau
     geo_api: str
     sim: Sim
+    sentinel2: Sentinel2
     http: Http
 
 

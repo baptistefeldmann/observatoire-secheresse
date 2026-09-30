@@ -25,13 +25,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# [V2] — installé dès la V0 pour le spike Sentinel-2 (`uv sync --extra raster`)
+# [V2] — installé dès la V0 pour le spike Sentinel-2 (`uv sync --extra raster`).
+# Source : Microsoft Planetary Computer (STAC + URLs signées).
 raster = [
     "xarray>=2024.6",
     "rioxarray>=0.17",
     "rasterio>=1.4",
     "odc-stac>=0.3.10",
     "pystac-client>=0.8",
+    "planetary-computer>=1.0",
+    "dask>=2024.8",
 ]
 
 [dependency-groups]

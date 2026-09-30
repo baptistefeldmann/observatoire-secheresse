@@ -138,8 +138,9 @@ Toutes les sources sont ouvertes et gratuites. Les identifiants (Météo-France,
 
 ### 4.6 Sentinel-2 L2A (V2)
 
-- Catalogues STAC : Earth Search (collection `sentinel-2-c1-l2a`, COG sur AWS, sans authentification) ou Copernicus Data Space Ecosystem (compte gratuit).
-- Préférer la collection `sentinel-2-c1-l2a` d'Earth Search, qui harmonise le décalage radiométrique introduit par la baseline de traitement 04.00 (janvier 2022). Si une autre collection est utilisée, appliquer l'offset `BOA_ADD_OFFSET` (-1000) sur les scènes postérieures à cette date, sinon les séries seront discontinues.
+- Catalogue retenu : **Microsoft Planetary Computer** (API STAC, collection `sentinel-2-l2a`, COG sur Azure). Les URL des assets sont signées par `planetary_computer.sign` (jeton SAS d'environ 1 h, appliqué par odc-stac à la construction du graphe Dask : un calcul de plus de 45 minutes doit re-signer). Accès anonyme ; clé facultative `PC_SDK_SUBSCRIPTION_KEY` pour un quota élargi. Même approche que le projet interne `eo_factory`.
+- La collection **n'est pas harmonisée** : appliquer l'offset BOA de −1000 aux scènes de baseline ≥ 04.00 (propriété `s2:processing_baseline`, toutes les scènes depuis janvier 2022), sinon les séries seront discontinues et les indices faussés. Paramètres dans `config/sources.yaml` (`sentinel2`).
+- Alternatives non retenues : Earth Search (`sentinel-2-c1-l2a`, harmonisée), Copernicus Data Space Ecosystem.
 - Bandes : B03, B04, B08, B11, SCL.
 - Visualisation rapide dans QGIS : WMS Copernicus Data Space (configuration à créer dans le compte) et mosaïque annuelle EOX `s2cloudless` en fond.
 
@@ -375,7 +376,7 @@ Orchestration : cron pour la V1 ; Prefect envisageable si le nombre de tâches a
 |---|---|
 | Langage | Python 3.12, gestion d'environnement avec `uv` |
 | Données tabulaires | pandas / geopandas, pyarrow (GeoParquet) |
-| Raster [V2] | xarray, rioxarray, odc-stac, pystac-client, rasterio |
+| Raster [V2] | xarray, rioxarray, odc-stac, pystac-client, planetary-computer, rasterio, dask |
 | Statistiques | scipy (lois gamma pour le SPI), numpy |
 | HTTP | httpx + tenacity |
 | Base de données | PostGIS (image `postgis/postgis`, Docker Compose), SQLAlchemy + GeoAlchemy2, migrations Alembic |

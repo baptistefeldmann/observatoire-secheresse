@@ -16,6 +16,18 @@ sim:
   unite_coordonnees_m: 100    # LAMBX / LAMBY en hectomètres
   pas_grille_m: 8000
 
+# [V2] Sentinel-2 L2A via Microsoft Planetary Computer (STAC, assets signés par planetary_computer.sign).
+# La collection n'est pas harmonisée : offset BOA de -1000 à retrancher pour la baseline >= 04.00.
+sentinel2:
+  stac: https://planetarycomputer.microsoft.com/api/stac/v1
+  collection: sentinel-2-l2a
+  nuages_max_scene_pct: 80
+  scl_valides: [4, 5, 6, 7]       # végétation, sol nu, eau, non classé (SPEC §7.3)
+  resolution_m: 10
+  offset_boa: -1000
+  baseline_offset: "04.00"
+  facteur_echelle: 10000          # COG en int16 : indice x 10 000
+
 http:
   timeout_s: 60
   tentatives: 5          # reprises avec backoff exponentiel (tenacity)

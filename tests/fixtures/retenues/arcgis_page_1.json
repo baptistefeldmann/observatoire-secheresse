@@ -1,0 +1,93 @@
+{
+ "features": [
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 39 (au 27/09/2026)",
+    "ANNEE": 2026,
+    "RETENUES": "SORIN/FINFARINE",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 19840000,
+    "R__VMAXVTOT": "0,355555556",
+    "T__GLOBAL": 35.55555556,
+    "V_TOTBA": 1500000,
+    "Volume_stocké": 420000,
+    "R_VDATEVTOTBA": "0,28",
+    "F__de_remplissage": 28,
+    "X": -1.55223633,
+    "Y": 46.49310521,
+    "ObjectId": 103
+   },
+   "geometry": {
+    "x": -172794.15784641975,
+    "y": 5859724.88732859
+   }
+  },
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 39 (au 27/09/2026)",
+    "ANNEE": 2026,
+    "RETENUES": "MERVENT",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 19840000,
+    "R__VMAXVTOT": "0,355555556",
+    "T__GLOBAL": 35.55555556,
+    "V_TOTBA": 8300000,
+    "Volume_stocké": 4090000,
+    "R_VDATEVTOTBA": "0,492771084",
+    "F__de_remplissage": 49.27710843,
+    "X": -0.762816249,
+    "Y": 46.51993868,
+    "ObjectId": 111
+   },
+   "geometry": {
+    "x": -84916.31640751498,
+    "y": 5864064.86962427
+   }
+  },
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 38 (au 20/09/2026)",
+    "ANNEE": 2026,
+    "RETENUES": "SORIN/FINFARINE",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 21230000,
+    "R__VMAXVTOT": "0,38046595",
+    "T__GLOBAL": 38.04659498,
+    "V_TOTBA": 1500000,
+    "Volume_stocké": 460000,
+    "R_VDATEVTOTBA": "0,306666667",
+    "F__de_remplissage": 30.66666667,
+    "X": -1.55223633,
+    "Y": 46.49310521,
+    "ObjectId": 116
+   },
+   "geometry": {
+    "x": -172794.15784641975,
+    "y": 5859724.88732859
+   }
+  },
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 38 (au 20/09/2026)",
+    "ANNEE": 2026,
+    "RETENUES": "MERVENT",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 21230000,
+    "R__VMAXVTOT": "0,38046595",
+    "T__GLOBAL": 38.04659498,
+    "V_TOTBA": 8300000,
+    "Volume_stocké": 4010000,
+    "R_VDATEVTOTBA": "0,48313253",
+    "F__de_remplissage": 48.31325301,
+    "X": -0.762816249,
+    "Y": 46.51993868,
+    "ObjectId": 124
+   },
+   "geometry": {
+    "x": -84916.31640751498,
+    "y": 5864064.86962427
+   }
+  }
+ ],
+ "exceededTransferLimit": true
+}

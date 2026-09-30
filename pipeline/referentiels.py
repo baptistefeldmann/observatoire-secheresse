@@ -9,11 +9,12 @@ from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+from shapely.geometry.base import BaseGeometry
 
-from pipeline import zonage
+from pipeline import stockage, zonage
 from pipeline.config import Config
 from pipeline.http import ClientHttp
-from pipeline.sources import communes, hydro, meteo, onde, piezo, sandre
+from pipeline.sources import communes, hydro, meteo, onde, piezo, retenues, sandre
 
 log = logging.getLogger(__name__)
 
@@ -22,12 +23,13 @@ def dossier(config: Config) -> Path:
     return config.projet.chemins.data / "referentiels"
 
 
-def ecrire_geoparquet(gdf: gpd.GeoDataFrame, chemin: Path) -> None:
-    """Écriture atomique : un fichier interrompu ne remplace jamais le précédent."""
-    chemin.parent.mkdir(parents=True, exist_ok=True)
-    temporaire = chemin.with_name(chemin.name + ".tmp")
-    gdf.to_parquet(temporaire, index=False)
-    temporaire.replace(chemin)
+def emprise(config: Config) -> BaseGeometry:
+    """Contour du territoire élargi du tampon, d'après `communes.parquet` déjà construit."""
+    chemin = dossier(config) / "communes.parquet"
+    if not chemin.exists():
+        raise FileNotFoundError(f"{chemin} absent : lancer d'abord `make referentiels`")
+    contour = communes.contour(gpd.read_parquet(chemin))
+    return contour.buffer(config.projet.emprise.tampon_m)
 
 
 def construire(config: Config, client: ClientHttp, aujourd_hui: date) -> dict[str, Path]:
@@ -50,6 +52,7 @@ def construire(config: Config, client: ClientHttp, aujourd_hui: date) -> dict[st
         piezo.ingerer_stations(config, client, aujourd_hui),
         hydro.ingerer_stations(config, client),
         onde.ingerer_stations(config, client),
+        retenues.ingerer_stations(config, client, emprise),
     ]
     tables["stations"] = zonage.rattacher_stations(
         gpd.GeoDataFrame(
@@ -62,6 +65,6 @@ def construire(config: Config, client: ClientHttp, aujourd_hui: date) -> dict[st
     chemins = {}
     for nom, gdf in tables.items():
         chemins[nom] = sortie / f"{nom}.parquet"
-        ecrire_geoparquet(gdf, chemins[nom])
+        stockage.ecrire_parquet(gdf, chemins[nom])
         log.info("%s : %d lignes -> %s", nom, len(gdf), chemins[nom])
     return chemins

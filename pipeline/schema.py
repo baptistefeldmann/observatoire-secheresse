@@ -57,3 +57,9 @@ def normaliser(
     donnees = pd.DataFrame(gdf[list(colonnes)]).astype(colonnes)
     resultat = gpd.GeoDataFrame(donnees, geometry=gdf.geometry.to_crs(crs).values, crs=crs)
     return resultat.sort_values(cle).reset_index(drop=True)
+
+
+def vide(colonnes: dict[str, str], crs: str) -> gpd.GeoDataFrame:
+    """Table sans ligne au schéma donné (ex. aucune retenue sur le territoire)."""
+    donnees = pd.DataFrame({c: pd.Series(dtype=t) for c, t in colonnes.items()})
+    return gpd.GeoDataFrame(donnees, geometry=gpd.GeoSeries([], crs=crs), crs=crs)

@@ -1,0 +1,115 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "qry_remplissage_retenues.fid--50b01d09_1a0f3bd13ec_-7db1",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      -0.8549,
+      46.4513
+     ]
+    ]
+   },
+   "geometry_name": "geometry",
+   "properties": {
+    "ogc_fid": 207,
+    "id_inpe": "PLANINPE0000002329194658",
+    "nom1": "Auzay",
+    "nom2": "",
+    "url": "https://siemp.epmp-marais-poitevin.fr/#/overview/Station/station/23955/Auzay/reserveGraph",
+    "capacite_millions_m3": 0.22,
+    "date_mesure": "",
+    "stock_millions_m3": "",
+    "p_cent_remplissage": ""
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "qry_remplissage_retenues.fid--50b01d09_1a0f3bd13ec_-7d56",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      -0.7827,
+      46.5125
+     ]
+    ]
+   },
+   "geometry_name": "geometry",
+   "properties": {
+    "ogc_fid": 297,
+    "id_inpe": "PLANINPE0000002329256404",
+    "nom1": "MERVENT-RETENUE",
+    "nom2": "",
+    "url": "https://www.vendee-eau.fr/letat-de-la-ressource/",
+    "capacite_millions_m3": 8.3,
+    "date_mesure": "27/09/2026",
+    "stock_millions_m3": "4.100",
+    "p_cent_remplissage": "0.490"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "qry_remplissage_retenues.fid--50b01d09_1a0f3bd13ec_-7d4e",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      -1.5495,
+      46.4911
+     ]
+    ]
+   },
+   "geometry_name": "geometry",
+   "properties": {
+    "ogc_fid": 306,
+    "id_inpe": "PLANINPE0000002329898622",
+    "nom1": "FINFARINE-RETENUE",
+    "nom2": "",
+    "url": "https://www.vendee-eau.fr/letat-de-la-ressource/",
+    "capacite_millions_m3": 1.5,
+    "date_mesure": "27/09/2026",
+    "stock_millions_m3": "0.420",
+    "p_cent_remplissage": "0.280"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "qry_remplissage_retenues.fid--50b01d09_1a0f3bd13ec_-7e4a",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      -3.8764,
+      48.3527
+     ]
+    ]
+   },
+   "geometry_name": "geometry",
+   "properties": {
+    "ogc_fid": 54,
+    "id_inpe": "PLANINPE0000002329252565",
+    "nom1": "St Michel",
+    "nom2": "Brennilis",
+    "url": "",
+    "capacite_millions_m3": 13,
+    "date_mesure": "27/09/2026",
+    "stock_millions_m3": "5.300",
+    "p_cent_remplissage": "0.400"
+   }
+  }
+ ],
+ "totalFeatures": 336,
+ "numberMatched": 336,
+ "numberReturned": 336,
+ "timeStamp": "2026-09-30T19:15:10.260Z",
+ "crs": {
+  "type": "name",
+  "properties": {
+   "name": "urn:ogc:def:crs:EPSG::4326"
+  }
+ }
+}

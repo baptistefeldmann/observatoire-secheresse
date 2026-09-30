@@ -7,7 +7,7 @@ import logging
 import sys
 from datetime import date
 
-from pipeline import referentiels
+from pipeline import ingestion, referentiels
 from pipeline.config import Config, charger_config
 from pipeline.http import ClientHttp
 
@@ -64,7 +64,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.commande == "ingest":
         _referentiels(config)
-        print("Ingestion des observations : pas encore implémentée (étape 2).", file=sys.stderr)
+        client = ClientHttp(config.sources.http)
+        for source, chemins in ingestion.ingerer(config, client, date.today()).items():
+            print(f"{source:<16} -> {len(chemins)} fichier(s) dans {chemins[0].parent}")
+        print("Autres sources (piézo, débits, ONDE, SIM) : étape 2 en cours.", file=sys.stderr)
         return 0
 
     print(f"« {args.commande} » n'est pas encore implémenté.", file=sys.stderr)

@@ -170,8 +170,26 @@ class RaccordementHydro(_Modele):
     verification: str
 
 
+class ChampsRetenues(_Modele):
+    retenue: str
+    date: str
+    capacite_m3: str
+    volume_m3: str
+    longitude: str
+    latitude: str
+
+
+class SourceRetenues(_Modele):
+    """Table ArcGIS propre au territoire : une ligne par retenue et par relevé."""
+
+    table_arcgis: str
+    champs: ChampsRetenues
+    alias_repli: dict[str, str] = {}
+
+
 class Stations(_Modele):
     raccordements_hydro: list[RaccordementHydro] = []
+    retenues: SourceRetenues | None = None
 
     @field_validator("raccordements_hydro")
     @classmethod
@@ -237,6 +255,11 @@ class CoucheZonesAlerte(_Modele):
     statut: str
 
 
+class RetenuesNational(_Modele):
+    wfs: str
+    couche: str
+
+
 class Sandre(_Modele):
     masses_eau: CoucheMassesEau
     zones_alerte: CoucheZonesAlerte
@@ -246,6 +269,7 @@ class Sources(_Modele):
     hubeau: HubEau
     geo_api: str
     sandre: Sandre
+    retenues_national: RetenuesNational
     sim: Sim
     sentinel2: Sentinel2
     http: Http

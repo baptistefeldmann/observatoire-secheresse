@@ -137,6 +137,11 @@ Toutes les sources sont ouvertes et gratuites. Les identifiants (Météo-France,
 - Zones d'alerte sécheresse : WFS SANDRE (`ZAS_FXX`, statut « Validé », code `CdZAS`) ; l'API VigiEau donne les mêmes zones sans géométrie.
 - Découpage en zones : union de masses d'eau, éventuellement croisée avec des zones d'alerte ([méthodologie, D5](methodologie.md)) ; `data/referentiels/zones.parquet`.
 
+### 4.5 bis Retenues d'eau potable (V1, ajout du 2026-09-30)
+
+- Remplissage hebdomadaire des retenues (volume, capacité) : table ArcGIS publique propre au territoire (`config/stations.yaml`, bloc `retenues` ; Vendée : données Vendée Eau publiées par le Département, 13 retenues depuis 2019), et repli sur la couche nationale de la DREAL Bretagne (`dreal_b:qry_remplissage_retenues`, dernière semaine seulement).
+- Affiché hors indice composite ([méthodologie, D6](methodologie.md), [spike n°6](spikes/06_retenues.md)).
+
 ### 4.6 Sentinel-2 L2A (V2)
 
 - Catalogue retenu : **Microsoft Planetary Computer** (API STAC, collection `sentinel-2-l2a`, COG sur Azure). Les URL des assets sont signées par `planetary_computer.sign` (jeton SAS d'environ 1 h, appliqué par odc-stac à la construction du graphe Dask : un calcul de plus de 45 minutes doit re-signer). Accès anonyme ; clé facultative `PC_SDK_SUBSCRIPTION_KEY` pour un quota élargi. Même approche que le projet interne `eo_factory`.
@@ -176,7 +181,8 @@ data/
 │   ├── piezo/chroniques_<annee>.parquet
 │   ├── hydro/qmj_<annee>.parquet
 │   ├── onde/observations_<annee>.parquet
-│   └── meteo/sim_<annee>.parquet
+│   ├── meteo/sim_<annee>.parquet
+│   └── retenues/retenues_<annee>.parquet
 ├── indices/
 │   └── indices_hebdo_<annee>.parquet
 ├── referentiels/
@@ -206,7 +212,7 @@ ref.zone (
 
 ref.station (
   station_id     text primary key,     -- '<source>:<code>' ex. 'piezo:05912X0012/F'
-  source         text,                 -- 'piezo' | 'hydro' | 'onde'
+  source         text,                 -- 'piezo' | 'hydro' | 'onde' | 'retenue'
   code           text,
   libelle        text,
   en_service     boolean,
@@ -224,6 +230,7 @@ obs.piezo_jour  (station_id, date, niveau_ngf, profondeur, qualification, ingere
 obs.debit_jour  (station_id, date, qmj_ls, qualification, ingere_le)
 obs.onde        (station_id, date_campagne, modalite, type_campagne, ingere_le)
 obs.meteo_jour  (maille_id, date, precip_mm, etp_mm, swi, ingere_le)
+obs.retenue_semaine (station_id, date, volume_m3, capacite_m3, source_donnee, ingere_le)  -- D6
 
 -- Indices hebdomadaires
 idx.indice_station (station_id, semaine, indice, valeur, classe, periode_ref, version_methodo)

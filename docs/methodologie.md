@@ -79,6 +79,20 @@ Vendée : 12 zones.
 - Le bocage (4 429 km²) est découpé par les zones d'alerte superficielles VigiEau, pour une lecture par bassin versant proche de celle des arrêtés de restriction.
 - Le découpage est figé dans `data/referentiels/zones.parquet`, versionné par DVC. Il ne change que par une reconstruction volontaire des référentiels, par exemple après la révision d'un arrêté-cadre ou de l'état des lieux DCE.
 
+## D6 — Remplissage des retenues d'eau potable
+
+*2026-09-30 · issu du [spike n°6](spikes/06_retenues.md)*
+
+**Constat.** En Vendée, 94 % de l'eau potable vient de retenues de surface. Leur remplissage est l'indicateur le plus suivi localement, mais il mêle apports naturels, prélèvements et gestion (réalimentation, transferts). Son historique est court : 13 retenues suivies chaque semaine depuis 2019.
+
+**Décision.**
+
+- Nouvelle source `retenues` : un relevé hebdomadaire par retenue (volume, capacité), stocké dans `data/raw/retenues/retenues_<annee>.parquet` (table `obs.retenue_semaine`). Les retenues entrent dans le référentiel des stations (source `retenue`), rattachées à leur zone.
+- Source du territoire : la table ArcGIS publique du Département (`config/stations.yaml`), en l'absence d'accord formel de réutilisation. Le relevé archivé dans `data/` fait foi, même si le service disparaît. En repli, ou comme source principale pour un territoire qui n'en a pas, on utilise la couche nationale de la DREAL Bretagne, qui ne donne que la dernière semaine et que le pipeline archive chaque semaine. Les noms nationaux sont ramenés aux codes locaux par `alias_repli`.
+- La semaine ISO se déduit de la **date** du relevé. Les numéros de semaine de la source ne suivent pas la norme ISO (écart dans 26 % des cas).
+- La table du **volume total depuis 2012** n'est pas ingérée : elle est décalée d'une semaine par rapport à la somme des retenues sur une partie des années (jusqu'à 6,8 Mm³ d'écart), et sans date, on ne peut pas la réaligner. Le total est calculé par somme des retenues, à partir de 2019.
+- **Affichage hors indice composite en V1**, comme ONDE : courbe de l'année comparée à l'enveloppe minimum, médiane et maximum de 2019–2025, par retenue et pour le total. L'indicateur relève de l'axe « tension » de la V3 (principe n°3 de la spec).
+
 ## Règles issues des données
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.

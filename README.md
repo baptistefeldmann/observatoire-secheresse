@@ -30,7 +30,7 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 2. Dans `config/projet.yaml`, bloc `territoire` : `code_departement`, `nom`, `slug`.
    En outre-mer, remplacer aussi `crs` par la projection officielle locale.
 3. Réécrire `config/zones.yaml` : zones de lecture du territoire et pondérations de l'indice composite.
-   Vider ou adapter `config/stations.yaml` (raccordements de stations hydrométriques).
+   Vider ou adapter `config/stations.yaml` (raccordements de stations hydrométriques, source locale des retenues ; sans elle, la couche nationale des retenues est utilisée).
 4. Dans `.env` : `COMPOSE_PROJECT_NAME`, `POSTGRES_DB` et, si plusieurs instances tournent sur la même machine, `POSTGRES_PORT`.
 5. Créer un dépôt DagsHub pour le territoire et remplacer l'URL du remote : `dvc remote modify origin url https://dagshub.com/<compte>/<depot>.dvc`, puis `make dvc-auth`.
 6. `make config` pour valider, puis `make ingest` et `make reference`.

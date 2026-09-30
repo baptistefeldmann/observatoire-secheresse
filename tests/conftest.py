@@ -14,7 +14,7 @@ from pipeline.http import ClientHttp
 RACINE = Path(__file__).resolve().parents[1]
 FIXTURES = Path(__file__).parent / "fixtures"
 
-# (hôte, fin du chemin, couche WFS ou None) -> fichier de fixture
+# (hôte, fin du chemin, paramètre de requête discriminant ou None) -> fichier de fixture
 ROUTES = {
     ("hubeau.eaufrance.fr", "/niveaux_nappes/stations", None): "hubeau/piezo_stations.json",
     ("hubeau.eaufrance.fr", "/hydrometrie/referentiel/stations", None):
@@ -25,10 +25,17 @@ ROUTES = {
     ("sim.test", "/SHP_SIM_FRANCE.shp", None): "sim/SHP_SIM_FRANCE.shp",
     ("sim.test", "/SHP_SIM_FRANCE.shx", None): "sim/SHP_SIM_FRANCE.shx",
     ("sim.test", "/SHP_SIM_FRANCE.dbf", None): "sim/SHP_SIM_FRANCE.dbf",
-    ("services.sandre.eaufrance.fr", "/geo/sandre", "sa:PolygMasseDEauSouterraine_VEDL2019_FXX"):
+    ("services.sandre.eaufrance.fr", "/geo/sandre",
+        ("TYPENAMES", "sa:PolygMasseDEauSouterraine_VEDL2019_FXX")):
         "sandre/masses_eau_polygones.json",
-    ("services.sandre.eaufrance.fr", "/geo/sandre", "sa:MasseDEauSouterraine_VEDL2019_FXX"):
+    ("services.sandre.eaufrance.fr", "/geo/sandre",
+        ("TYPENAMES", "sa:MasseDEauSouterraine_VEDL2019_FXX")):
         "sandre/masses_eau_noms.json",
+    ("services-eu1.arcgis.com", "/FeatureServer/0/query", ("resultOffset", "0")):
+        "retenues/arcgis_page_1.json",
+    ("services-eu1.arcgis.com", "/FeatureServer/0/query", ("resultOffset", "4")):
+        "retenues/arcgis_page_2.json",
+    ("geobretagne.fr", "/geoserver/dreal_b/wfs", None): "retenues/national.json",
 }  # fmt: skip
 
 # Zonage adapté aux deux communes des fixtures (île de Noirmoutier)
@@ -47,11 +54,11 @@ ZONAGE_FIXTURES = Zonage(
 
 
 def repondre(requete: httpx.Request) -> httpx.Response:
-    for (hote, fin, couche), fichier in ROUTES.items():
+    for (hote, fin, parametre), fichier in ROUTES.items():
         if (
             requete.url.host == hote
             and requete.url.path.endswith(fin)
-            and (couche is None or requete.url.params.get("TYPENAMES") == couche)
+            and (parametre is None or requete.url.params.get(parametre[0]) == parametre[1])
         ):
             return httpx.Response(200, content=(FIXTURES / fichier).read_bytes())
     return httpx.Response(404, text=f"pas de fixture pour {requete.url}")

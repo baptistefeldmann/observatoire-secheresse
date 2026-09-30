@@ -1,0 +1,71 @@
+{
+ "features": [
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 37 (au 13/09/2026)",
+    "ANNEE": 2026,
+    "RETENUES": "SORIN/FINFARINE",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 22420000,
+    "R__VMAXVTOT": "0,401792115",
+    "T__GLOBAL": 40.17921147,
+    "V_TOTBA": 1500000,
+    "Volume_stocké": 480000,
+    "R_VDATEVTOTBA": "0,32",
+    "F__de_remplissage": 32,
+    "X": -1.55223633,
+    "Y": 46.49310521,
+    "ObjectId": 129
+   },
+   "geometry": {
+    "x": -172794.15784641975,
+    "y": 5859724.88732859
+   }
+  },
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 37 (au 13/09/2026)",
+    "ANNEE": 2026,
+    "RETENUES": "MERVENT",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 22420000,
+    "R__VMAXVTOT": "0,401792115",
+    "T__GLOBAL": 40.17921147,
+    "V_TOTBA": 8300000,
+    "Volume_stocké": 4150000,
+    "R_VDATEVTOTBA": "0,5",
+    "F__de_remplissage": 50,
+    "X": -0.762816249,
+    "Y": 46.51993868,
+    "ObjectId": 137
+   },
+   "geometry": {
+    "x": -84916.31640751498,
+    "y": 5864064.86962427
+   }
+  },
+  {
+   "attributes": {
+    "SEMAINE": "Semaine 01 (au 06/01/2019)",
+    "ANNEE": 2019,
+    "RETENUES": "MOULIN PAPON",
+    "V_MAXIMALE": 55800000,
+    "V_TOTAL": 34990000,
+    "R__VMAXVTOT": "0,627060932",
+    "T__GLOBAL": 62.70609319,
+    "V_TOTBA": 4400000,
+    "Volume_stocké": null,
+    "R_VDATEVTOTBA": "0",
+    "F__de_remplissage": 0,
+    "X": -1.405183666,
+    "Y": 46.70508251,
+    "ObjectId": 5125
+   },
+   "geometry": {
+    "x": -156424.33017014543,
+    "y": 5894068.189525626
+   }
+  }
+ ],
+ "exceededTransferLimit": false
+}

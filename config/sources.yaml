@@ -28,6 +28,12 @@ sim:
   unite_coordonnees_m: 100    # LAMBX / LAMBY en hectomètres
   pas_grille_m: 8000
 
+# Remplissage des retenues, couche nationale de la DREAL Bretagne (GéoBretagne, WFS) :
+# dernière semaine seulement, archivée chaque semaine par le pipeline (D6).
+retenues_national:
+  wfs: https://geobretagne.fr/geoserver/dreal_b/wfs
+  couche: dreal_b:qry_remplissage_retenues
+
 # [V2] Sentinel-2 L2A via Microsoft Planetary Computer (STAC, assets signés par planetary_computer.sign).
 # La collection n'est pas harmonisée : offset BOA de -1000 à retrancher pour la baseline >= 04.00.
 sentinel2:

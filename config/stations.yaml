@@ -9,3 +9,20 @@ raccordements_hydro:
     libelle: La Sèvre Nantaise à Tiffauges
     stations: [M711241020, M711241010]
     verification: "2005-2022 : 5 128 jours communs, corrélation (log) 0,994, rapport médian 0,99"
+
+# Retenues d'eau potable (docs/methodologie.md, D6). Source propre au territoire : table ArcGIS
+# publique du Département (données Vendée Eau), une ligne par retenue et par semaine, depuis 2019.
+# En cas d'échec, repli sur la couche nationale de la DREAL Bretagne (semaine en cours seulement,
+# voir sources.yaml). Sans ce bloc, la couche nationale est la source principale.
+retenues:
+  table_arcgis: https://services-eu1.arcgis.com/hxI0sAfc91bJCkko/arcgis/rest/services/TABL_2021_01_07_FICHIER_SOURCE_DASHBOARD_BARRAGES_TEST/FeatureServer/0
+  champs:
+    retenue: RETENUES
+    date: SEMAINE             # libellé « Semaine NN (au JJ/MM/AAAA) » : seule la date est lue
+    capacite_m3: V_TOTBA
+    volume_m3: Volume_stocké
+    longitude: X
+    latitude: Y
+  # Code national (couche de repli) -> code local, après normalisation des noms
+  alias_repli:
+    FINFARINE: SORIN_FINFARINE

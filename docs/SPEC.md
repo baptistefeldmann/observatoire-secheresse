@@ -79,7 +79,7 @@ La V1 doit être complète et fonctionnelle avant d'attaquer la V2. Les phases s
 
 | Donnée | Emplacement | Versionnage |
 |---|---|---|
-| Code, configuration, schéma SQL | Git (DagsHub) | Git |
+| Code, configuration, schéma SQL | Git (GitHub, relié à DagsHub) | Git |
 | Données brutes API (GeoParquet) | `data/raw/` | DVC → remote DagsHub |
 | Indices calculés (GeoParquet) | `data/indices/` | DVC → remote DagsHub |
 | Référentiels (stations, zones) | `data/referentiels/` | DVC → remote DagsHub |
@@ -89,7 +89,7 @@ La V1 doit être complète et fonctionnelle avant d'attaquer la V2. Les phases s
 
 **Règle clé : PostGIS n'est jamais la source de vérité.** Un `dvc pull` suivi de `make db-rebuild` doit reconstruire intégralement la base.
 
-Le remote DVC DagsHub est distinct du bucket S3 DagsHub : on utilise uniquement le **remote DVC**. Quota gratuit : 10 Go par dépôt, largement suffisant pour les données tabulaires si on respecte le découpage par année (§5.2).
+Le code est hébergé sur GitHub (intégration continue possible avec GitHub Actions) ; le dépôt DagsHub y est relié et fournit le remote DVC. Le remote DVC DagsHub est distinct du bucket S3 DagsHub : on utilise uniquement le **remote DVC** (`https://dagshub.com/<compte>/<depot>.dvc`, authentification par jeton, copiée de `.env` vers `.dvc/config.local` par `make dvc-auth`). Quota gratuit : 10 Go par dépôt, largement suffisant pour les données tabulaires si on respecte le découpage par année (§5.2). Validé par le [spike n°5](spikes/05_dvc_dagshub.md).
 
 ---
 

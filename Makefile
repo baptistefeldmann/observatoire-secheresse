@@ -1,4 +1,4 @@
-.PHONY: help install up down db-roles ingest reference hebdo db-rebuild config test lint format
+.PHONY: help install dvc-auth up down db-roles ingest reference hebdo db-rebuild config test lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -7,6 +7,15 @@ help:  ## Liste des commandes
 
 install:  ## Installe l'environnement Python
 	uv sync
+
+dvc-auth:  ## Copie les identifiants DagsHub de .env dans .dvc/config.local (non versionné)
+	@test -f .env || { echo ".env manquant (voir .env.example)"; exit 1; }
+	@set -a; . ./.env; set +a; \
+	test -n "$$DAGSHUB_USER" -a -n "$$DAGSHUB_TOKEN" || { echo "DAGSHUB_USER ou DAGSHUB_TOKEN vide dans .env"; exit 1; }; \
+	uv run dvc remote modify --local origin auth basic && \
+	uv run dvc remote modify --local origin user "$$DAGSHUB_USER" && \
+	uv run dvc remote modify --local origin password "$$DAGSHUB_TOKEN" && \
+	echo "Identifiants DagsHub configurés pour le remote DVC « origin »"
 
 up:  ## Démarre PostGIS
 	docker compose up -d --wait

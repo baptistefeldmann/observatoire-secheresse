@@ -21,6 +21,7 @@ dependencies = [
     "geoalchemy2>=0.15",
     "psycopg[binary]>=3.2",
     "alembic>=1.13",
+    "dvc>=3.50",
 ]
 
 [project.optional-dependencies]

@@ -1,4 +1,4 @@
-.PHONY: help install dvc-auth up down db-roles referentiels ingest reference hebdo db-rebuild config test lint format
+.PHONY: help install dvc-auth up down db-roles referentiels ingest reference hebdo db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -46,6 +46,14 @@ db-rebuild:  ## Reconstruit PostGIS depuis data/
 
 test:  ## Tests (sans réseau)
 	uv run pytest
+
+BASE_TEST = secheresse_test_db
+test-db:  ## Test d'intégration PostGIS sur une base jetable (Docker, port 55433)
+	@docker run -d --rm --name $(BASE_TEST) -e POSTGRES_PASSWORD=test -e POSTGRES_DB=test \
+		-p 127.0.0.1:55433:5432 postgis/postgis:16-3.4 >/dev/null
+	@until docker exec $(BASE_TEST) pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; do sleep 1; done
+	@SECHERESSE_TEST_POSTGRES_URL=postgresql+psycopg://postgres:test@localhost:55433/test \
+		uv run pytest -q tests/test_db.py; statut=$$?; docker stop $(BASE_TEST) >/dev/null; exit $$statut
 
 lint:  ## ruff + mypy
 	uv run ruff check .

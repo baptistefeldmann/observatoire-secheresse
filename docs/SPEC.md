@@ -420,7 +420,7 @@ observatoire-secheresse/
 │   ├── indices/                 # spi, ips, debit, onde, composite
 │   ├── reference/               # calcul ponctuel des normales
 │   ├── raster/                  # [V2]
-│   ├── db/                      # chargement PostGIS, migrations
+│   ├── db/                      # chargement PostGIS (db-rebuild), migrations Alembic (db/migrations/)
 │   └── run_hebdo.py
 ├── api/
 ├── dashboard/

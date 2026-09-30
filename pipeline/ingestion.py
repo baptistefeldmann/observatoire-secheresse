@@ -88,7 +88,7 @@ def ingerer(
         return hydro.ingerer_observations(config, client, stations, depuis, aujourd_hui)
 
     def lire_onde() -> Lecture:
-        return onde.ingerer_observations(config, client, depuis, aujourd_hui)
+        return onde.ingerer_observations(config, client, stations, depuis, aujourd_hui)
 
     def lire_retenues() -> Lecture:
         return retenues.ingerer_observations(config, client, emprise, aujourd_hui), []

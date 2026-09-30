@@ -32,7 +32,8 @@ make ingest        # ingestion complète de l'historique
 make reference     # calcul des normales
 make hebdo         # job hebdomadaire
 make db-rebuild    # reconstruit PostGIS depuis data/
-make test
+make test          # sans réseau ni service externe
+make test-db       # intégration PostGIS sur une base jetable (Docker)
 make lint
 ```
 

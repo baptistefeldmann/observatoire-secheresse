@@ -9,6 +9,8 @@ from datetime import date
 
 from pipeline import ingestion, referentiels
 from pipeline.config import Config, charger_config
+from pipeline.db import chargement
+from pipeline.db.connexion import moteur
 from pipeline.http import ClientHttp
 
 
@@ -38,7 +40,6 @@ def _referentiels(config: Config) -> None:
 COMMANDES_A_VENIR = {
     "reference": "calcul des normales",
     "hebdo": "job hebdomadaire",
-    "db-rebuild": "reconstruction de PostGIS depuis data/",
 }
 
 
@@ -48,6 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     sous.add_parser("config", help="valide et affiche la configuration")
     sous.add_parser("referentiels", help="communes, mailles SIM et stations (data/referentiels/)")
     sous.add_parser("ingest", help="ingestion complète : référentiels puis sources")
+    sous.add_parser("db-rebuild", help="reconstruction de PostGIS depuis data/")
     for nom, aide in COMMANDES_A_VENIR.items():
         sous.add_parser(nom, help=aide)
     args = parser.parse_args(argv)
@@ -72,6 +74,10 @@ def main(argv: list[str] | None = None) -> int:
         for erreur in rapport.erreurs:
             print(f"ERREUR {erreur}", file=sys.stderr)
         return 1 if rapport.erreurs else 0
+    if args.commande == "db-rebuild":
+        for table, n in chargement.reconstruire(config, moteur()).items():
+            print(f"{table:<22} {n:>9} lignes")
+        return 0
 
     print(f"« {args.commande} » n'est pas encore implémenté.", file=sys.stderr)
     return 2

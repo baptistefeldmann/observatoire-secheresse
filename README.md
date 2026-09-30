@@ -15,7 +15,8 @@ make dvc-auth             # identifiants DagsHub (DAGSHUB_USER, DAGSHUB_TOKEN da
 dvc pull                  # récupère data/ depuis DagsHub
 make config               # vérifie la configuration du territoire
 make up                   # démarre PostGIS
-make test
+make db-rebuild           # charge PostGIS depuis data/ (environ 1 min)
+make test                 # tests sans réseau ; make test-db : intégration PostGIS (Docker)
 ```
 
 `make help` liste toutes les commandes.

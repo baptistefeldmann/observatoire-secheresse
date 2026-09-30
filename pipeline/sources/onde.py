@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date
 from typing import Any
 
@@ -23,6 +24,8 @@ from pipeline.sources import hubeau
 
 SOURCE = "onde"
 ETAT_ACTIF = "Active"
+
+log = logging.getLogger(__name__)
 
 
 def ingerer_stations(config: Config, client: ClientHttp) -> gpd.GeoDataFrame:
@@ -62,10 +65,15 @@ TAILLE_PAGE = 5000
 
 
 def ingerer_observations(
-    config: Config, client: ClientHttp, depuis: date | None, aujourd_hui: date
+    config: Config,
+    client: ClientHttp,
+    stations: gpd.GeoDataFrame,
+    depuis: date | None,
+    aujourd_hui: date,
 ) -> tuple[pd.DataFrame, list[str]]:
     """`obs.onde` du département : une modalité par station et par campagne. Le type de
-    campagne (usuelle, complémentaire) vient de l'endpoint `campagnes`."""
+    campagne (usuelle, complémentaire) vient de l'endpoint `campagnes`. Seules les stations du
+    référentiel sont gardées (clé étrangère de `obs.onde`)."""
     dep = config.projet.territoire.code_departement
     base = config.sources.hubeau.ecoulement
     filtre: dict[str, Any] = {"code_departement": dep, "size": TAILLE_PAGE, "format": "json"}
@@ -92,4 +100,10 @@ def ingerer_observations(
         }
     )
     obs = obs.dropna(subset=["modalite"])
+    connues = obs["station_id"].isin(stations.loc[stations["source"] == SOURCE, "station_id"])
+    if not connues.all():
+        inconnues = sorted(obs.loc[~connues, "station_id"].unique())
+        log.warning("ONDE : %d observation(s) de stations hors référentiel écartées : %s",
+                    int((~connues).sum()), inconnues[:5])  # fmt: skip
+        obs = obs[connues]
     return normaliser_observations(obs, OBS_ONDE, ["station_id", "date_campagne"]), []

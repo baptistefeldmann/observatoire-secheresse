@@ -31,7 +31,8 @@ def _lire(config: Config, source: str, fichier: str) -> pd.DataFrame:
 def test_toutes_les_sources_ecrites(config: Config, rapport: ingestion.Rapport) -> None:
     assert rapport.lignes["piezo"] == 9
     assert rapport.lignes["hydro"] == 2
-    assert rapport.lignes["onde"] == 30
+    # 30 observations ONDE, mais seules 3 stations sur 30 sont dans le référentiel des fixtures
+    assert rapport.lignes["onde"] == 3
     for source, fichier in [
         ("piezo", "chroniques_2026.parquet"),
         ("hydro", "qmj_2026.parquet"),

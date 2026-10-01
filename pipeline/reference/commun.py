@@ -1,0 +1,61 @@
+"""Outils communs au calcul des normales (SPEC §6.1, méthodologie D7)."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+
+import pandas as pd
+
+from pipeline.config import Config, Periode
+
+SEMAINE_MAX = 52  # la semaine ISO 53, rare, utilise la normale de la semaine 52
+
+
+def dossier(config: Config) -> Path:
+    return config.projet.chemins.data / "normales"
+
+
+def lire_brut(config: Config, source: str, prefixe: str) -> pd.DataFrame:
+    fichiers = sorted((config.projet.chemins.data / "raw" / source).glob(f"{prefixe}_*.parquet"))
+    if not fichiers:
+        raise FileNotFoundError(f"aucune donnée {source} : lancer d'abord `make ingest`")
+    return pd.concat([pd.read_parquet(f) for f in fichiers], ignore_index=True)
+
+
+def semaine_ref(dates: pd.Series) -> pd.Series:
+    """Numéro de semaine ISO servant de clé aux normales (53 ramenée à 52)."""
+    return pd.to_datetime(dates).dt.isocalendar().week.clip(upper=SEMAINE_MAX).astype("int64")
+
+
+@dataclass(frozen=True)
+class Choix:
+    annees: list[int]  # années retenues ; vide = pas de normale possible
+    periode_ref: str  # « 1991-2020 », ou période effective si hors référence
+    hors_reference: bool  # avertissement stocké avec l'indice (SPEC §6.1)
+
+
+def choisir_annees(valides: set[int], ref: Periode, rupture: int | None = None) -> Choix:
+    """Années de la période de référence si elles sont assez nombreuses ; à défaut, toutes les
+    années disponibles, avec avertissement ; sinon aucune.
+
+    Station à rupture confirmée (D8) : seules les années à partir de la rupture comptent,
+    admises dès `annees_min_apres_rupture`, toujours avec avertissement."""
+    minimum = ref.annees_min or 1
+    if rupture is not None:
+        apres = sorted(a for a in valides if a >= rupture)
+        if len(apres) >= (ref.annees_min_apres_rupture or minimum):
+            return Choix(apres, f"{apres[0]}-{apres[-1]}", True)
+        return Choix([], "", True)
+    dans_ref = sorted(a for a in valides if ref.debut <= a <= ref.fin)
+    if len(dans_ref) >= minimum:
+        return Choix(dans_ref, f"{ref.debut}-{ref.fin}", False)
+    if len(valides) >= minimum:
+        toutes = sorted(valides)
+        return Choix(toutes, f"{toutes[0]}-{toutes[-1]}", True)
+    return Choix([], "", True)
+
+
+def ruptures(config: Config) -> dict[str, int]:
+    """station_id -> première année du nouveau régime (stations.yaml, D8)."""
+    return {r.station: r.annee for r in config.stations.ruptures}

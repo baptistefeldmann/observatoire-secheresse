@@ -21,6 +21,7 @@ periode_reference:
     debut: 1991
     fin: 2020
     annees_min: 15           # en deçà, pas d'indice ; entre annees_min et la période complète, avertissement
+    annees_min_apres_rupture: 8   # station à rupture confirmée : référence courte admise (D8)
   sentinel2:                 # [V2]
     debut: 2018
     fin: 2025
@@ -35,6 +36,19 @@ indices:
     # Un piézomètre dont la dernière mesure est plus ancienne n'entre pas dans le
     # composite de la semaine (docs/methodologie.md, D1).
     fraicheur_max_jours: 45
+    jours_min_mois: 10           # un mois compte dans la référence s'il a au moins 10 jours (D7)
+  debit:
+    jours_min_q7: 5              # moyenne sur 7 jours calculée si au moins 5 jours sont renseignés (D7)
+    demi_fenetre_jours: 15       # référence : mêmes dates à ±15 jours, sur chaque année (D7)
+    part_min_fenetre: 0.5        # une année compte si la moitié au moins de sa fenêtre est renseignée (D7)
+  ruptures:
+    # Détection à chaque `make reference` (test de Pettitt sur les moyennes annuelles, D8)
+    seuil_p: 0.01
+    mois_min_annee: 10           # piézométrie : année complète si 10 mois valides
+    jours_min_annee: 330         # débits : année complète si 330 jours
+  spi:
+    # Cumuls glissants de pluie terminés le dimanche de la semaine ISO (SPI 1, 3 et 6 mois)
+    fenetres_jours: {spi_1: 30, spi_3: 91, spi_6: 182}
 
 chemins:
   data: data

@@ -93,6 +93,47 @@ Vendée : 12 zones.
 - La table du **volume total depuis 2012** n'est pas ingérée : elle est décalée d'une semaine par rapport à la somme des retenues sur une partie des années (jusqu'à 6,8 Mm³ d'écart), et sans date, on ne peut pas la réaligner. Le total est calculé par somme des retenues, à partir de 2019.
 - **Affichage hors indice composite en V1**, comme ONDE : courbe de l'année comparée à l'enveloppe minimum, médiane et maximum de 2019–2025, par retenue et pour le total. L'indicateur relève de l'axe « tension » de la V3 (principe n°3 de la spec).
 
+## D7 — Normales de référence
+
+*2026-09-30*
+
+**Décision.** Une période compte dans la référence selon un critère **par période**, et non par année entière. Le SPI d'une zone se calcule sur la **pluie moyenne de la zone** (option A). Paramètres dans `config/projet.yaml` (`indices`), calcul par `make reference`, résultats dans `data/normales/` (versionné par DVC).
+
+| Indice | Échelle | Échantillon de référence | Normale stockée |
+|---|---|---|---|
+| SPI 1, 3 et 6 mois | zone | cumuls de pluie de 30, 91 et 182 jours terminés le dimanche de chaque semaine ISO, une valeur par année | par zone, fenêtre et semaine : paramètres d'une loi gamma (forme, échelle) et part de cumuls nuls `q0` |
+| IPS | piézomètre | niveau moyen mensuel, un mois comptant s'il a au moins 10 jours de mesures | par station et mois : les moyennes mensuelles de référence |
+| Indice de débit | station hydrométrique (séries raccordées, D4) | débit moyen sur 7 jours (au moins 5 jours renseignés), aux dates situées à ±15 jours du dimanche de la semaine ; une année compte si la moitié au moins de sa fenêtre est renseignée | par station et semaine : les valeurs de référence |
+
+- **Pluie d'une zone** : moyenne des mailles SIM pondérée par la surface de chaque maille dans la zone. Standardiser après agrégation garde le SPI de zone sur l'échelle des 7 classes. La moyenne de SPI de mailles aurait une variance inférieure à 1, et les zones atteindraient rarement les classes extrêmes.
+- **Période** : 1991–2020 si au moins 15 années y sont valides pour la période considérée. À défaut, toutes les années disponibles si elles sont au moins 15, avec `hors_reference = vrai` et la période effective dans `periode_ref` (SPEC §6.1). Sinon, pas de normale.
+- La semaine ISO 53 utilise la normale de la semaine 52.
+- La conversion en indice standardisé intervient au calcul hebdomadaire (étape 5). SPI : $\Phi^{-1}(q_0 + (1-q_0)\,F_\gamma(x))$. IPS et débit : rang de la valeur dans l'échantillon de référence, converti en valeur centrée réduite (approche non paramétrique).
+
+Résultats (Vendée, 2026-09-30, après D8) : 1 872 normales de SPI (12 zones × 3 fenêtres × 52 semaines, toutes sur 1991–2020) ; IPS pour 37 piézomètres ; indice de débit pour 29 stations, dont 25 sur 1991–2020. Contrôle : les SPI-3 de la période de référence ont une moyenne de 0,000 et un écart-type de 1,000.
+
+## D8 — Stations au fonctionnement modifié (ruptures)
+
+*2026-09-30*
+
+**Constat.** L'IPS suppose que la normale 1991–2020 décrit encore le comportement actuel d'une nappe. Plusieurs piézomètres montrent un changement durable de régime, sans lien avec le climat : travaux, modification des prélèvements ou du repère de mesure (non établi à ce jour). Au piézomètre de L'Épine (05068X0028/SP010), le niveau remonte de 2 m entre 2016 et 2021 et l'amplitude saisonnière diminue. Avec la normale 1991–2020, la station serait classée « très haute » en permanence, même en pleine sécheresse (100 % des mois de 2021–2025). Test de Pettitt sur les moyennes annuelles : 9 piézomètres sur 38 présentent une rupture significative (p < 0,01), tous sauf un à Noirmoutier ou dans le marais breton, avec des ruptures en 2011 et entre 2016 et 2021. Aucune rupture significative n'apparaît sur les 25 stations hydrométriques testées.
+
+**Décision.**
+
+- **Détection** à chaque `make reference` : test de Pettitt sur les moyennes annuelles des années complètes (niveau moyen ; logarithme du débit moyen), résultat dans `data/normales/ruptures.parquet`. Les ruptures significatives non traitées sont signalées dans le journal. Le test ne décide rien : il peut confondre une longue séquence sèche ou humide avec une rupture.
+- **Traitement explicite** des ruptures confirmées, dans `config/stations.yaml` (`ruptures` : station, première année du nouveau régime, motif). La référence ne porte alors que sur les années à partir de la rupture. Elle est admise dès `annees_min_apres_rupture` ans (8, contre 15 en règle générale), toujours avec avertissement (`hors_reference`, colonne `rupture`). En deçà, la station n'a pas d'IPS, et sa courbe brute reste affichée.
+- **Écartés** : retirer la tendance de toutes les séries (on effacerait aussi l'effet du changement climatique) ; remplacer 1991–2020 par une période glissante pour toutes les stations (la rupture resterait dans la période, et les stations saines perdraient la normale officielle) ; décaler les valeurs d'avant la rupture (l'amplitude change aussi, pas seulement le niveau).
+
+Liste au 2026-09-30 :
+
+| Station | Secteur | Nouveau régime depuis | Effet |
+|---|---|---|---|
+| 05341X0104/SF7, 05342X0034/F4, 05076X0001/S | marais breton, nappe captive | 2011 (saut simultané de +0,3 à +0,7 m) | IPS sur 2011–2025 |
+| 05342X0078/FORAGE | marais breton | 2016 (+0,3 m) | IPS sur 2016–2025 |
+| 05068X0028/SP010, 05068X0054/F, 05334X0011/SF7 | Noirmoutier | 2021 (remontée progressive depuis 2016) | pas d'IPS avant 2028 : le composite de l'île repose sur le SPI |
+
+Ruptures signalées et non retenues : 05342X0073/F (creux en 2017–2022 sans changement de régime), 05863X0203/F (hausse modérée de +0,3 m en 2010, sans dérive marquée des classes récentes). L'origine des ruptures de Noirmoutier et du marais breton reste à documenter auprès du BRGM ou des gestionnaires locaux.
+
 ## Règles issues des données
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.
@@ -112,4 +153,4 @@ Vendée : 12 zones.
 
 ## Points ouverts
 
-- **Critère d'année exploitable** pour la période de référence. Le spike a utilisé, à titre provisoire, au moins 10 mois avec une mesure pour la piézométrie et au moins 330 jours de `QmnJ` pour les débits. À fixer avant `make reference`.
+- Aucun à ce jour (le critère d'année exploitable est tranché en D7).

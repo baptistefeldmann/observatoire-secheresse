@@ -44,6 +44,7 @@ class Periode(_Modele):
     debut: int
     fin: int
     annees_min: int | None = Field(default=None, ge=1)
+    annees_min_apres_rupture: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")
     def _verifier_bornes(self) -> Periode:
@@ -71,10 +72,39 @@ class Chemins(_Modele):
 
 class ParametresIps(_Modele):
     fraicheur_max_jours: int = Field(ge=1)
+    jours_min_mois: int = Field(ge=1, le=31)
+
+
+class ParametresDebit(_Modele):
+    jours_min_q7: int = Field(ge=1, le=7)
+    demi_fenetre_jours: int = Field(ge=0)
+    part_min_fenetre: float = Field(gt=0, le=1)
+
+
+class ParametresRuptures(_Modele):
+    seuil_p: float = Field(gt=0, lt=1)
+    mois_min_annee: int = Field(ge=1, le=12)
+    jours_min_annee: int = Field(ge=1, le=366)
+
+
+class ParametresSpi(_Modele):
+    fenetres_jours: dict[str, int]
+
+    @field_validator("fenetres_jours")
+    @classmethod
+    def _verifier_fenetres(cls, valeur: dict[str, int]) -> dict[str, int]:
+        if "spi_3" not in valeur:
+            raise ValueError("spi_3 est requis : c'est la composante SPI du composite")
+        if any(j < 1 for j in valeur.values()):
+            raise ValueError("fenêtre SPI de moins d'un jour")
+        return valeur
 
 
 class Indices(_Modele):
     ips: ParametresIps
+    debit: ParametresDebit
+    ruptures: ParametresRuptures
+    spi: ParametresSpi
 
 
 class Projet(_Modele):
@@ -187,9 +217,27 @@ class SourceRetenues(_Modele):
     alias_repli: dict[str, str] = {}
 
 
+class Rupture(_Modele):
+    """Station au fonctionnement modifié : référence limitée aux années à partir de `annee`."""
+
+    station: str  # station_id, ex. « piezo:05068X0028/SP010 »
+    annee: int
+    motif: str
+
+
 class Stations(_Modele):
     raccordements_hydro: list[RaccordementHydro] = []
+    ruptures: list[Rupture] = []
     retenues: SourceRetenues | None = None
+
+    @field_validator("ruptures")
+    @classmethod
+    def _verifier_ruptures(cls, valeur: list[Rupture]) -> list[Rupture]:
+        ids = [r.station for r in valeur]
+        doublons = sorted({i for i in ids if ids.count(i) > 1})
+        if doublons:
+            raise ValueError(f"station listée deux fois dans les ruptures : {', '.join(doublons)}")
+        return valeur
 
     @field_validator("raccordements_hydro")
     @classmethod

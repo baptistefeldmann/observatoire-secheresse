@@ -183,6 +183,10 @@ data/
 │   ├── onde/observations_<annee>.parquet
 │   ├── meteo/sim_<annee>.parquet
 │   └── retenues/retenues_<annee>.parquet
+├── normales/                 # make reference (méthodologie D7)
+│   ├── spi_zone.parquet
+│   ├── ips_station.parquet
+│   └── debit_station.parquet
 ├── indices/
 │   └── indices_hebdo_<annee>.parquet
 ├── referentiels/
@@ -262,6 +266,7 @@ Le champ `version_methodo` permet de faire coexister plusieurs versions de la m�
 - Données hydrologiques et météo : 1991–2020 lorsque l'historique le permet ; à défaut, toute la période disponible avec au minimum 15 ans, et un avertissement stocké avec l'indice.
 - Sentinel-2 : 2018–2025 (L2A disponible de façon homogène à partir de 2018).
 - Le calcul des références est un **script séparé** (`pipeline/reference/`), lancé ponctuellement, qui produit des fichiers de normales versionnés. Le job hebdomadaire ne fait que les lire.
+- Les stations au fonctionnement modifié (ruptures) sont détectées à chaque calcul et traitées explicitement, avec une référence limitée au nouveau régime ([méthodologie, D8](methodologie.md)).
 
 ### 6.2 Indices par variable
 

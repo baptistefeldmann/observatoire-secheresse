@@ -10,6 +10,32 @@ raccordements_hydro:
     stations: [M711241020, M711241010]
     verification: "2005-2022 : 5 128 jours communs, corrélation (log) 0,994, rapport médian 0,99"
 
+# Stations au fonctionnement modifié (docs/methodologie.md, D8) : la référence ne porte que sur
+# les années à partir de `annee`, admise dès `annees_min_apres_rupture` ans (projet.yaml), avec
+# avertissement. Liste validée à la main : `make reference` signale les ruptures détectées.
+ruptures:
+  - station: piezo:05341X0104/SF7
+    annee: 2011
+    motif: "saut de +0,7 m en 2011, stable depuis (même saut sur 05342X0034 et 05076X0001)"
+  - station: piezo:05342X0034/F4
+    annee: 2011
+    motif: "saut de +0,4 m en 2011, stable depuis"
+  - station: piezo:05076X0001/S
+    annee: 2011
+    motif: "saut de +0,3 m en 2011, stable depuis"
+  - station: piezo:05342X0078/FORAGE
+    annee: 2016
+    motif: "saut de +0,3 m en 2016, stable depuis"
+  - station: piezo:05068X0028/SP010
+    annee: 2021
+    motif: "remontée progressive de 2 m de 2016 à 2021, amplitude saisonnière réduite, stable depuis 2021"
+  - station: piezo:05068X0054/F
+    annee: 2021
+    motif: "remontée progressive de 3 m de 2016 à 2021, stable depuis 2021"
+  - station: piezo:05334X0011/SF7
+    annee: 2021
+    motif: "remontée continue depuis 2016, non stabilisée"
+
 # Retenues d'eau potable (docs/methodologie.md, D6). Source propre au territoire : table ArcGIS
 # publique du Département (données Vendée Eau), une ligne par retenue et par semaine, depuis 2019.
 # En cas d'échec, repli sur la couche nationale de la DREAL Bretagne (semaine en cours seulement,

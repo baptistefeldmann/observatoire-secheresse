@@ -1,6 +1,6 @@
 # CLAUDE.md — Observatoire de la sécheresse Vendée
 
-Lire `docs/SPEC.md` avant toute tâche : c'est la référence pour l'architecture, les sources, le schéma de données et la méthodologie. Les décisions de méthode prises depuis (identifiants D1, D2…) sont dans `docs/methodologie.md` et priment sur la spec en cas d'écart.
+Pour reprendre le projet, lire d'abord `passation.md` (état d'avancement, erreurs corrigées, reste à faire). Lire `docs/SPEC.md` avant toute tâche : c'est la référence pour l'architecture, les sources, le schéma de données et la méthodologie. Les décisions de méthode prises depuis (identifiants D1, D2…) sont dans `docs/methodologie.md` et priment sur la spec en cas d'écart.
 
 ## Règles du projet
 

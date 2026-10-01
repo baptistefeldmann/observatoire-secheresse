@@ -53,6 +53,14 @@ TABLES = (
           ("maille_id", "date", "precip_mm", "etp_mm", "swi", "ingere_le")),
     Table("obs.retenue_semaine", "raw/retenues/retenues_*.parquet",
           ("station_id", "date", "volume_m3", "capacite_m3", "source_donnee", "ingere_le")),
+    Table("idx.indice_station", "indices/indice_station_*.parquet",
+          ("station_id", "semaine", "indice", "valeur", "classe", "periode_ref",
+           "hors_reference", "date_mesure", "dans_composite", "version_methodo")),
+    Table("idx.indice_zone", "indices/indice_zone_*.parquet",
+          ("zone_id", "semaine", "indice", "valeur", "classe", "n_stations", "detail",
+           "version_methodo")),
+    Table("idx.composite_zone", "indices/composite_zone_*.parquet",
+          ("zone_id", "semaine", "valeur", "classe", "detail", "version_methodo")),
 )  # fmt: skip
 
 

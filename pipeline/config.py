@@ -101,6 +101,8 @@ class ParametresSpi(_Modele):
 
 
 class Indices(_Modele):
+    version_methodo: str = Field(min_length=1)
+    historique_debut: int
     ips: ParametresIps
     debit: ParametresDebit
     ruptures: ParametresRuptures

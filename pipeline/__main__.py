@@ -7,11 +7,12 @@ import logging
 import sys
 from datetime import date
 
-from pipeline import ingestion, reference, referentiels
+from pipeline import indices, ingestion, reference, referentiels
 from pipeline.config import Config, charger_config
 from pipeline.db import chargement
 from pipeline.db.connexion import moteur
 from pipeline.http import ClientHttp
+from pipeline.indices.commun import derniere_semaine_complete
 
 
 def _afficher_config(config: Config) -> None:
@@ -50,6 +51,9 @@ def main(argv: list[str] | None = None) -> int:
     sous.add_parser("ingest", help="ingestion complète : référentiels puis sources")
     sous.add_parser("db-rebuild", help="reconstruction de PostGIS depuis data/")
     sous.add_parser("reference", help="calcul des normales -> data/normales/")
+    calcul = sous.add_parser("indices", help="indices hebdomadaires -> data/indices/")
+    calcul.add_argument("--debut", help="première semaine AAAA-Www (défaut : historique_debut)")
+    calcul.add_argument("--fin", help="dernière semaine AAAA-Www (défaut : dernière complète)")
     for nom, aide in COMMANDES_A_VENIR.items():
         sous.add_parser(nom, help=aide)
     args = parser.parse_args(argv)
@@ -77,6 +81,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.commande == "reference":
         for nom, chemin in reference.calculer(config).items():
             print(f"{nom:<16} -> {chemin}")
+        return 0
+    if args.commande == "indices":
+        debut = args.debut or f"{config.projet.indices.historique_debut}-W01"
+        fin = args.fin or derniere_semaine_complete(date.today())
+        for nom, n in indices.calculer(config, debut, fin).items():
+            print(f"{nom:<16} {n:>9} lignes ({debut} à {fin})")
         return 0
     if args.commande == "db-rebuild":
         for table, n in chargement.reconstruire(config, moteur()).items():

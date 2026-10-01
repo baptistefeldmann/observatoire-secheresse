@@ -1,4 +1,4 @@
-.PHONY: help install dvc-auth up down db-roles referentiels ingest reference hebdo db-rebuild config test test-db lint format
+.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices hebdo db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -37,6 +37,9 @@ ingest:  ## Ingestion complète de l'historique
 
 reference:  ## Calcul des normales
 	$(PIPELINE) reference
+
+indices:  ## Indices hebdomadaires de tout l'historique -> data/indices/
+	$(PIPELINE) indices
 
 hebdo:  ## Job hebdomadaire
 	$(PIPELINE) hebdo

@@ -30,6 +30,7 @@ make up            # démarre PostGIS
 make referentiels  # communes, mailles SIM, stations -> data/referentiels/
 make ingest        # ingestion complète de l'historique
 make reference     # calcul des normales
+make indices       # indices hebdomadaires de tout l'historique -> data/indices/
 make hebdo         # job hebdomadaire
 make db-rebuild    # reconstruit PostGIS depuis data/
 make test          # sans réseau ni service externe

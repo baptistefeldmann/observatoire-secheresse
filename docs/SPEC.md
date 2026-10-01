@@ -187,8 +187,10 @@ data/
 │   ├── spi_zone.parquet
 │   ├── ips_station.parquet
 │   └── debit_station.parquet
-├── indices/
-│   └── indices_hebdo_<annee>.parquet
+├── indices/                 # make indices (méthodologie D9), un fichier par table et par année ISO
+│   ├── indice_station_<annee>.parquet
+│   ├── indice_zone_<annee>.parquet
+│   └── composite_zone_<annee>.parquet
 ├── referentiels/
 │   ├── stations.parquet
 │   ├── zones.parquet
@@ -237,8 +239,10 @@ obs.meteo_jour  (maille_id, date, precip_mm, etp_mm, swi, ingere_le)
 obs.retenue_semaine (station_id, date, volume_m3, capacite_m3, source_donnee, ingere_le)  -- D6
 
 -- Indices hebdomadaires
-idx.indice_station (station_id, semaine, indice, valeur, classe, periode_ref, version_methodo)
-idx.indice_zone    (zone_id,    semaine, indice, valeur, classe, n_stations, version_methodo)
+idx.indice_station (station_id, semaine, indice, valeur, classe, periode_ref, hors_reference,
+                    date_mesure, dans_composite, version_methodo)          -- colonnes D1, D9
+idx.indice_zone    (zone_id,    semaine, indice, valeur, classe, n_stations, detail jsonb,
+                    version_methodo)                                       -- ONDE : D3, D9
 idx.composite_zone (zone_id,    semaine, valeur, classe, detail jsonb, version_methodo)
 
 -- Catalogue raster [V2]
@@ -255,7 +259,7 @@ rst.produit (
 
 Clés primaires composites sur les tables d'observation et d'indices (identifiant + date/semaine + indice). Index spatiaux GIST sur toutes les géométries.
 
-Le champ `version_methodo` permet de faire coexister plusieurs versions de la méthode de calcul et de relier chaque résultat au commit de code correspondant.
+Le champ `version_methodo` permet de faire coexister plusieurs versions de la méthode de calcul. Il vaut l'identifiant de la dernière décision de [méthodologie](methodologie.md) en vigueur (`indices.version_methodo` dans `config/projet.yaml`, D9) ; le lien avec le commit de code passe par le tag `data-AAAA-Www` du job hebdomadaire (§7.1).
 
 ---
 

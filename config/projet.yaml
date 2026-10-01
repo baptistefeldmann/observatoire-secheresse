@@ -32,6 +32,10 @@ ingestion:
   piezo_inactif_apres_jours: 365
 
 indices:
+  # Identifiant de la dernière décision de méthode en vigueur (docs/methodologie.md), stocké
+  # avec chaque indice (`version_methodo`). À changer à chaque nouvelle décision.
+  version_methodo: "D9"
+  historique_debut: 1991     # première année des indices hebdomadaires (make indices)
   ips:
     # Un piézomètre dont la dernière mesure est plus ancienne n'entre pas dans le
     # composite de la semaine (docs/methodologie.md, D1).

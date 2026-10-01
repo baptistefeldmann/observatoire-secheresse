@@ -134,6 +134,39 @@ Liste au 2026-09-30 :
 
 Ruptures signalées et non retenues : 05342X0073/F (creux en 2017–2022 sans changement de régime), 05863X0203/F (hausse modérée de +0,3 m en 2010, sans dérive marquée des classes récentes). L'origine des ruptures de Noirmoutier et du marais breton reste à documenter auprès du BRGM ou des gestionnaires locaux.
 
+## D9 — Indices de la semaine
+
+*2026-10-01*
+
+**Décision.** Les indices d'une semaine ISO sont calculés au dimanche qui la termine, avec les seules mesures datées de ce dimanche ou d'avant. Calcul par `make indices` (tout l'historique depuis `indices.historique_debut`, 1991) ou pour une plage de semaines ; résultats dans `data/indices/` (un fichier par table et par année ISO, versionné par DVC), chargés dans `idx.*`.
+
+| Indice | Échelle | Valeur de la semaine |
+|---|---|---|
+| SPI 1, 3 et 6 mois | zone | cumul de pluie de la zone terminé le dimanche ; $\Phi^{-1}(q_0 + (1-q_0)F_\gamma(x))$ avec la normale de la semaine (D7), bornée à ±3 (un cumul nul sans précédent dans la référence donnerait −∞) |
+| IPS | piézomètre | moyenne du **mois en cours** s'il compte au moins `jours_min_mois` (10) jours de mesures jusqu'au dimanche, sinon du dernier mois qui les atteint (méthode du BRGM, cohérente avec les normales mensuelles ; l'IPS ne bouge pas pendant les 9 premiers jours du mois) |
+| Débit | station (séries raccordées, D4) | Q7 terminé le dimanche ; sans Q7 ce jour-là, pas d'indice |
+| ONDE | zone | part des stations observées en écoulement non visible (modalité 2) ou en assec (3), par campagne, rattachée à la semaine de la campagne ; la plus récente l'emporte si deux campagnes tombent la même semaine. Sans classe, hors composite (D3) |
+
+- **Rang → valeur standardisée** (IPS, débit) : la valeur de la semaine est ajoutée à l'échantillon de référence ; probabilité au non-dépassement de Gringorten, $(i - 0{,}44)/(n + 0{,}12)$ sur les $n+1$ valeurs, les ex aequo prenant le rang moyen ; puis $\Phi^{-1}$. Les valeurs restent finies au-delà des extrêmes de la référence, et les classes 1 et 7 restent accessibles avec un échantillon court (à 9 ans : ±1,60).
+- **Fraîcheur (D1)** : `date_mesure` est la date de la dernière mesure du mois retenu ; `dans_composite` est vrai si elle a moins de `fraicheur_max_jours` (45) jours au dimanche. Au-delà de `ingestion.piezo_inactif_apres_jours` (365) jours, station hors service : pas d'indice.
+- **Ruptures (D8)** : la normale ne décrit que le nouveau régime ; les semaines antérieures à l'année de rupture n'ont pas d'indice.
+- **Indice de zone** (IPS, débit) : moyenne des indices des stations de la zone qui entrent au composite ; liste des stations dans `detail`.
+- **Composite** : moyenne pondérée des composantes de poids non nul disponibles (`spi_3`, `ips`, `debit`), poids renormalisés ; `detail` donne chaque composante (valeur, poids, poids appliqué), les composantes manquantes, leur nombre et l'indicateur `partiel`.
+- **`version_methodo`** : identifiant de la dernière décision en vigueur (`indices.version_methodo`, ici « D9 »), à changer à chaque nouvelle décision. Le numéro de commit n'est pas utilisé : il changerait à chaque commit et deux exécutions sur la même semaine ne donneraient plus le même résultat (SPEC §12, n°10).
+- **Historique** : les semaines passées sont calculées avec les données publiées depuis. Elles sont plus complètes que ce qui était disponible en temps réel, notamment en piézométrie publiée par lots (D1) : 97 % des IPS de 1991–2020 entrent au composite, contre la moitié en 2026-W39.
+
+Contrôles (Vendée, 1991–2020, 1 566 semaines) :
+
+| | Écart-type | Classe 1 | Classe 7 |
+|---|---|---|---|
+| attendu pour un indice standardisé | 1 | 10 % | 10 % |
+| SPI 3 mois par zone | 1,00 | 11,3 % | 10,0 % |
+| IPS par station / par zone | 0,92 / 0,85 | 8,6 % / 5,9 % | 9,6 % / 7,8 % |
+| Débit par station / par zone | 0,97 / 0,93 | 9,1 % / 8,2 % | 9,6 % / 9,2 % |
+| Composite | 0,79 (marais breton) à 1,00 (Noirmoutier) | 5,4 % à 11,8 % | 5,6 % à 10,3 % |
+
+**À réexaminer.** Une moyenne d'indices varie moins que chacun d'eux : plus une zone compte de stations ou de composantes, plus les classes extrêmes y sont rares (Sud-Vendée : 14 piézomètres en moyenne, IPS de zone en classe 1 4 % du temps ; composite en classe 1 5,7 % du temps). Pistes : restandardiser l'indice de zone et le composite sur leur propre historique 1991–2020, ou l'accepter et le documenter. À trancher avec la validation sur les sécheresses passées (2011, 2017, 2019, 2022).
+
 ## Règles issues des données
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.
@@ -153,4 +186,4 @@ Ruptures signalées et non retenues : 05342X0073/F (creux en 2017–2022 sans ch
 
 ## Points ouverts
 
-- Aucun à ce jour (le critère d'année exploitable est tranché en D7).
+- Faible fréquence des classes extrêmes dans les indices de zone et le composite (D9, « À réexaminer »).

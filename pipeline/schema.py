@@ -103,3 +103,19 @@ def normaliser_observations(
             resultat[colonne] = table[colonne].astype(type_)  # type: ignore[call-overload]
     resultat = resultat.drop_duplicates(cles, keep="last")
     return resultat.sort_values(cles, ignore_index=True)
+
+
+# Tables d'indices hebdomadaires (`idx.*`, SPEC §5.3, migration 0002) ; « detail » en JSON.
+IDX_STATION = {
+    "station_id": "string", "semaine": "string", "indice": "string", "valeur": "float64",
+    "classe": "Int64", "periode_ref": "string", "hors_reference": "bool", "date_mesure": "date",
+    "dans_composite": "bool", "version_methodo": "string",
+}  # fmt: skip
+IDX_ZONE = {
+    "zone_id": "string", "semaine": "string", "indice": "string", "valeur": "float64",
+    "classe": "Int64", "n_stations": "Int64", "detail": "string", "version_methodo": "string",
+}  # fmt: skip
+IDX_COMPOSITE = {
+    "zone_id": "string", "semaine": "string", "valeur": "float64", "classe": "Int64",
+    "detail": "string", "version_methodo": "string",
+}  # fmt: skip

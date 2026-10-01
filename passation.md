@@ -1,11 +1,11 @@
 # Passation — Observatoire de la sécheresse (Vendée)
 
-État au **2026-10-01**. Ce document permet de reprendre le projet sans l'historique des échanges. À lire avec [`CLAUDE.md`](CLAUDE.md) (règles), [`docs/SPEC.md`](docs/SPEC.md) (référence) et [`docs/methodologie.md`](docs/methodologie.md) (décisions D1 à D8, qui priment sur la spec).
+État au **2026-10-01**. Ce document permet de reprendre le projet sans l'historique des échanges. À lire avec [`CLAUDE.md`](CLAUDE.md) (règles), [`docs/SPEC.md`](docs/SPEC.md) (référence) et [`docs/methodologie.md`](docs/methodologie.md) (décisions D1 à D9, qui priment sur la spec).
 
 ## 1. En bref
 
 - **Objectif** : suivi hebdomadaire de la sécheresse en Vendée, par zone hydrogéologique, à partir des nappes, des débits, des observations ONDE, de la pluie (SIM), du remplissage des retenues, et plus tard de Sentinel-2. Les données servent un dashboard web et QGIS. Le code est générique : un autre département se configure dans `config/`.
-- **Avancement** : V0 (spikes) **terminée**. V1 **étapes 1 à 4 terminées** sur 9 (référentiels, ingestion, PostGIS, normales). Prochaine étape : **5, les indices de la semaine**.
+- **Avancement** : V0 (spikes) **terminée**. V1 **étapes 1 à 5 terminées** sur 9 (référentiels, ingestion, PostGIS, normales, indices de la semaine). Prochaine étape : **6, le job hebdomadaire**.
 - **Dépôts** : code sur GitHub [`baptistefeldmann/observatoire-secheresse`](https://github.com/baptistefeldmann/observatoire-secheresse) (public) ; données sur DagsHub (remote DVC `origin`, `https://dagshub.com/baptistefeldmann/observatoire-secheresse.dvc`).
 - **Mode de travail** : Claude prépare et indexe (`git add`) ; **l'utilisateur committe et pousse lui-même** (`git commit`, `git push`, `uv run dvc push`), à partir des commandes que Claude lui donne. Messages de commit en français.
 
@@ -28,13 +28,14 @@ make up            # démarre PostGIS
 make referentiels  # communes, zones, mailles SIM, stations -> data/referentiels/ (~1 min)
 make ingest        # référentiels + historique complet de toutes les sources -> data/raw/ (~10 min)
 make reference     # normales + détection des ruptures -> data/normales/ (~20 s)
+make indices       # indices hebdomadaires 1991 -> dernière semaine complète -> data/indices/ (~25 s)
 make db-rebuild    # recharge PostGIS depuis data/ en une transaction (~1 min)
-make test          # 70 tests, sans réseau ni service externe
+make test          # 82 tests, sans réseau ni service externe
 make test-db       # test d'intégration PostGIS sur une base jetable (Docker, port 55433)
 make lint          # ruff + mypy strict
 ```
 
-`make hebdo` n'est pas encore implémenté (étape 6). L'ingestion incrémentale existe déjà : `ingestion.ingerer(config, client, aujourd_hui, depuis=aujourd_hui - 90 jours)`, environ 50 s.
+`make hebdo` n'est pas encore implémenté (étape 6). Ses briques existent : ingestion incrémentale `ingestion.ingerer(config, client, aujourd_hui, depuis=aujourd_hui - 90 jours)` (environ 50 s) ; indices d'une plage de semaines `python -m pipeline indices --debut AAAA-Www --fin AAAA-Www` (même résultat au bit près que le calcul complet).
 
 ## 4. Ce qui a été fait
 
@@ -54,6 +55,7 @@ make lint          # ruff + mypy strict
 2. **Ingestion** (`pipeline/ingestion.py`, `pipeline/stockage.py`) : un fichier par source et par année dans `data/raw/` ; fusion idempotente (une valeur inchangée garde sa date d'ingestion, une valeur corrigée remplace l'ancienne) ; une station en échec est consignée sans bloquer les autres. Volumes : 429 249 niveaux piézométriques, 396 948 débits, 5 220 observations ONDE, 1,95 million de valeurs météo, 5 239 relevés de retenues. Environ 11 Mo au total.
 3. **PostGIS** (`pipeline/db/`) : migration Alembic du schéma `ref` / `obs` / `idx` / `rst` (SPEC §5.3, plus `obs.retenue_semaine`) ; `make db-rebuild` en une transaction (COPY) ; reconstruction à l'identique vérifiée par empreinte (critère n°4 de la V1).
 4. **Normales** (`pipeline/reference/`) : SPI 1, 3 et 6 mois par zone (loi gamma, calibration vérifiée), IPS par piézomètre et par mois (37 stations), indice de débit par station et par semaine (29 stations) ; détection des ruptures à chaque calcul.
+5. **Indices de la semaine** (`pipeline/indices/`, D9) : SPI par zone, IPS et débit par station (rang de Gringorten), part d'assecs ONDE par campagne, indices de zone, composite à poids renormalisés ; tout l'historique 1991-W01 → 2026-W39 dans `data/indices/` (91 612 indices de station, 97 262 de zone, 22 380 composites, 3,2 Mo) ; migration `0002` (colonnes `hors_reference`, `date_mesure`, `dans_composite` ; `detail` des zones) ; tables `idx.*` chargées par `make db-rebuild`. Idempotence vérifiée par empreinte : calcul complet, partiel, à cheval sur deux années.
 
 ### Décisions de méthode (détail dans `docs/methodologie.md`)
 
@@ -67,6 +69,7 @@ make lint          # ruff + mypy strict
 | D6 | Retenues d'eau potable : nouvelle source, affichée hors composite |
 | D7 | Normales : critère **par période** (mois valide si au moins 10 jours de mesures ; Q7 si au moins 5 jours sur 7, à ±15 jours) ; SPI calculé sur la **pluie moyenne de la zone** |
 | D8 | Stations à **rupture de fonctionnement** : détection automatique (test de Pettitt), traitement d'une liste **validée à la main** dans `config/stations.yaml` ; référence limitée au nouveau régime dès 8 ans, avec avertissement |
+| D9 | Indices de la semaine : IPS sur le **mois en cours** s'il a 10 jours de mesures, sinon le dernier mois complet (choix utilisateur, méthode BRGM) ; rang de **Gringorten** ; SPI borné à ±3 ; indice de zone = moyenne des stations retenues ; `version_methodo` = dernière décision (« D9 ») |
 
 Pondérations du composite (`config/zones.yaml`) : Sud-Vendée 0,25 / 0,50 / 0,25 ; marais 0,30 / 0,40 / 0,30 ; îles 0,40 / 0,60 / 0 ; bocage 0,40 / 0,15 / 0,45 (SPI 3 mois / IPS / débits).
 
@@ -90,6 +93,7 @@ Les leçons à retenir sont en gras.
 | Vérification | `md5sum -c` affiche « Réussi » et non « OK » en locale française : un contrôle d'idempotence a été mal lu | `LC_ALL=C` |
 | Normales | Plantage sans données suffisantes (plage d'années vide) | tables vides au bon schéma |
 | Normales | **Non-stationnarité ignorée au départ** : 9 piézomètres sur 38 (Noirmoutier, marais breton) ont changé de régime ; L'Épine aurait été « très haut » en permanence. Repéré par l'utilisateur dans QGIS | D8 : détection + liste validée + référence post-rupture |
+| Indices | Recalcul partiel non identique au calcul complet (écart de 10⁻¹⁷) : la moyenne par zone sommait les stations dans un ordre qui dépendait de la plage calculée | tri par station avant la moyenne. **Pour l'idempotence au bit près, fixer l'ordre des sommes** |
 
 Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies données**, ou par les tests sur réponses enregistrées. Garder cette pratique : contrôler les sorties (effectifs, plages de dates, doublons, idempotence) après chaque étape.
 
@@ -99,8 +103,7 @@ Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies d
 
 | # | Étape | Contenu | Points d'attention |
 |---|---|---|---|
-| **5** | **Indices de la semaine** | Pour une semaine ISO : SPI par zone ($\Phi^{-1}(q_0 + (1-q_0)F_\gamma(x))$) ; IPS par piézomètre (rang non paramétrique dans `valeurs_ref`, règle de fraîcheur D1) ; indice de débit (Q7 du dimanche, rang dans `valeurs_ref`) ; part d'assecs ONDE (affichée) ; indices par zone ; composite avec renormalisation des poids ; classes 1-7 (`config/classes.yaml`) ; écriture de `data/indices/indices_hebdo_<annee>.parquet` et des tables `idx.*` | Semaine 53 → normale de la semaine 52 ; `version_methodo` ; la moyenne d'indices standardisés par zone a une variance inférieure à 1 (à discuter si les classes extrêmes deviennent rares) ; IPS absent pour Noirmoutier (D8) |
-| 6 | Job hebdomadaire | `make hebdo` : ingestion incrémentale (90 jours) → indices → `dvc add/push`, commit et tag `data-AAAA-Www` → rechargement de PostGIS → rapport ; cron le lundi | idempotence (critère n°10) ; le job committe lui-même, alors que l'utilisateur committe à la main jusqu'ici : à discuter |
+| **6** | **Job hebdomadaire** | `make hebdo` : ingestion incrémentale (90 jours) → indices des semaines touchées (`indices.calculer(config, debut, fin)`, ~13 semaines) → `dvc add/push`, commit et tag `data-AAAA-Www` → rechargement de PostGIS → rapport ; cron le lundi | idempotence (critère n°10) ; le job committe lui-même, alors que l'utilisateur committe à la main jusqu'ici : à discuter |
 | 7 | Projet QGIS | `qgis/secheresse_vendee.qgz` + styles QML des 7 classes, connexion par service | pas de mot de passe dans le projet |
 | 8 | API | FastAPI, endpoints du §8.1 (port 8010) | service des rasters (`/rasters`) en V2 |
 | 9 | Dashboard | **React + MapLibre + ECharts** (recommandé ; à inscrire dans la spec §10 après confirmation de l'utilisateur) | carte des zones par semaine, séries avec l'enveloppe de la normale, retenues et ONDE hors composite |
@@ -108,6 +111,8 @@ Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies d
 ### Points ouverts
 
 - **Pile du front** : React + MapLibre + ECharts proposée, pas formellement confirmée.
+- **Classes extrêmes rares dans les zones** (D9, à réexaminer) : composite en classe 1 de 5,4 % (marais breton) à 11,8 % (Noirmoutier) du temps sur 1991–2020, pour 10 % attendus ; IPS de zone du Sud-Vendée (14 piézomètres) en classe 1 4 % du temps. Pistes : restandardiser sur l'historique de la zone, ou accepter. À trancher avec la validation sur les sécheresses passées.
+- **Piézomètre 05634X0013/SF3 (bocage Sèvre nantaise)** : IPS « haut » sur 2020–2022 (+1,44 en moyenne en 2022, année de sécheresse), écart de +2,2 m relevé par le test de Pettitt mais non significatif. Seul piézomètre de la zone : à examiner dans QGIS comme L'Épine (rupture possible).
 - **Ruptures signalées non traitées** : 05342X0073/F (jugée faux positif) et 05863X0203/F (+0,3 m en 2010), à trancher par l'utilisateur.
 - **Origine des ruptures** de Noirmoutier et du marais breton : à documenter auprès du BRGM ou des gestionnaires.
 - **Raccordements non retenus** : Yon (Nesmy / Chaillé, 5 jours communs ; possible avec un ajustement par surface de bassin), Boulogne.
@@ -127,4 +132,4 @@ Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies d
 
 - **Existant** : Info-Sécheresse (imaGeau) couvre déjà nappes, débits et pluie classés sur 7 niveaux, chaque jour ; la DDTM 85 produit un bulletin hebdomadaire en période de tension. La valeur ajoutée du projet tient à la **lecture par les 12 zones vendéennes**, à l'**indice composite à méthode publiée**, au **satellite par type d'occupation du sol (V2)** et à la **réplicabilité**.
 - **94 % de l'eau potable vendéenne vient des retenues** : l'indicateur le plus suivi localement.
-- **Stockage** : `data/` pèse 15 Mo (versionné sur DagsHub) ; le dossier du projet 1,3 Go, surtout `.venv` (892 Mo) et les rasters du spike (313 Mo, dans `rasters/spike_v0/`, conservés à la demande de l'utilisateur).
+- **Stockage** : `data/` pèse 20 Mo, dont 3,2 Mo d'indices (versionné sur DagsHub) ; le dossier du projet 1,3 Go, surtout `.venv` (892 Mo) et les rasters du spike (313 Mo, dans `rasters/spike_v0/`, conservés à la demande de l'utilisateur).

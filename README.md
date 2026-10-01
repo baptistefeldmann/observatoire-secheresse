@@ -1,29 +1,314 @@
 # Observatoire de la sécheresse
 
-Suivi hebdomadaire de la sécheresse à l'échelle d'un département : nappes, débits, écoulement (ONDE), météo (SIM), puis télédétection Sentinel-2 et occupation du sol. Instance de référence : **Vendée (85)**.
+Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone hydrogéologique** : nappes, débits des cours d'eau, écoulement observé (ONDE), pluie (SIM de Météo-France) et remplissage des retenues d'eau potable, puis, à terme, télédétection Sentinel-2 et occupation du sol. Instance de référence : **Vendée (85)**, découpée en 12 zones.
 
-La spécification complète est dans [`docs/SPEC.md`](docs/SPEC.md).
+Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
 
-## Démarrage
+> État : V1 en cours, étapes 1 à 5 sur 9 terminées (référentiels, ingestion, base PostGIS, normales, indices de la semaine). Le job hebdomadaire automatique, le projet QGIS prêt à l'emploi, l'API et le dashboard viennent ensuite. Détail dans [`passation.md`](passation.md).
 
-Prérequis : [uv](https://docs.astral.sh/uv/), Docker, make.
+## Sommaire
 
-```bash
-cp .env.example .env      # renseigner POSTGRES_PASSWORD et POSTGRES_LECTEUR_PASSWORD
-make install
-make dvc-auth             # identifiants DagsHub (DAGSHUB_USER, DAGSHUB_TOKEN dans .env)
-dvc pull                  # récupère data/ depuis DagsHub
-make config               # vérifie la configuration du territoire
-make up                   # démarre PostGIS
-make db-rebuild           # charge PostGIS depuis data/ (environ 1 min)
-make test                 # tests sans réseau ; make test-db : intégration PostGIS (Docker)
+1. [Ce que produit l'observatoire](#1-ce-que-produit-lobservatoire)
+2. [Architecture](#2-architecture)
+3. [Installation](#3-installation)
+4. [Utilisation](#4-utilisation)
+5. [Les données en base](#5-les-données-en-base)
+6. [Utiliser l'observatoire dans QGIS](#6-utiliser-lobservatoire-dans-qgis)
+7. [Adapter à un autre département](#7-adapter-à-un-autre-département)
+8. [Arborescence et documentation](#8-arborescence-et-documentation)
+
+## 1. Ce que produit l'observatoire
+
+### Pourquoi des zones
+
+Un département n'est pas homogène. En Vendée, les nappes du Sud-Vendée sédimentaire réagissent lentement, celles du bocage sur socle réagissent vite et sont peu suivies, les marais et les îles ont leur propre fonctionnement. Les outils existants (Info-Sécheresse, bulletin de situation hydrologique, VigiEau) donnent une lecture par station, mensuelle ou administrative. L'observatoire lit le territoire **zone par zone**, chaque semaine, avec une méthode publiée ([`docs/methodologie.md`](docs/methodologie.md)).
+
+Les zones sont des unions de masses d'eau souterraine, éventuellement découpées par les zones d'alerte sécheresse (décision D5). La Vendée en compte 12 : Sud-Vendée, marais poitevin, marais breton, île de Noirmoutier, île d'Yeu, et 7 sous-zones du bocage par bassin versant.
+
+### Les indices
+
+Chaque variable est comparée **à sa propre normale** (même station ou même zone, même période de l'année, référence 1991–2020), puis ramenée sur une échelle commune. On ne mélange jamais de valeurs brutes.
+
+| Indice | Variable | Échelle | Principe |
+|---|---|---|---|
+| `spi_1`, `spi_3`, `spi_6` | pluie sur 1, 3 et 6 mois | zone | Indice de précipitations standardisé (loi gamma) |
+| `ips` | niveau des nappes | piézomètre, puis zone | Niveau moyen du mois comparé aux mêmes mois de la référence (méthode BRGM) |
+| `debit` | débit des cours d'eau | station, puis zone | Débit moyen sur 7 jours comparé aux mêmes dates de la référence |
+| composite | les trois ci-dessus | zone | Moyenne pondérée de `spi_3`, `ips` et `debit`, poids propres à chaque zone |
+| `onde` | écoulement observé | zone | Part des stations ONDE en assec ou sans écoulement visible, par campagne (non standardisée, hors composite) |
+| retenues | remplissage des retenues d'eau potable | retenue | Volume / capacité, chaque semaine (affiché à part, hors composite) |
+
+Les valeurs standardisées se lisent comme un écart à la normale (0 = normal, −1,28 ou moins = très sec, environ une semaine sur dix) :
+
+| Classe | Libellé | Valeur standardisée |
+|---|---|---|
+| 1 | Très bas / extrêmement sec | ≤ −1,28 |
+| 2 | Bas / modérément sec | −1,28 à −0,84 |
+| 3 | Modérément bas | −0,84 à −0,25 |
+| 4 | Normal | −0,25 à 0,25 |
+| 5 | Modérément haut | 0,25 à 0,84 |
+| 6 | Haut | 0,84 à 1,28 |
+| 7 | Très haut / extrêmement humide | > 1,28 |
+
+Quelques règles utiles pour lire les résultats :
+
+- **Fraîcheur des nappes** (D1) : un piézomètre dont la dernière mesure a plus de 45 jours reste affiché, mais n'entre pas dans le composite de la semaine. En Vendée, les piézomètres sont publiés par lots : l'IPS manque souvent au composite du marais breton.
+- **Composante absente** : ses poids sont répartis sur les autres. Le composite indique combien de composantes il utilise (`n_composantes`) et s'il est partiel (`partiel`).
+- **Stations à fonctionnement modifié** (D8) : certains piézomètres ont changé de régime (travaux, prélèvements). Leur normale ne porte que sur le nouveau régime, ou ils n'ont pas d'IPS (Noirmoutier, jusqu'en 2028).
+- **Historique** : les semaines passées sont recalculées avec les données publiées depuis, plus complètes que ce qui était disponible sur le moment.
+
+## 2. Architecture
+
+```
+  SOURCES (API ouvertes)
+  Hub'Eau piézométrie · hydrométrie · écoulement ONDE
+  Météo-France SIM (data.gouv.fr) · retenues (ArcGIS du Département)
+  SANDRE (masses d'eau, zones d'alerte) · geo.api.gouv.fr (communes)
+                 │
+                 ▼
+  PIPELINE PYTHON  (python -m pipeline <commande>, appelé par make)
+  référentiels → ingestion → normales → indices de la semaine
+                 │
+                 ▼
+  data/  GeoParquet, SOURCE DE VÉRITÉ          versionné par DVC → DagsHub
+  referentiels/ · raw/ · normales/ · indices/
+                 │  make db-rebuild (une transaction, reconstruction complète)
+                 ▼
+  PostGIS (Docker)  COUCHE DE SERVICE          reconstructible à tout moment
+  schémas ref · obs · idx · rst
+        │                         │
+        ▼                         ▼
+  QGIS (rôle lecteur,        API FastAPI → dashboard web
+  tunnel SSH si distant)     (étapes 8 et 9, à venir)
 ```
 
-`make help` liste toutes les commandes.
+### Principes
 
-Pour utiliser QGIS depuis un autre poste (Windows) via SSH : [`docs/acces_distant.md`](docs/acces_distant.md).
+- **Les fichiers de `data/` font foi.** PostGIS n'est qu'une copie de service : `uv run dvc pull` suivi de `make db-rebuild` la reconstruit à l'identique. On n'écrit jamais une donnée seulement en base.
+- **Versionnage** : le code dans Git (GitHub), les données tabulaires dans DVC (remote DagsHub), un fichier par source et par année pour que chaque semaine ne modifie que les fichiers de l'année en cours. Les rasters Sentinel-2 (V2) sont régénérables et ne sont pas versionnés.
+- **Idempotence** : relancer une étape sur les mêmes données réécrit des fichiers identiques au bit près. Une valeur corrigée à la source remplace l'ancienne ; une valeur inchangée garde sa date d'ingestion.
+- **Robustesse** : une station ou une source en échec est consignée sans bloquer les autres.
+- **CRS** : tout est stocké et calculé en Lambert 93 (EPSG:2154).
+- **Généricité** : le code ne contient aucune référence au territoire, tout passe par `config/` (section 7).
 
-## Adapter à un autre département
+### Les étapes du pipeline
+
+| Étape | Commande | Module | Produit |
+|---|---|---|---|
+| Référentiels | `make referentiels` | `pipeline/referentiels.py`, `pipeline/zonage.py` | communes, zones, mailles SIM, stations rattachées à leur zone |
+| Ingestion | `make ingest` | `pipeline/ingestion.py`, `pipeline/sources/` (un module par source) | `data/raw/<source>/<prefixe>_<annee>.parquet` |
+| Normales | `make reference` | `pipeline/reference/` | `data/normales/` : paramètres du SPI, échantillons de référence de l'IPS et des débits, ruptures détectées |
+| Indices | `make indices` | `pipeline/indices/` | `data/indices/` : indices par station, par zone, composite |
+| Base | `make db-rebuild` | `pipeline/db/` (migrations Alembic) | PostGIS rechargé depuis `data/` |
+| Job hebdomadaire | `make hebdo` | à venir (étape 6) | ingestion des 90 derniers jours → indices → DVC → PostGIS → rapport, chaque lundi |
+
+Les paramètres métier (périodes, seuils, fenêtres, pondérations) sont dans `config/*.yaml`, jamais dans le code.
+
+## 3. Installation
+
+Prérequis : [uv](https://docs.astral.sh/uv/), Docker, make. Sur une machine Linux.
+
+```bash
+git clone https://github.com/baptistefeldmann/observatoire-secheresse.git
+cd observatoire-secheresse
+cp .env.example .env      # renseigner au minimum POSTGRES_PASSWORD et POSTGRES_LECTEUR_PASSWORD
+make install              # environnement Python (uv sync)
+make config               # vérifie la configuration du territoire
+make up                   # démarre PostGIS (port 5433, limité à la machine)
+```
+
+Ensuite, deux possibilités.
+
+**Récupérer les données déjà calculées** (recommandé, quelques secondes) :
+
+```bash
+make dvc-auth             # identifiants DagsHub (DAGSHUB_USER, DAGSHUB_TOKEN dans .env)
+uv run dvc pull           # récupère data/ depuis DagsHub
+make db-rebuild           # charge PostGIS (environ 1 min)
+```
+
+**Tout recalculer depuis les API** (environ 12 min) :
+
+```bash
+make ingest               # référentiels + historique complet (~10 min)
+make reference            # normales (~20 s)
+make indices              # indices de 1991 à la dernière semaine complète (~25 s)
+make db-rebuild
+```
+
+PostGIS ne redémarre pas seul : après un redémarrage de la machine, relancer `make up`.
+
+## 4. Utilisation
+
+```bash
+make help                 # liste des commandes
+make config               # affiche territoire, période de référence, zones et pondérations
+make test                 # tests sans réseau ni service externe
+make test-db              # test d'intégration sur une base PostGIS jetable (Docker)
+make lint                 # ruff + mypy strict
+```
+
+En attendant le job hebdomadaire (étape 6), une mise à jour se fait à la main :
+
+```bash
+make ingest
+make indices
+make db-rebuild
+```
+
+Les indices d'une plage de semaines seulement :
+
+```bash
+uv run python -m pipeline indices --debut 2026-W27 --fin 2026-W39
+```
+
+Le résultat est identique à celui d'un calcul complet. Les semaines recalculées remplacent les anciennes, les autres sont conservées.
+
+Après une mise à jour des données, les versionner :
+
+```bash
+uv run dvc add data/raw data/indices
+uv run dvc push
+```
+
+## 5. Les données en base
+
+La base `secheresse_<slug>` (ici `secheresse_vendee`) comporte quatre schémas. QGIS et le dashboard s'y connectent avec le rôle **`lecteur`**, en lecture seule.
+
+| Table | Contenu | Géométrie |
+|---|---|---|
+| `ref.zone` | les 12 zones, leurs pondérations (`ponderations`, JSON) | multipolygone |
+| `ref.station` | 140 stations : `source` = `piezo`, `hydro`, `onde` ou `retenue`, `zone_id` de rattachement | point |
+| `ref.commune` | communes du département | multipolygone |
+| `ref.maille_safran` | mailles SIM de 8 km | polygone |
+| `obs.piezo_jour` | niveaux journaliers des nappes (`niveau_ngf`, `profondeur`) | — |
+| `obs.debit_jour` | débits moyens journaliers (`qmj_ls`, en l/s) | — |
+| `obs.onde` | observations ONDE (`modalite` : 1 visible, 1a acceptable, 1f faible, 2 non visible, 3 assec) | — |
+| `obs.meteo_jour` | pluie, ETP, humidité du sol par maille SIM | — |
+| `obs.retenue_semaine` | volume et capacité des retenues (m³) | — |
+| `idx.indice_station` | IPS et débit par station et semaine : `valeur`, `classe`, `date_mesure`, `dans_composite`, `hors_reference` | — |
+| `idx.indice_zone` | SPI, IPS, débit et ONDE par zone et semaine, `n_stations`, `detail` (JSON) | — |
+| `idx.composite_zone` | composite par zone et semaine, `detail` (composantes, poids appliqués, `partiel`) | — |
+| `rst.produit` | catalogue des rasters Sentinel-2 (V2, vide) | emprise |
+
+Toutes les tables d'indices ont une colonne `semaine` au format `AAAA-Www` (ex. `2026-W39`) et une colonne `version_methodo` (identifiant de la dernière décision de méthode, ex. `D9`). Les indices n'ont pas de géométrie : on les joint à `ref.zone` ou `ref.station` (section 6).
+
+## 6. Utiliser l'observatoire dans QGIS
+
+Le projet QGIS prêt à l'emploi, avec ses styles, arrive à l'étape 7 (`qgis/secheresse_<slug>.qgz`). En attendant, toutes les données sont accessibles en se connectant directement à PostGIS.
+
+### 6.1 Se connecter
+
+La connexion passe par un **service PostgreSQL** : la source des couches ne contient que `service=secheresse_vendee`, sans hôte ni mot de passe. Le même projet fonctionne ainsi sur tous les postes.
+
+**Sur la machine Linux qui héberge PostGIS :**
+
+1. Copier `qgis/pg_service.conf.example` en `~/.pg_service.conf`.
+2. Créer `~/.pgpass` (droits `600`) avec la ligne :
+   ```
+   localhost:5433:secheresse_vendee:lecteur:<POSTGRES_LECTEUR_PASSWORD>
+   ```
+
+**Depuis un autre poste (Windows)** : même principe, à travers un tunnel SSH. La procédure complète (tunnel, `PGSERVICEFILE`, `pgpass.conf`) est dans [`docs/acces_distant.md`](docs/acces_distant.md). À chaque session, ouvrir le tunnel avec `ssh -N secheresse-tunnel` et le laisser ouvert.
+
+**Dans QGIS (une seule fois)** : Explorateur › PostgreSQL › clic droit › Nouvelle connexion. Nom `secheresse_vendee`, champ **Service** = `secheresse_vendee`, laisser hôte, port, base et authentification vides, puis « Tester la connexion ».
+
+### 6.2 Afficher les référentiels
+
+Dans l'Explorateur, déplier la connexion puis le schéma `ref` et glisser les tables dans le projet :
+
+- `zone` : contour des 12 zones ;
+- `station` : filtrer par source (clic droit › Filtrer…, `"source" = 'piezo'`) pour séparer piézomètres, stations hydrométriques, ONDE et retenues ;
+- `commune`, `maille_safran` : repères.
+
+Les tables `obs.*` et `idx.*` n'ont pas de géométrie : QGIS les charge comme de simples tables attributaires.
+
+### 6.3 Carte des zones pour une semaine
+
+Les indices se joignent aux géométries par une **couche SQL** :
+
+1. Menu Base de données › Gestionnaire BD, sélectionner PostGIS › `secheresse_vendee`, puis ouvrir la fenêtre SQL.
+2. Coller une requête ci-dessous et l'exécuter.
+3. Cocher « Charger en tant que nouvelle couche ». Colonne avec des valeurs uniques : `zone_id` (ou `station_id`), colonne de géométrie : `geom`. Nommer la couche, puis Charger.
+
+**Indice composite de la dernière semaine calculée :**
+
+```sql
+SELECT z.zone_id, z.libelle, c.semaine, c.valeur, c.classe,
+       (c.detail->>'n_composantes')::int AS n_composantes,
+       (c.detail->>'partiel')::boolean   AS partiel,
+       z.geom
+FROM ref.zone z
+JOIN idx.composite_zone c USING (zone_id)
+WHERE c.semaine = (SELECT max(semaine) FROM idx.composite_zone);
+```
+
+Pour une autre semaine, remplacer la sous-requête par `'2022-W33'`, par exemple. Sur une couche déjà chargée : clic droit › Mettre à jour la couche SQL….
+
+**Un indice de zone en particulier** (ici le SPI 3 mois ; `ips`, `debit`, `spi_1`, `spi_6` de la même façon) :
+
+```sql
+SELECT z.zone_id, z.libelle, i.semaine, i.valeur, i.classe, i.n_stations, z.geom
+FROM ref.zone z
+JOIN idx.indice_zone i USING (zone_id)
+WHERE i.indice = 'spi_3' AND i.semaine = '2026-W39';
+```
+
+**Dernière campagne ONDE par zone** (part de stations sans écoulement, de 0 à 1) :
+
+```sql
+SELECT DISTINCT ON (z.zone_id)
+       z.zone_id, z.libelle, i.semaine, i.valeur AS part_sans_ecoulement, i.n_stations,
+       i.detail->>'date_campagne' AS date_campagne, z.geom
+FROM ref.zone z
+JOIN idx.indice_zone i USING (zone_id)
+WHERE i.indice = 'onde'
+ORDER BY z.zone_id, i.semaine DESC;
+```
+
+### 6.4 Stations
+
+**IPS des piézomètres, avec l'ancienneté de leur dernière mesure :**
+
+```sql
+SELECT s.station_id, s.libelle, s.zone_id, i.semaine, i.valeur, i.classe,
+       i.date_mesure, i.dans_composite, i.hors_reference, i.periode_ref, s.geom
+FROM ref.station s
+JOIN idx.indice_station i USING (station_id)
+WHERE i.indice = 'ips'
+  AND i.semaine = (SELECT max(semaine) FROM idx.indice_station);
+```
+
+Remplacer `'ips'` par `'debit'` pour les stations hydrométriques. `dans_composite = false` signale une mesure trop ancienne (plus de 45 jours). `hors_reference = true` signale une normale établie hors de 1991–2020, par exemple après une rupture de fonctionnement.
+
+**Dernier remplissage des retenues :**
+
+```sql
+SELECT s.station_id, s.libelle, r.date,
+       round((100 * r.volume_m3 / r.capacite_m3)::numeric, 1) AS remplissage_pct, s.geom
+FROM ref.station s
+JOIN LATERAL (
+    SELECT * FROM obs.retenue_semaine o
+    WHERE o.station_id = s.station_id ORDER BY o.date DESC LIMIT 1
+) r ON true
+WHERE s.source = 'retenue';
+```
+
+### 6.5 Symbologie
+
+En attendant les styles QML de l'étape 7 : Propriétés de la couche › Symbologie › **Catégorisé** sur le champ `classe`, puis Classer. Choisir une palette divergente, du rouge (1, très sec) au bleu (7, très humide), avec le gris ou le blanc pour 4 (normal). Pour ONDE et les retenues, utiliser **Gradué** sur la part ou le pourcentage.
+
+### 6.6 Séries temporelles
+
+Les tables `idx.indice_zone`, `idx.composite_zone` et `obs.*` se chargent comme tables sans géométrie. Ouvrir la table attributaire et filtrer, par exemple `"zone_id" = 'SUD_VENDEE' AND "indice" = 'spi_3'`. L'extension **DataPlotly** trace alors la courbe (`semaine` en abscisse, `valeur` en ordonnée). Pour une chronique brute, utiliser `obs.piezo_jour` ou `obs.debit_jour` filtrée sur un `station_id`.
+
+### 6.7 Bonnes pratiques
+
+- Toujours se connecter par le service, avec le rôle `lecteur` : aucun mot de passe ne doit apparaître dans un projet QGIS versionné.
+- La base est entièrement reconstruite par `make db-rebuild` : ne rien y écrire depuis QGIS (le rôle `lecteur` l'interdit de toute façon), et ne pas y stocker de couche personnelle.
+- Après un `make db-rebuild`, recharger les couches (F5) pour voir les nouvelles semaines.
+
+## 7. Adapter à un autre département
 
 Le code ne contient aucune référence au territoire : tout passe par `config/`.
 
@@ -31,22 +316,34 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 2. Dans `config/projet.yaml`, bloc `territoire` : `code_departement`, `nom`, `slug`.
    En outre-mer, remplacer aussi `crs` par la projection officielle locale.
 3. Réécrire `config/zones.yaml` : zones de lecture du territoire et pondérations de l'indice composite.
-   Vider ou adapter `config/stations.yaml` (raccordements de stations hydrométriques, source locale des retenues ; sans elle, la couche nationale des retenues est utilisée).
+   Vider ou adapter `config/stations.yaml` (raccordements de stations hydrométriques, ruptures de fonctionnement, source locale des retenues ; sans elle, la couche nationale des retenues est utilisée).
 4. Dans `.env` : `COMPOSE_PROJECT_NAME`, `POSTGRES_DB` et, si plusieurs instances tournent sur la même machine, `POSTGRES_PORT`.
-5. Créer un dépôt DagsHub pour le territoire et remplacer l'URL du remote : `dvc remote modify origin url https://dagshub.com/<compte>/<depot>.dvc`, puis `make dvc-auth`.
-6. `make config` pour valider, puis `make ingest` et `make reference`.
+5. Créer un dépôt DagsHub pour le territoire et remplacer l'URL du remote : `uv run dvc remote modify origin url https://dagshub.com/<compte>/<depot>.dvc`, puis `make dvc-auth`.
+6. Adapter `qgis/pg_service.conf.example` (nom du service `secheresse_<slug>`, base, port).
+7. `make config` pour valider, puis `make ingest`, `make reference`, `make indices` et `make db-rebuild`.
+8. Examiner les ruptures signalées par `make reference` (journal et `data/normales/ruptures.parquet`) et inscrire celles qui sont confirmées dans `config/stations.yaml` (D8).
 
 `classes.yaml` (échelle à 7 classes) et `sources.yaml` (points d'accès des API) sont communs à tous les départements.
 
-## Arborescence
+## 8. Arborescence et documentation
 
 ```
-config/      paramètres (territoire, zones, classes, sources)
-pipeline/    ingestion, indices, normales, chargement PostGIS
-api/         FastAPI (à venir)
-dashboard/   front web (pile à arrêter)
-qgis/        projet et styles QGIS
-data/        GeoParquet, source de vérité (DVC)
-rasters/     COG Sentinel-2, locaux et non versionnés
-docs/        spécification, méthodologie, comptes rendus de spikes
+config/      paramètres : territoire, zones et pondérations, classes, sources, stations
+pipeline/    sources/ (une par API), reference/ (normales), indices/, db/ (PostGIS, Alembic)
+tests/       tests pytest sur réponses API enregistrées (fixtures/), sans réseau
+data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/
+qgis/        service PostgreSQL d'exemple ; projet et styles à venir (étape 7)
+api/         FastAPI (étape 8)
+dashboard/   front web (étape 9)
+rasters/     COG Sentinel-2 (V2), locaux et non versionnés
+docker/      initialisation de PostGIS (rôle lecteur)
+docs/        spécification, méthodologie, accès distant, comptes rendus de spikes
 ```
+
+| Document | Contenu |
+|---|---|
+| [`docs/SPEC.md`](docs/SPEC.md) | spécification de référence : architecture, sources, schéma, méthode, phases V1 à V4 |
+| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D9 et contrôles chiffrés (elles priment sur la spec) |
+| [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS depuis un poste Windows par tunnel SSH |
+| [`docs/spikes/`](docs/spikes/) | validations techniques de la V0 (SIM, Hub'Eau, Sentinel-2, DVC, retenues) |
+| [`passation.md`](passation.md) | état d'avancement, erreurs corrigées, reste à faire |

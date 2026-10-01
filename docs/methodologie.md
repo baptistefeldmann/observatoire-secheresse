@@ -142,7 +142,7 @@ Ruptures signalées et non retenues : 05342X0073/F (creux en 2017–2022 sans ch
 
 | Indice | Échelle | Valeur de la semaine |
 |---|---|---|
-| SPI 1, 3 et 6 mois | zone | cumul de pluie de la zone terminé le dimanche ; $\Phi^{-1}(q_0 + (1-q_0)F_\gamma(x))$ avec la normale de la semaine (D7), bornée à ±3 (un cumul nul sans précédent dans la référence donnerait −∞) |
+| SPI 1, 3 et 6 mois | zone | cumul de pluie de la zone terminé le dimanche ; $\Phi^{-1}(q_0 + (1-q_0)F_\gamma(x))$ avec la normale de la semaine (D7), bornée à ±3 : un cumul nul sans précédent dans la référence donnerait −∞, et au-delà de 3 la loi gamma ajustée sur 30 ans n'est plus informative. La borne touche 0,2 % des valeurs de 1991–2026 (142 sur 67 140), dont 101 en 2026, année très sèche ; la classe n'en dépend pas |
 | IPS | piézomètre | moyenne du **mois en cours** s'il compte au moins `jours_min_mois` (10) jours de mesures jusqu'au dimanche, sinon du dernier mois qui les atteint (méthode du BRGM, cohérente avec les normales mensuelles ; l'IPS ne bouge pas pendant les 9 premiers jours du mois) |
 | Débit | station (séries raccordées, D4) | Q7 terminé le dimanche ; sans Q7 ce jour-là, pas d'indice |
 | ONDE | zone | part des stations observées en écoulement non visible (modalité 2) ou en assec (3), par campagne, rattachée à la semaine de la campagne ; la plus récente l'emporte si deux campagnes tombent la même semaine. Sans classe, hors composite (D3) |

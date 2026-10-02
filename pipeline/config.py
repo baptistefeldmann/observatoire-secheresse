@@ -68,6 +68,18 @@ class Ingestion(_Modele):
 class Chemins(_Modele):
     data: Path
     rasters: Path
+    rapports: Path
+
+
+class Controles(_Modele):
+    pluie_max_mm_jour: float = Field(gt=0)
+    remplissage_max: float = Field(gt=0)
+
+
+class Hebdo(_Modele):
+    branche: str = Field(min_length=1)
+    remote_git: str = Field(min_length=1)
+    controles: Controles
 
 
 class ParametresIps(_Modele):
@@ -116,6 +128,7 @@ class Projet(_Modele):
     periode_reference: PeriodesReference
     ingestion: Ingestion
     indices: Indices
+    hebdo: Hebdo
     chemins: Chemins
 
     @field_validator("crs")

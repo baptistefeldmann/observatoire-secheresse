@@ -6,8 +6,9 @@ import argparse
 import logging
 import sys
 from datetime import date
+from pathlib import Path
 
-from pipeline import indices, ingestion, reference, referentiels
+from pipeline import indices, ingestion, reference, referentiels, run_hebdo
 from pipeline.config import Config, charger_config
 from pipeline.db import chargement
 from pipeline.db.connexion import moteur
@@ -38,11 +39,6 @@ def _referentiels(config: Config) -> None:
         print(f"{nom:<16} -> {chemin}")
 
 
-COMMANDES_A_VENIR = {
-    "hebdo": "job hebdomadaire",
-}
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="pipeline", description="Observatoire de la sécheresse")
     sous = parser.add_subparsers(dest="commande", required=True)
@@ -54,8 +50,10 @@ def main(argv: list[str] | None = None) -> int:
     calcul = sous.add_parser("indices", help="indices hebdomadaires -> data/indices/")
     calcul.add_argument("--debut", help="première semaine AAAA-Www (défaut : historique_debut)")
     calcul.add_argument("--fin", help="dernière semaine AAAA-Www (défaut : dernière complète)")
-    for nom, aide in COMMANDES_A_VENIR.items():
-        sous.add_parser(nom, help=aide)
+    hebdo = sous.add_parser("hebdo", help="job hebdomadaire (dernière semaine complète)")
+    hebdo.add_argument(
+        "--sans-publication", action="store_true", help="ni DVC, ni commit, ni étiquette"
+    )
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -85,15 +83,26 @@ def main(argv: list[str] | None = None) -> int:
     if args.commande == "indices":
         debut = args.debut or f"{config.projet.indices.historique_debut}-W01"
         fin = args.fin or derniere_semaine_complete(date.today())
-        for nom, n in indices.calculer(config, debut, fin).items():
-            print(f"{nom:<16} {n:>9} lignes ({debut} à {fin})")
+        for nom, calcule in indices.calculer(config, debut, fin).items():
+            print(f"{nom:<16} {len(calcule):>9} lignes ({debut} à {fin})")
         return 0
     if args.commande == "db-rebuild":
         for table, n in chargement.reconstruire(config, moteur()).items():
             print(f"{table:<22} {n:>9} lignes")
         return 0
 
-    print(f"« {args.commande} » n'est pas encore implémenté.", file=sys.stderr)
+    if args.commande == "hebdo":
+        job = run_hebdo.executer(
+            config, ClientHttp(config.sources.http), date.today(), Path.cwd(), moteur,
+            publier=not args.sans_publication,
+        )  # fmt: skip
+        chemin = run_hebdo.ecrire_rapport(config, job)
+        print(f"Semaine {job.semaine} : {job.statut}. Rapport : {chemin}")
+        for echec in job.echecs:
+            print(f"ÉCHEC {echec}", file=sys.stderr)
+        return 1 if job.echecs else 0
+
+    print(f"« {args.commande} » inconnue.", file=sys.stderr)
     return 2
 
 

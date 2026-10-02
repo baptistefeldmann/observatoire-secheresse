@@ -181,7 +181,7 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 | `obs.meteo_jour` | SIM quotidienne, un fichier par année plus les 60 derniers jours | `precip_mm` = `PRELIQ` + `PRENEI` ; `etp_mm` = `ETP` ; `swi` = `SWI` en fraction ; historique à partir de l'année précédant la période de référence (1990) |
 | `obs.retenue_semaine` | voir D6 | volume et capacité en m³ |
 
-- Historique complet pour Hub'Eau ; en suivi hebdomadaire, réingestion des `fenetre_reingestion_jours` derniers jours. Une valeur corrigée à la source remplace l'ancienne, une valeur inchangée garde sa date d'ingestion.
+- Historique complet pour Hub'Eau ; en suivi hebdomadaire, réingestion des `fenetre_reingestion_jours` derniers jours. Exception pour les piézomètres, publiés par lots (D1) : une station dont la dernière mesure en stock est plus ancienne est relue depuis cette mesure (au 2026-10-01, 8 piézomètres suivis sur 39 n'avaient aucune mesure depuis plus de 90 jours). Une valeur corrigée à la source remplace l'ancienne, une valeur inchangée garde sa date d'ingestion.
 - Une station ou une source en échec est consignée dans le rapport d'exécution sans bloquer les autres (SPEC §7.2).
 
 ## Points ouverts

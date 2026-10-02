@@ -108,15 +108,27 @@ def ingerer_observations(
     stations: gpd.GeoDataFrame,
     depuis: date | None,
     aujourd_hui: date,
+    derniere_mesure: dict[str, date] | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     """`obs.piezo_jour` des stations piézométriques du référentiel, depuis `depuis` (ou tout
     l'historique). Seul `niveau_nappe_eau` (cote NGF) est lu : `profondeur_nappe` en est une
-    copie dans Hub'Eau ; la profondeur vaut altitude du repère - niveau (méthodologie)."""
+    copie dans Hub'Eau ; la profondeur vaut altitude du repère - niveau (méthodologie).
+
+    Publication par lots : une station dont la dernière mesure en stock (`derniere_mesure`,
+    code -> date) est antérieure à `depuis` est relue à partir de cette mesure, pour qu'un lot
+    de plusieurs mois arrivé depuis soit récupéré en entier."""
     piezos = stations[stations["source"] == SOURCE]
     url = config.sources.hubeau.piezometrie + "chroniques"
+    connues = derniere_mesure or {}
+
+    def debut(code: str) -> date | None:
+        if depuis is None or code not in connues:
+            return depuis
+        return min(depuis, connues[code])
+
     brut, erreurs = hubeau.par_station(
         list(piezos["code"]),
-        lambda code: _chronique(client, url, code, depuis, aujourd_hui),
+        lambda code: _chronique(client, url, code, debut(code), aujourd_hui),
         SOURCE,
     )
     table = pd.DataFrame(brut, columns=["code", "date_mesure", "niveau_nappe_eau", "statut"])

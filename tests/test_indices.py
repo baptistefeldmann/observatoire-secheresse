@@ -276,8 +276,8 @@ def _donnees_synthetiques(config: Config) -> None:
 def test_calcul_et_idempotence(config_z: Config) -> None:
     _donnees_synthetiques(config_z)
     reference.calculer(config_z)
-    effectifs = indices.calculer(config_z, "2025-W50", "2026-W39")
-    assert effectifs["composite_zone"] == 42  # une ligne par semaine (2025 en compte 52)
+    tables = indices.calculer(config_z, "2025-W50", "2026-W39")
+    assert len(tables["composite_zone"]) == 42  # une ligne par semaine (2025 en compte 52)
 
     dossier = indices.dossier(config_z)
     composites = pd.read_parquet(dossier / "composite_zone_2026.parquet")

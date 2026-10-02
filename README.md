@@ -4,7 +4,7 @@ Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone
 
 Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
 
-> État : V1 en cours, étapes 1 à 5 sur 9 terminées (référentiels, ingestion, base PostGIS, normales, indices de la semaine). Le job hebdomadaire automatique, le projet QGIS prêt à l'emploi, l'API et le dashboard viennent ensuite. Détail dans [`passation.md`](passation.md).
+> État : V1 en cours, étapes 1 à 6 sur 9 terminées (référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire). Le projet QGIS prêt à l'emploi, l'API et le dashboard viennent ensuite. Détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -100,7 +100,7 @@ Quelques règles utiles pour lire les résultats :
 | Normales | `make reference` | `pipeline/reference/` | `data/normales/` : paramètres du SPI, échantillons de référence de l'IPS et des débits, ruptures détectées |
 | Indices | `make indices` | `pipeline/indices/` | `data/indices/` : indices par station, par zone, composite |
 | Base | `make db-rebuild` | `pipeline/db/` (migrations Alembic) | PostGIS rechargé depuis `data/` |
-| Job hebdomadaire | `make hebdo` | à venir (étape 6) | ingestion des 90 derniers jours → indices → DVC → PostGIS → rapport, chaque lundi |
+| Job hebdomadaire | `make hebdo` | `pipeline/run_hebdo.py`, `pipeline/publication.py` | ingestion des 90 derniers jours → indices → DVC et Git → PostGIS → rapport |
 
 Les paramètres métier (périodes, seuils, fenêtres, pondérations) sont dans `config/*.yaml`, jamais dans le code.
 
@@ -148,13 +148,35 @@ make test-db              # test d'intégration sur une base PostGIS jetable (Do
 make lint                 # ruff + mypy strict
 ```
 
-En attendant le job hebdomadaire (étape 6), une mise à jour se fait à la main :
+### Le job hebdomadaire
 
 ```bash
-make ingest
-make indices
-make db-rebuild
+make hebdo
 ```
+
+Il traite la dernière semaine ISO complète, en 3 minutes environ :
+
+1. **Ingestion** des 90 derniers jours pour toutes les sources, afin de capter les corrections faites à la source. Un piézomètre publié par lots est relu depuis sa dernière mesure en stock.
+2. **Indices** de tout l'historique. Une correction reçue se répercute ainsi sur toutes les semaines concernées.
+3. **Publication** : `dvc add` et `dvc push` de `data/raw` et `data/indices`, commit des seuls fichiers `data/raw.dvc` et `data/indices.dvc` (« Données AAAA-Www »), étiquette `data-AAAA-Www`, puis envoi sur GitHub.
+4. **Rechargement** de PostGIS.
+5. **Rapport** dans `logs/hebdo/AAAA-Www.md` (non versionné) : stations en échec, anomalies de valeur, données disponibles pour la semaine, composite par zone, publication.
+
+Relancer le job sur la même semaine ne change rien si les sources n'ont pas changé : pas de nouveau commit, et l'étiquette reste en place. Si des données ont été corrigées entre-temps, un nouveau commit est créé et l'étiquette de la semaine est déplacée dessus.
+
+Points à connaître avant de le lancer :
+
+- Le dépôt doit être sur `main` (`hebdo.branche` dans `config/projet.yaml`). Sinon, les données sont envoyées sur DagsHub, mais il n'y a ni commit ni étiquette, et le rapport le signale.
+- Votre travail en cours, indexé ou non, n'entre jamais dans le commit de données. En revanche, `git push` envoie aussi vos commits locaux de `main` qui ne sont pas encore poussés.
+- `make hebdo` attend la clé SSH GitHub et les identifiants DagsHub (`make dvc-auth`) de la machine. Pour tester sans rien versionner : `uv run python -m pipeline hebdo --sans-publication`.
+
+**Exécution automatique** (non installée pour l'instant). Le SIM de la veille est publié vers 10 h, heure de Paris, et la machine doit être allumée au moment du lancement. Ligne à ajouter avec `crontab -e`, en remplaçant le chemin du dépôt :
+
+```
+0 11 * * 1  cd /chemin/du/depot && mkdir -p logs/hebdo && PATH=$HOME/.local/bin:/usr/bin:/bin make hebdo >> logs/hebdo/cron.log 2>&1
+```
+
+### Calculs à la demande
 
 Les indices d'une plage de semaines seulement :
 

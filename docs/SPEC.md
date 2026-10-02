@@ -321,15 +321,15 @@ Quand un indice est absent (station en panne, donnée piézométrique trop ancie
 
 ### 7.1 Job hebdomadaire (lundi matin)
 
-1. Ingestion incrémentale de chaque source (re-téléchargement des 90 derniers jours pour capter les corrections a posteriori).
+1. Ingestion incrémentale de chaque source (re-téléchargement des 90 derniers jours pour capter les corrections a posteriori ; un piézomètre publié par lots est relu depuis sa dernière mesure en stock, pour qu'un lot de plusieurs mois soit récupéré en entier).
 2. Écriture des GeoParquet de l'année en cours.
-3. Calcul des indices de la semaine écoulée (et recalcul des semaines impactées par des corrections).
-4. `dvc add` + `dvc push`, commit Git, tag `data-AAAA-Www`.
-5. Rechargement des tables concernées dans PostGIS.
+3. Calcul des indices de la semaine écoulée. En pratique, tout l'historique est recalculé (environ 25 s) : chaque correction ou lot reçu se répercute sur les semaines concernées, et un calcul inchangé réécrit des fichiers identiques.
+4. `dvc add` + `dvc push`, commit Git des seuls fichiers `data/*.dvc`, tag `data-AAAA-Www`, envoi sur le remote Git. Pas de commit si les données n'ont pas changé, ni hors de la branche `hebdo.branche` ; une semaine recalculée après correction déplace son tag.
+5. Rechargement de PostGIS (reconstruction complète, environ 1 min).
 6. [V2] Production des composites Sentinel-2 si la fenêtre de 10 jours est complète.
-7. Rapport d'exécution (nombre de stations ayant répondu, données manquantes, anomalies de valeur).
+7. Rapport d'exécution dans `logs/hebdo/AAAA-Www.md`, non versionné (stations en échec, couverture de la semaine, anomalies de valeur, composite par zone, publication).
 
-Orchestration : cron pour la V1 ; Prefect envisageable si le nombre de tâches augmente.
+Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make hebdo` (`--sans-publication` pour ne rien versionner). Orchestration : cron pour la V1, après la publication du SIM de la veille (vers 10 h, heure de Paris) ; Prefect envisageable si le nombre de tâches augmente.
 
 ### 7.2 Robustesse
 

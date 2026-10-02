@@ -71,6 +71,16 @@ def _stocker(config: Config, rapport: Rapport, source: str, obs: pd.DataFrame) -
     rapport.fichiers.setdefault(source, set()).update(chemins)
 
 
+def derniere_mesure_piezo(config: Config) -> dict[str, date]:
+    """Code BSS -> date de la dernière mesure en stock (piézomètres publiés par lots)."""
+    fichiers = sorted(dossier_brut(config, "piezo").glob(f"{STOCKAGE['piezo'].prefixe}_*.parquet"))
+    if not fichiers:
+        return {}
+    obs = pd.concat([pd.read_parquet(f, columns=["station_id", "date"]) for f in fichiers])
+    dernieres = obs.groupby("station_id")["date"].max()
+    return {str(s).split(":", 1)[1]: d for s, d in dernieres.items()}
+
+
 def ingerer(
     config: Config, client: ClientHttp, aujourd_hui: date, depuis: date | None = None
 ) -> Rapport:
@@ -82,7 +92,8 @@ def ingerer(
     rapport = Rapport()
 
     def lire_piezo() -> Lecture:
-        return piezo.ingerer_observations(config, client, stations, depuis, aujourd_hui)
+        dernieres = derniere_mesure_piezo(config) if depuis is not None else {}
+        return piezo.ingerer_observations(config, client, stations, depuis, aujourd_hui, dernieres)
 
     def lire_hydro() -> Lecture:
         return hydro.ingerer_observations(config, client, stations, depuis, aujourd_hui)

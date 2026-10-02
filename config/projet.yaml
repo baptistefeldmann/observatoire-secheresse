@@ -54,6 +54,18 @@ indices:
     # Cumuls glissants de pluie terminés le dimanche de la semaine ISO (SPI 1, 3 et 6 mois)
     fenetres_jours: {spi_1: 30, spi_3: 91, spi_6: 182}
 
+# Job hebdomadaire (`make hebdo`, SPEC §7.1)
+hebdo:
+  # Publication : données sur le remote DVC, commit des fichiers data/*.dvc et étiquette
+  # data-AAAA-Www, poussés sur le remote Git. Pas de commit hors de cette branche.
+  branche: main
+  remote_git: origin
+  # Contrôles de vraisemblance sur les valeurs réingérées (rapport, sans effet sur les données)
+  controles:
+    pluie_max_mm_jour: 200       # maximum observé par maille SIM sur 1990-2026 : 89 mm
+    remplissage_max: 1.05        # volume / capacité d'une retenue ; maximum observé : 1,03
+
 chemins:
   data: data
   rasters: rasters
+  rapports: logs/hebdo       # rapports d'exécution du job, non versionnés

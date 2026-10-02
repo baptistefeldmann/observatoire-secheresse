@@ -20,5 +20,8 @@ build/
 *.qgs~
 .qgis_*
 
+# Rapports d'exécution du job hebdomadaire
+/logs/
+
 # Divers
 .DS_Store

@@ -41,7 +41,7 @@ reference:  ## Calcul des normales
 indices:  ## Indices hebdomadaires de tout l'historique -> data/indices/
 	$(PIPELINE) indices
 
-hebdo:  ## Job hebdomadaire
+hebdo:  ## Job hebdomadaire : ingestion, indices, DVC + Git (commit, tag, push), PostGIS
 	$(PIPELINE) hebdo
 
 db-rebuild:  ## Reconstruit PostGIS depuis data/

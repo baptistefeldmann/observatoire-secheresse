@@ -100,11 +100,11 @@ def ecrire(config: Config, tables: dict[str, pd.DataFrame], semaines: set[str]) 
     return chemins
 
 
-def calculer(config: Config, debut: str, fin: str) -> dict[str, int]:
-    """Calcule et écrit les semaines `debut` à `fin` ; renvoie le nombre de lignes par table."""
+def calculer(config: Config, debut: str, fin: str) -> dict[str, pd.DataFrame]:
+    """Calcule et écrit les semaines `debut` à `fin` ; renvoie les tables calculées."""
     tables = calculer_semaines(config, debut, fin)
     semaines = {commun.libelle_semaine(d.date()) for d in commun.dimanches(debut, fin)}
     ecrire(config, tables, semaines)
     for nom, table in tables.items():
         log.info("%s : %d lignes (%s à %s)", nom, len(table), debut, fin)
-    return {nom: len(table) for nom, table in tables.items()}
+    return tables

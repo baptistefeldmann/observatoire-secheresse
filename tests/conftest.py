@@ -77,10 +77,12 @@ def repondre(requete: httpx.Request) -> httpx.Response:
 
 @pytest.fixture
 def config(tmp_path: Path) -> Config:
-    """Configuration du dépôt, `data/` redirigé vers un dossier temporaire et zonage réduit à
-    l'emprise des fixtures."""
+    """Configuration du dépôt, `data/` et les rapports redirigés vers un dossier temporaire,
+    zonage réduit à l'emprise des fixtures."""
     base = charger_config(RACINE / "config")
-    chemins = base.projet.chemins.model_copy(update={"data": tmp_path / "data"})
+    chemins = base.projet.chemins.model_copy(
+        update={"data": tmp_path / "data", "rapports": tmp_path / "rapports"}
+    )
     projet = base.projet.model_copy(update={"chemins": chemins})
     return base.model_copy(update={"projet": projet, "zonage": ZONAGE_FIXTURES})
 

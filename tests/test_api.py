@@ -7,12 +7,14 @@ import json
 import os
 from collections.abc import Iterator
 from datetime import date
+from pathlib import Path
 
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
 from api import app as api
+from api import export
 from pipeline import ingestion, referentiels, schema, stockage
 from pipeline.config import Config
 from pipeline.db import chargement
@@ -149,3 +151,38 @@ def test_synthese_de_la_semaine(client_base: TestClient) -> None:
     assert synthese["fin"] == "2026-09-27"
     assert client_base.get("/semaines/2020-W10/synthese").status_code == 404
     assert client_base.get("/").json()["derniere_semaine"] == SEMAINE
+
+
+# --- Export statique (GitHub Pages) ----------------------------------------------------------
+
+
+def test_dernier_releve_au_dimanche() -> None:
+    points = [{"date": "2026-09-20", "valeur": 1}, {"date": "2026-09-25", "valeur": 2},
+              {"date": "2026-10-05", "valeur": 3}]  # fmt: skip
+    semaines = ["2026-W37", "2026-W38", "2026-W39", "2026-W40"]
+    resultat = export.derniers_au_dimanche(points, semaines)
+    assert "2026-W37" not in resultat  # aucun relevé avant le 13 septembre
+    assert [resultat[s]["valeur"] for s in semaines[1:]] == [1, 2, 2]  # le 5/10 est en W41
+
+
+def test_page_statique_non_indexee() -> None:
+    html = (api.DASHBOARD / "index.html").read_text(encoding="utf-8")
+    statique = export.page_statique(html)
+    assert '<meta name="robots" content="noindex, nofollow">' in statique
+    assert "window.OBSERVATOIRE = { statique: true }" in statique
+    assert export.nom_fichier("piezo:05634X0013/SF3") == "piezo_05634X0013_SF3"
+
+
+def test_export_du_site(client_base: TestClient, tmp_path: Path) -> None:
+    sortie = tmp_path / "pages"
+    tailles = export.exporter(sortie, client_base)
+    assert tailles["contours"] > 0 and (sortie / ".nojekyll").exists()
+    semaine = json.loads((sortie / "donnees" / "semaines" / "2026.json").read_text())[SEMAINE]
+    assert semaine["zones"]["ILE_NOIRMOUTIER"]["classe"] == 1
+    assert semaine["stations"][PIEZO]["valeur"] == -1.5
+    assert semaine["synthese"]["composite"]["zones_seches"] == 1
+    stations = json.loads((sortie / "donnees" / "stations.geojson").read_text())
+    fichier = next(f["properties"]["fichier"] for f in stations["features"]
+                   if f["properties"]["station_id"] == PIEZO)  # fmt: skip
+    serie = json.loads((sortie / "donnees" / "series" / "stations" / f"{fichier}.json").read_text())
+    assert serie["chronique"]["points"] and serie["enveloppe"]["pas"] == "mois"

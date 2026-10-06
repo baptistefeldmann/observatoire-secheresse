@@ -1,4 +1,4 @@
-.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices hebdo qgis db-rebuild config test test-db lint format
+.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices hebdo qgis site pages db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -54,6 +54,17 @@ qgis:  ## Génère le projet QGIS (QGIS en Docker, rôle lecteur) et le charge d
 		-e PGPASSWORD="$$POSTGRES_LECTEUR_PASSWORD" \
 		$(QGIS_IMAGE) python3 qgis/construire_projet.py
 	$(PIPELINE) projet-qgis
+
+site:  ## Dashboard statique (GitHub Pages) dans build/pages, depuis PostGIS
+	uv run python -W ignore::DeprecationWarning -m api.export build/pages  # avertissement interne à Starlette
+
+# Une seule version sur gh-pages : la branche est remplacée (commit orphelin), pour que
+# l'historique ne garde pas chaque export (environ 80 Mo).
+pages: site  ## Publie le dashboard statique sur la branche gh-pages de GitHub
+	@cd build/pages && git init -q -b gh-pages && git add -A && \
+	git commit -q -m "Dashboard statique du $$(date +%F)" && \
+	git push -q -f "$$(git -C ../.. remote get-url origin)" gh-pages && \
+	echo "Publié sur gh-pages. Première fois : GitHub › Settings › Pages › Branch : gh-pages, / (root)."
 
 db-rebuild:  ## Reconstruit PostGIS depuis data/
 	$(PIPELINE) db-rebuild

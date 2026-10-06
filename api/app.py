@@ -107,6 +107,8 @@ def accueil(base: Base, cfg: Configuration) -> dict[str, Any]:
         "derniere_semaine": _derniere_semaine(base),
         "documentation": "/docs",
         "dashboard": "/dashboard/",
+        "avertissement": cfg.projet.publication.avertissement,
+        "sources": cfg.projet.publication.sources,
     }
 
 

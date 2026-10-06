@@ -69,6 +69,13 @@ class Api(_Modele):
     simplification_m: float = Field(ge=0)
 
 
+class Publication(_Modele):
+    """Version publique du dashboard (site statique) : avertissement et sources citées."""
+
+    avertissement: str
+    sources: list[str] = []
+
+
 class Chemins(_Modele):
     data: Path
     rasters: Path
@@ -135,6 +142,7 @@ class Projet(_Modele):
     indices: Indices
     hebdo: Hebdo
     api: Api
+    publication: Publication
     chemins: Chemins
 
     @field_validator("crs")

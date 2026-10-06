@@ -20,6 +20,9 @@ build/
 *.qgs~
 .qgis_*
 
+# Site statique du dashboard (make site / make pages), régénérable
+/build/
+
 # Rapports d'exécution du job hebdomadaire
 /logs/
 

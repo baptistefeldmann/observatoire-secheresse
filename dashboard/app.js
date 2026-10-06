@@ -76,6 +76,58 @@ async function api(chemin) {
   return reponse.json();
 }
 
+// --- Source des données : l'API (local) ou les fichiers exportés (GitHub Pages, make site) ---
+
+const STATIQUE = Boolean(window.OBSERVATOIRE?.statique);
+const memoire = new Map();
+const fichier = (chemin) => {
+  if (!memoire.has(chemin)) memoire.set(chemin, api(chemin));
+  return memoire.get(chemin);
+};
+const dansPlage = (valeur, debut, fin) => valeur >= debut && valeur <= fin;
+
+const source = STATIQUE ? {
+  generalites: () => Promise.all(["accueil", "classes", "semaines"].map((n) => fichier(`donnees/${n}.json`))),
+  async semaine(semaine) {
+    const [zones, stations, annee] = await Promise.all([
+      fichier("donnees/zones.geojson"), fichier("donnees/stations.geojson"), fichier(`donnees/semaines/${semaine.slice(0, 4)}.json`),
+    ]);
+    const donnees = annee[semaine];
+    if (!donnees) throw new Error(`semaine ${semaine} absente de l'export`);
+    // Contours (une seule fois) + indicateurs de la semaine
+    const fusion = (geo, indicateurs, cle) => ({
+      type: "FeatureCollection",
+      features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, semaine, ...(indicateurs[f.properties[cle]] ?? {}) } })),
+    });
+    return { zones: fusion(zones, donnees.zones, "zone_id"), stations: fusion(stations, donnees.stations, "station_id"), synthese: donnees.synthese };
+  },
+  async serieZone(zoneId, indice, debut, fin) {
+    const series = await fichier(`donnees/series/zones/${zoneId}.json`);
+    return { points: series[indice].filter((p) => dansPlage(p.semaine, debut, fin)) };
+  },
+  async serieStation(stationId, debut, fin) {
+    const station = (await fichier("donnees/stations.geojson")).features.find((f) => f.properties.station_id === stationId);
+    if (!station) throw new Error(`station inconnue : ${stationId}`);
+    const serie = await fichier(`donnees/series/stations/${station.properties.fichier}.json`);
+    const [semaineDebut, semaineFin] = [semaineDe(new Date(`${debut}T00:00:00Z`)), semaineDe(new Date(`${fin}T00:00:00Z`))];
+    return {
+      ...serie,
+      chronique: { ...serie.chronique, points: serie.chronique.points.filter((p) => dansPlage(p.date, debut, fin)) },
+      indices: serie.indices.filter((i) => dansPlage(i.semaine, semaineDebut, semaineFin)),
+    };
+  },
+} : {
+  generalites: () => Promise.all([api("/"), api("/classes"), api("/semaines")]),
+  async semaine(semaine) {
+    const [zones, stations, synthese] = await Promise.all([
+      api(`/zones?semaine=${semaine}`), api(`/stations?semaine=${semaine}`), api(`/semaines/${semaine}/synthese`),
+    ]);
+    return { zones, stations, synthese };
+  },
+  serieZone: (zoneId, indice, debut, fin) => api(`/zones/${zoneId}/series?indice=${indice}&debut=${debut}&fin=${fin}`),
+  serieStation: (stationId, debut, fin) => api(`/stations/${stationId}/series?debut=${debut}&fin=${fin}`),
+};
+
 function alerte(message) {
   const bloc = document.getElementById("alerte");
   bloc.hidden = !message;
@@ -296,10 +348,8 @@ async function chargerSemaine(semaine) {
   document.getElementById("semaine-precedente").disabled = index === etat.semaines.length - 1;
   document.getElementById("panneau").style.opacity = 0.55;
   try {
-    const [zones, stations, synthese] = await Promise.all([
-      api(`/zones?semaine=${semaine}`), api(`/stations?semaine=${semaine}`), api(`/semaines/${semaine}/synthese`),
-    ]);
-    Object.assign(etat, { zones, stations, synthese });
+    Object.assign(etat, await source.semaine(semaine));
+    const { zones, stations } = etat;
     carte.getSource("zones").setData(zones);
     carte.getSource("stations").setData(stations);
     tuiles();
@@ -473,11 +523,9 @@ function grapheComposantes(instance, series) {
 
 async function panneauZone(zoneId) {
   const fin = etat.semaine, debut = semaineDe(debutPlage());
-  const plage = `debut=${debut}&fin=${fin}`;
   const [composite, spi, ips, debit, onde] = await Promise.all([
-    api(`/zones/${zoneId}/series?indice=composite&${plage}`), api(`/zones/${zoneId}/series?indice=spi_3&${plage}`),
-    api(`/zones/${zoneId}/series?indice=ips&${plage}`), api(`/zones/${zoneId}/series?indice=debit&${plage}`),
-    api(`/zones/${zoneId}/series?indice=onde&debut=${fin.slice(0, 4)}-W01&fin=${fin}`),
+    ...["composite", "spi_3", "ips", "debit"].map((indice) => source.serieZone(zoneId, indice, debut, fin)),
+    source.serieZone(zoneId, "onde", `${fin.slice(0, 4)}-W01`, fin),
   ]);
   const zone = etat.zones.features.find((f) => f.properties.zone_id === zoneId).properties;
   const ponderations = zone.ponderations || {};
@@ -559,7 +607,7 @@ function grapheMesure(instance, chronique, enveloppe, debut, fin) {
 
 async function panneauStation(stationId) {
   const fin = dimancheDe(etat.semaine), debut = debutPlage();
-  const serie = await api(`/stations/${stationId}/series?debut=${iso(debut)}&fin=${iso(fin)}`);
+  const serie = await source.serieStation(stationId, iso(debut), iso(fin));
   const p = serie.station.properties;
   const actuelle = etat.stations.features.find((f) => f.properties.station_id === stationId)?.properties ?? {};
   const blocs = [
@@ -611,12 +659,22 @@ function lireAdresse() {
   return etat.semaines.includes(semaine) ? semaine : etat.semaines[0];
 }
 
+function piedDePage(accueil) {
+  // Version publique : avertissement permanent ; dans tous les cas, sources citées
+  const bandeau = document.getElementById("bandeau");
+  bandeau.hidden = !(STATIQUE && accueil.avertissement);
+  bandeau.textContent = accueil.avertissement ?? "";
+  document.getElementById("lien-api").hidden = STATIQUE;
+  document.getElementById("sources").textContent = (accueil.sources ?? []).length ? `Sources : ${accueil.sources.join(" · ")}.` : "";
+}
+
 // --- Démarrage -----------------------------------------------------------------------------
 
 async function demarrer() {
   try {
-    const [accueil, classes, semaines] = await Promise.all([api("/"), api("/classes"), api("/semaines")]);
+    const [accueil, classes, semaines] = await source.generalites();
     Object.assign(etat, { territoire: accueil.territoire, version: accueil.version_methodo, classes: classes.classes, seuils: classes.seuils, semaines: semaines.semaines });
+    piedDePage(accueil);
   } catch (erreur) {
     alerte(`API injoignable : ${erreur.message}`);
     return;

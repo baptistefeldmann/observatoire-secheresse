@@ -33,6 +33,8 @@ make reference     # calcul des normales
 make indices       # indices hebdomadaires de tout l'historique -> data/indices/
 make hebdo         # job hebdomadaire
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS
+make site          # dashboard statique -> build/pages (GitHub Pages)
+make pages         # make site puis publication sur la branche gh-pages (pousse sur GitHub)
 make db-rebuild    # reconstruit PostGIS depuis data/
 make test          # sans réseau ni service externe
 make test-db       # intégration PostGIS sur une base jetable (Docker)

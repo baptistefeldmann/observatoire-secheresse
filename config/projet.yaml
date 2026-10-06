@@ -70,6 +70,19 @@ hebdo:
 api:
   simplification_m: 20
 
+# Version publique du dashboard (make pages : site statique sur GitHub Pages)
+publication:
+  avertissement: >-
+    Prototype en cours de validation : l'indice n'a pas encore été confronté aux
+    sécheresses passées. Ne pas l'utiliser pour une décision.
+  # Sources citées en pied de page (Licence Ouverte : mention obligatoire de la source)
+  sources:
+    - "Hub'Eau (BRGM, OFB, Schapi) : nappes, débits, écoulement ONDE"
+    - "Météo-France : réanalyse SIM (data.gouv.fr)"
+    - "SANDRE : masses d'eau souterraine, zones d'alerte"
+    - "Département de la Vendée : remplissage des retenues d'eau potable"
+    - "IGN : Plan IGN (Géoplateforme)"
+
 chemins:
   data: data
   rasters: rasters

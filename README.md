@@ -4,7 +4,7 @@ Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone
 
 Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
 
-> État : V1 terminée (étapes 1 à 9 : référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS, API, dashboard). Étape suivante : valider l'indice sur les sécheresses passées. Détail dans [`passation.md`](passation.md).
+> État : V1 terminée (étapes 1 à 9 : référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS, API, dashboard), avec une version publique du dashboard sur GitHub Pages. Étape suivante : valider l'indice sur les sécheresses passées. Détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -327,6 +327,21 @@ Exemples : `/zones/SUD_VENDEE/series?indice=spi_3&debut=2022-W01&fin=2022-W52`, 
 - **Lien partageable** : l'adresse de la page contient la semaine et la zone ou la station choisie, par exemple `/dashboard/#semaine=2022-W33&zone=SUD_VENDEE`.
 
 Fichiers : `dashboard/index.html`, `app.js`, `style.css`. Sans framework ni compilation : modifier un fichier, puis `make up` pour reconstruire l'image de l'API. MapLibre 6 et ECharts 6 sont chargés depuis jsDelivr (versions figées), les tuiles depuis la Géoplateforme de l'IGN : le poste qui affiche le dashboard doit avoir accès à Internet.
+
+### Version publique (GitHub Pages)
+
+Le dashboard existe aussi en version statique, sans API ni base, publiée sur GitHub Pages : <https://baptistefeldmann.github.io/observatoire-secheresse/>.
+
+```bash
+make site    # construit le site dans build/pages (environ 100 Mo, 80 s ; PostGIS démarré)
+make pages   # make site, puis remplace la branche gh-pages de GitHub par le nouveau site
+```
+
+- `make site` interroge l'API en interne (`api/export.py`) : mêmes calculs que la version locale. Le site contient les contours (une fois), les indices et la synthèse de chaque semaine (un fichier par année), et les séries complètes de chaque zone et de chaque station. Le dashboard lit ces fichiers à la place de l'API.
+- `make pages` publie un **seul commit** sur `gh-pages`, qui remplace le précédent : l'historique Git ne garde pas chaque export. À lancer après un `make hebdo` pour mettre le site à jour (rien n'est automatique).
+- Première publication : GitHub › Settings › Pages › Build and deployment › Deploy from a branch › `gh-pages`, dossier `/ (root)`.
+- La version publique affiche un **bandeau d'avertissement** (prototype en cours de validation) et porte une balise qui demande aux moteurs de recherche de ne pas l'indexer. Le texte de l'avertissement et les sources citées en pied de page sont dans `config/projet.yaml` (bloc `publication`).
+- Les données publiées sont celles de l'API, retenues comprises. Hub'Eau, les données SIM, le SANDRE et le Plan IGN sont sous Licence Ouverte (source citée) ; la table des retenues du Département n'a pas de licence publiée.
 
 ## 8. Adapter à un autre département
 

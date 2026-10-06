@@ -382,6 +382,7 @@ Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make h
 - Panneau latéral : séries temporelles de la zone ou de la station sélectionnée, comparées à la normale (enveloppe min / médiane / max de la référence).
 - [V2] Couches raster NDVI / anomalies via TiTiler, avec curseur temporel.
 - Pile : MapLibre + ECharts sans framework (§10), servi par l'API sous `/dashboard/` (même origine : pas de CORS). Bibliothèques chargées depuis jsDelivr, versions figées.
+- Version publique statique sur GitHub Pages (`make site`, `make pages`, `api/export.py`) : mêmes données exportées en fichiers, bandeau d'avertissement et balise anti-indexation (`publication` dans `config/projet.yaml`).
 - En plus : chiffres clés de la semaine, liste des zones de la plus sèche à la plus humide, retenues et ONDE hors composite, tableau sous chaque graphique, lien partageable (semaine et sélection dans l'adresse).
 
 ### 8.3 QGIS

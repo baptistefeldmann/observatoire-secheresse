@@ -44,6 +44,10 @@ button, input { font: inherit; }
 .semaine button:disabled { opacity: .4; cursor: default; }
 .bouton[aria-pressed="true"] { background: var(--texte-1); color: #fff; border-color: var(--texte-1); }
 
+.bandeau {
+  margin: 0; padding: 9px 20px; background: #fff4d6; color: #5c4400;
+  border-bottom: 1px solid #f0dca0; font-size: 13px;
+}
 .alerte {
   margin: 12px 20px 0; padding: 10px 14px; border-radius: var(--rayon);
   background: #fbeaea; color: var(--alerte); border: 1px solid #f0c9c9;
@@ -123,6 +127,7 @@ td.nombre, th.nombre { text-align: right; font-variant-numeric: tabular-nums; }
 
 .pied { padding: 8px 20px 14px; color: var(--texte-3); font-size: 12px; }
 .pied a { color: var(--texte-2); }
+.pied p { margin: 4px 0 0; }
 
 /* Info-bulle de la carte */
 .maplibregl-popup-content { padding: 8px 10px; font-size: 12px; border-radius: 6px; }

@@ -11,6 +11,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY pipeline ./pipeline
 COPY api ./api
+COPY dashboard ./dashboard
 RUN uv sync --frozen --no-dev
 
 USER nobody

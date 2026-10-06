@@ -90,9 +90,9 @@ Rien à installer ni à copier : le projet est rangé dans PostGIS et s'ouvre pa
 
 4. Ouvrir le projet : Projet › Ouvrir depuis › PostgreSQL, connexion `secheresse_vendee`, schéma `carto`, projet `secheresse_vendee`.
 
-## API
+## Dashboard et API
 
-Avec le tunnel ouvert, l'API est accessible depuis le navigateur du portable : <http://localhost:8010/docs> (documentation interactive), ou par exemple <http://localhost:8010/semaines/2026-W39/synthese>. Elle est démarrée par `make up` sur la machine Linux.
+Avec le tunnel ouvert, le dashboard s'ouvre dans le navigateur du portable : <http://localhost:8010/dashboard/>. L'API est accessible à la même adresse : <http://localhost:8010/docs> (documentation interactive), ou par exemple <http://localhost:8010/semaines/2026-W39/synthese>. Elle est démarrée par `make up` sur la machine Linux.
 
 ## Rasters [V2]
 

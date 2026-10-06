@@ -4,7 +4,7 @@ Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone
 
 Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
 
-> État : V1 en cours, étapes 1 à 8 sur 9 (référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS, API). Le dashboard vient ensuite. Détail dans [`passation.md`](passation.md).
+> État : V1 terminée (étapes 1 à 9 : référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS, API, dashboard). Étape suivante : valider l'indice sur les sécheresses passées. Détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -14,7 +14,7 @@ Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « 
 4. [Utilisation](#4-utilisation)
 5. [Les données en base](#5-les-données-en-base)
 6. [Utiliser l'observatoire dans QGIS](#6-utiliser-lobservatoire-dans-qgis)
-7. [L'API](#7-lapi)
+7. [L'API et le dashboard](#7-lapi-et-le-dashboard)
 8. [Adapter à un autre département](#8-adapter-à-un-autre-département)
 9. [Arborescence et documentation](#9-arborescence-et-documentation)
 
@@ -79,8 +79,8 @@ Quelques règles utiles pour lire les résultats :
   schémas ref · obs · idx · rst
         │                         │
         ▼                         ▼
-  QGIS (rôle lecteur,        API FastAPI, port 8010 → dashboard web
-  tunnel SSH si distant)     (rôle lecteur)             (étape 9, à venir)
+  QGIS (rôle lecteur,        API FastAPI, port 8010 ── dashboard web (/dashboard/)
+  tunnel SSH si distant)     (rôle lecteur)            MapLibre + ECharts
 ```
 
 ### Principes
@@ -299,7 +299,7 @@ Les tables `idx.indice_zone`, `idx.composite_zone` et `obs.*` se chargent comme 
 - Après un `make hebdo` ou un `make db-rebuild`, recharger les couches (F5) pour voir la nouvelle semaine.
 - Modifier les couches ou les styles dans le script plutôt qu'à la main dans le projet : sinon, la prochaine génération écraserait ces modifications. Le rôle `lecteur` ne peut de toute façon pas enregistrer le projet en base : pour une version personnelle, Projet › Enregistrer sous… dans un fichier local.
 
-## 7. L'API
+## 7. L'API et le dashboard
 
 L'API sert les indices au dashboard (étape 9) et à tout autre client, en lecture seule (rôle `lecteur`). Elle tourne dans le service `api` de `docker-compose.yml` : `make up` démarre PostGIS et l'API, et reconstruit l'image si le code a changé ; `make down` arrête les deux. Elle écoute sur le port **8010**, limité à la machine. Depuis le portable, elle est accessible par le tunnel SSH, déjà configuré pour ce port : <http://localhost:8010/docs> donne la documentation interactive, où l'on peut essayer chaque requête.
 
@@ -316,6 +316,17 @@ L'API sert les indices au dashboard (étape 9) et à tout autre client, en lectu
 | `GET /sante` | disponibilité de la base |
 
 Exemples : `/zones/SUD_VENDEE/series?indice=spi_3&debut=2022-W01&fin=2022-W52`, `/stations/piezo:05634X0013/SF3/series?debut=2026-01-01`. Les semaines sont des semaines ISO (`AAAA-Www`), les dates au format `AAAA-MM-JJ`. Un paramètre invalide renvoie une erreur 422 qui l'explique.
+
+### Le dashboard
+
+<http://localhost:8010/dashboard/> (tunnel ouvert depuis le portable). Il est servi par l'API, donc démarré par `make up`.
+
+- **En haut** : choix de la semaine (flèches, champ semaine, bouton « Dernière ») et chiffres clés : zones en classe 1-2, remplissage des retenues comparé aux années précédentes, stations de débit en classe 1-2, piézomètres au composite, part des stations ONDE sans écoulement.
+- **Carte** (fond Plan IGN) : zones colorées selon l'indice composite, piézomètres et stations de débit selon leur classe (anneau : piézomètre hors composite, mesure ancienne), retenues en carrés (remplissage), stations ONDE (case à cocher). Survol : valeur et classe ; clic : détail dans le panneau.
+- **Panneau** : par défaut, la synthèse de la semaine (zones de la plus sèche à la plus humide, retenues, dernière campagne ONDE). Pour une zone : composantes et poids appliqués, courbe du composite colorée par classe, courbes des composantes, campagnes ONDE de l'année. Pour une station : chronique brute avec l'enveloppe de la normale (minimum, médiane, maximum ; débits en échelle logarithmique), puis l'indice hebdomadaire. Période : 1 an, 2 ans, 10 ans ou tout. Le bouton « Tableau » affiche les valeurs de chaque graphique.
+- **Lien partageable** : l'adresse de la page contient la semaine et la zone ou la station choisie, par exemple `/dashboard/#semaine=2022-W33&zone=SUD_VENDEE`.
+
+Fichiers : `dashboard/index.html`, `app.js`, `style.css`. Sans framework ni compilation : modifier un fichier, puis `make up` pour reconstruire l'image de l'API. MapLibre 6 et ECharts 6 sont chargés depuis jsDelivr (versions figées), les tuiles depuis la Géoplateforme de l'IGN : le poste qui affiche le dashboard doit avoir accès à Internet.
 
 ## 8. Adapter à un autre département
 
@@ -343,7 +354,7 @@ tests/       tests pytest sur réponses API enregistrées (fixtures/), sans rés
 data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/
 qgis/        script de génération du projet, projet .qgz, styles QML, service PostgreSQL d'exemple
 api/         API FastAPI (app.py, requêtes SQL, Dockerfile)
-dashboard/   front web (étape 9)
+dashboard/   dashboard web (index.html, app.js, style.css), servi par l'API
 rasters/     COG Sentinel-2 (V2), locaux et non versionnés
 docker/      initialisation de PostGIS (rôle lecteur)
 docs/        spécification, méthodologie, accès distant, comptes rendus de spikes

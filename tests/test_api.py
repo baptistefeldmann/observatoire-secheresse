@@ -39,6 +39,13 @@ def test_classes_depuis_la_configuration(client_api: TestClient) -> None:
     assert classes[3] == {"classe": 4, "libelle": "Normal", "couleur": "#4daf4a"}
 
 
+def test_dashboard_servi_par_l_api(client_api: TestClient) -> None:
+    page = client_api.get("/dashboard/")
+    assert page.status_code == 200 and "app.js" in page.text
+    script = client_api.get("/dashboard/app.js")
+    assert script.status_code == 200 and "javascript" in script.headers["content-type"]
+
+
 @pytest.mark.parametrize(
     "chemin",
     [

@@ -381,7 +381,8 @@ Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make h
 - Carte MapLibre : zones colorées selon l'indice composite (7 classes), stations en surimpression, sélecteur de semaine.
 - Panneau latéral : séries temporelles de la zone ou de la station sélectionnée, comparées à la normale (enveloppe min / médiane / max de la référence).
 - [V2] Couches raster NDVI / anomalies via TiTiler, avec curseur temporel.
-- Choix de pile front à confirmer (voir §10).
+- Pile : MapLibre + ECharts sans framework (§10), servi par l'API sous `/dashboard/` (même origine : pas de CORS). Bibliothèques chargées depuis jsDelivr, versions figées.
+- En plus : chiffres clés de la semaine, liste des zones de la plus sèche à la plus humide, retenues et ONDE hors composite, tableau sous chaque graphique, lien partageable (semaine et sélection dans l'adresse).
 
 ### 8.3 QGIS
 
@@ -415,7 +416,7 @@ Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make h
 | HTTP | httpx + tenacity |
 | Base de données | PostGIS (image `postgis/postgis`, Docker Compose), SQLAlchemy + GeoAlchemy2, migrations Alembic |
 | API | FastAPI, TiTiler |
-| Front | **À confirmer** : React + MapLibre GL JS + bibliothèque de graphiques (proposition), ou prototype Streamlit pour la V1 |
+| Front | MapLibre GL JS 6 + ECharts 6, sans framework ni compilation (`dashboard/`, servi par l'API sous `/dashboard/`) ; fond Plan IGN (Géoplateforme). Décidé le 2026-10-06 |
 | Versionnage données | DVC, remote DagsHub |
 | Tests | pytest, avec réponses API enregistrées (fixtures) pour ne pas dépendre du réseau |
 | Qualité | ruff, mypy sur le code du pipeline |
@@ -487,5 +488,5 @@ observatoire-secheresse/
 | Nuages (Sentinel-2) | Composites incomplets | Décades au lieu de semaines, bande de qualité, seuil minimal de pixels valides |
 | Historique court de sécheresses | Surapprentissage en V4 | Méthodes simples (régressions, analogues) avant tout modèle d'apprentissage |
 | Population présente (V3) | Pas de donnée mensuelle ouverte par commune | Estimation résidents + résidences secondaires + lits touristiques × taux d'occupation mensuel |
-| Front | Pile non arrêtée | Décision avant le début du développement du dashboard |
+| Front | Pile arrêtée le 2026-10-06 (MapLibre + ECharts, sans framework) | Passer à un framework (React) si l'interface grossit nettement en V2-V3 |
 | Modèle d'occupation du sol | Nomenclature et format à fixer | Respect du contrat d'interface du §4.7 |

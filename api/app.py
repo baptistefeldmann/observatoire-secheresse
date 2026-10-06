@@ -9,9 +9,11 @@ from __future__ import annotations
 import json
 from datetime import date
 from functools import lru_cache
+from pathlib import Path as Chemin
 from typing import Annotated, Any, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Connection, Engine, create_engine, text
 
 from api import requetes
@@ -26,9 +28,13 @@ PREMIERE, DERNIERE = "0000-W01", "9999-W53"
 
 app = FastAPI(
     title="Observatoire de la sécheresse",
-    description="Indices hebdomadaires de sécheresse par zone et par station (lecture seule).",
+    description="Indices hebdomadaires de sécheresse par zone et par station (lecture seule). "
+    "Dashboard : /dashboard/.",
     version="1.0",
 )
+# Dashboard (SPEC §8.2) servi par l'API : même origine, donc pas de réglage CORS
+DASHBOARD = Chemin(__file__).resolve().parents[1] / "dashboard"
+app.mount("/dashboard", StaticFiles(directory=DASHBOARD, html=True), name="dashboard")
 
 
 @lru_cache
@@ -100,6 +106,7 @@ def accueil(base: Base, cfg: Configuration) -> dict[str, Any]:
         "version_methodo": cfg.projet.indices.version_methodo,
         "derniere_semaine": _derniere_semaine(base),
         "documentation": "/docs",
+        "dashboard": "/dashboard/",
     }
 
 

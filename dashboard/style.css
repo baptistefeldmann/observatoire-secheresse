@@ -1,0 +1,136 @@
+/* Observatoire de la sécheresse : dashboard (MapLibre + ECharts, sans framework). */
+
+:root {
+  color-scheme: light;
+  --surface-0: #f4f4f2;      /* fond de page */
+  --surface-1: #fcfcfb;      /* cartes, panneaux, graphiques */
+  --trait: #e2e1dc;          /* filets, grilles */
+  --texte-1: #0b0b0b;
+  --texte-2: #52514e;
+  --texte-3: #7a7974;
+  --accent: #2a78d6;
+  --alerte: #8a1c1c;
+  --rayon: 8px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--texte-1);
+  background: var(--surface-0);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+h1 { font-size: 18px; }
+h2 { font-size: 16px; }
+h3 { font-size: 13px; color: var(--texte-2); margin-top: 18px; margin-bottom: 6px; }
+button, input { font: inherit; }
+
+/* --- En-tête et choix de la semaine ----------------------------------------------------- */
+
+.entete {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 12px 20px; background: var(--surface-1); border-bottom: 1px solid var(--trait);
+}
+.sous-titre { margin: 2px 0 0; color: var(--texte-2); font-size: 13px; }
+.semaine { display: flex; align-items: center; gap: 6px; }
+.semaine label { color: var(--texte-2); }
+.semaine input { padding: 5px 8px; border: 1px solid var(--trait); border-radius: 6px; background: #fff; }
+.semaine button, .bouton {
+  padding: 5px 10px; border: 1px solid var(--trait); border-radius: 6px; background: #fff;
+  cursor: pointer; color: var(--texte-1);
+}
+.semaine button:hover, .bouton:hover { background: var(--surface-0); }
+.semaine button:disabled { opacity: .4; cursor: default; }
+.bouton[aria-pressed="true"] { background: var(--texte-1); color: #fff; border-color: var(--texte-1); }
+
+.alerte {
+  margin: 12px 20px 0; padding: 10px 14px; border-radius: var(--rayon);
+  background: #fbeaea; color: var(--alerte); border: 1px solid #f0c9c9;
+}
+
+/* --- Chiffres clés ------------------------------------------------------------------------ */
+
+.tuiles {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px;
+  padding: 14px 20px 0;
+}
+.tuile { background: var(--surface-1); border: 1px solid var(--trait); border-radius: var(--rayon); padding: 12px 14px; }
+.tuile-libelle { color: var(--texte-2); font-size: 12px; }
+.tuile-valeur { font-size: 24px; font-weight: 600; margin-top: 2px; }
+.tuile-detail { color: var(--texte-3); font-size: 12px; margin-top: 2px; }
+
+/* --- Carte et panneau ---------------------------------------------------------------------- */
+
+.principal {
+  flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 14px;
+  padding: 14px 20px; min-height: 620px;
+}
+.carte-bloc { position: relative; min-height: 560px; }
+#carte { position: absolute; inset: 0; border-radius: var(--rayon); border: 1px solid var(--trait); overflow: hidden; }
+
+.legende {
+  position: absolute; left: 10px; top: 10px; max-width: 250px;
+  max-height: calc(100% - 50px); overflow-y: auto;
+  background: rgba(252, 252, 251, .95); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: 10px 12px; font-size: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+.legende h3 { margin: 0 0 6px; font-size: 12px; color: var(--texte-1); }
+.legende h3 + * { margin-top: 0; }
+.legende ul { list-style: none; margin: 0 0 10px; padding: 0; }
+.legende-onde { margin: 2px 0 0 20px !important; font-size: 11px; color: var(--texte-2); }
+.legende li { line-height: 1.25; }
+.legende li { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+.legende label { display: flex; align-items: center; gap: 6px; margin: 3px 0; cursor: pointer; }
+.pastille { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0, 0, 0, .35); }
+.pastille.rond { border-radius: 50%; }
+.pastille.creux { background: #fff !important; border-width: 2px; }
+
+.panneau {
+  background: var(--surface-1); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: 16px; overflow-y: auto; max-height: calc(100vh - 210px); min-height: 560px;
+}
+.panneau-entete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.panneau .meta { color: var(--texte-2); font-size: 12px; margin-top: 2px; }
+.lien { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 13px; }
+
+.classe {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 4px;
+  border-radius: 999px; background: var(--surface-0); font-size: 12px; white-space: nowrap;
+}
+.classe .pastille { width: 12px; height: 12px; border-radius: 50%; }
+
+.liste-zones { list-style: none; margin: 0; padding: 0; }
+.liste-zones button {
+  width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center;
+  text-align: left; padding: 7px 8px; border: none; border-bottom: 1px solid var(--trait);
+  background: none; cursor: pointer; color: var(--texte-1);
+}
+.liste-zones button:hover, .liste-zones button:focus-visible { background: var(--surface-0); }
+.liste-zones .detail { grid-column: 1 / -1; color: var(--texte-3); font-size: 12px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--trait); }
+th { color: var(--texte-2); font-weight: 500; }
+td.nombre, th.nombre { text-align: right; font-variant-numeric: tabular-nums; }
+
+.graphique { width: 100%; height: 230px; }
+.graphique.bas { height: 170px; }
+.outils { display: flex; gap: 6px; align-items: center; margin: 10px 0 4px; flex-wrap: wrap; }
+.outils .espace { flex: 1; }
+.tableau { max-height: 220px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--trait); border-radius: 6px; }
+.note { color: var(--texte-3); font-size: 12px; margin: 6px 0 0; }
+
+.pied { padding: 8px 20px 14px; color: var(--texte-3); font-size: 12px; }
+.pied a { color: var(--texte-2); }
+
+/* Info-bulle de la carte */
+.maplibregl-popup-content { padding: 8px 10px; font-size: 12px; border-radius: 6px; }
+.bulle-titre { font-weight: 600; margin-bottom: 2px; }
+.bulle-ligne { color: var(--texte-2); }
+
+@media (max-width: 1000px) {
+  .principal { grid-template-columns: 1fr; }
+  .carte-bloc { min-height: 460px; }
+  .panneau { max-height: none; min-height: 0; }
+}

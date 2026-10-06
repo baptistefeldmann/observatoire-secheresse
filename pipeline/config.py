@@ -69,6 +69,7 @@ class Chemins(_Modele):
     data: Path
     rasters: Path
     rapports: Path
+    qgis: Path
 
 
 class Controles(_Modele):

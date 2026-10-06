@@ -69,3 +69,4 @@ chemins:
   data: data
   rasters: rasters
   rapports: logs/hebdo       # rapports d'exécution du job, non versionnés
+  qgis: qgis                 # projet QGIS généré par make qgis, chargé dans PostGIS

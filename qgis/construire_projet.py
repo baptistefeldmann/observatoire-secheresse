@@ -1,16 +1,17 @@
-"""Construit le projet QGIS de l'observatoire et ses styles (SPEC §8.3).
+"""Construit le projet QGIS de l'observatoire et ses styles (SPEC §8.3) : `make qgis`.
 
-À lancer dans QGIS (3.44 LTR), le tunnel SSH ouvert et le service PostgreSQL configuré
-(docs/acces_distant.md) : Extensions › Console Python › Afficher l'éditeur › Ouvrir ce
-fichier › Exécuter. Le projet ouvert dans QGIS n'est pas modifié.
+Exécuté par QGIS en Docker sur la machine qui héberge PostGIS (`make qgis`), sans interface ;
+`make qgis` charge ensuite le projet dans PostGIS (`carto.qgis_projects`), d'où les postes
+distants l'ouvrent par le tunnel SSH (Projet › Ouvrir depuis › PostgreSQL). Peut aussi être
+ouvert et exécuté dans la console Python d'un QGIS de bureau, depuis le dépôt.
 
 Produit, dans le dossier de ce script :
 - `secheresse_<slug>.qgz` : couches PostGIS par le service `secheresse_<slug>` (aucun mot de
-  passe dans le projet, il vient de pgpass) ;
+  passe dans le projet : il vient de pgpass, ou de PGPASSWORD pour `make qgis`) ;
 - `styles/*.qml` : styles des couches, réutilisables dans un autre projet.
 
 Tout ce qui est propre au territoire (slug, nom, CRS) et la palette des 7 classes sont lus
-dans `config/`. Relancer le script régénère le projet à l'identique.
+dans `config/`. Relancer le script régénère le projet.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from pathlib import Path
 
 from qgis.core import (
     Qgis,
+    QgsApplication,
     QgsCategorizedSymbolRenderer,
     QgsCoordinateReferenceSystem,
     QgsDataSourceUri,
@@ -40,19 +42,18 @@ from qgis.core import (
     QgsVectorLayerSimpleLabeling,
 )
 from qgis.PyQt.QtCore import QDate, QDateTime, QTime
-from qgis.PyQt.QtWidgets import QFileDialog
 
 # --- Emplacement et configuration du territoire ----------------------------------------------
 
 
 def _dossier_qgis() -> Path:
     try:
-        return Path(__file__).resolve().parent
-    except NameError:  # exécuté depuis la console sans nom de fichier
-        choisi = QFileDialog.getExistingDirectory(None, "Dossier qgis/ du dépôt")
-        if not choisi:
-            raise SystemExit("Aucun dossier choisi.") from None
-        return Path(choisi)
+        dossier = Path(__file__).resolve().parent
+    except NameError:  # code collé dans la console : aucun fichier de référence
+        raise SystemExit("Ouvrir qgis/construire_projet.py depuis le dépôt.") from None
+    if not (dossier.parent / "config" / "projet.yaml").is_file():
+        raise SystemExit(f"config/projet.yaml introuvable à côté de {dossier} (make qgis).")
+    return dossier
 
 
 DOSSIER = _dossier_qgis()
@@ -129,13 +130,16 @@ def remplissage(couleur: str) -> QgsFillSymbol:
     )
 
 
-def point(couleur: str, creux: bool = False, taille: str = "3.2") -> QgsMarkerSymbol:
-    if creux:  # contour seul : valeur affichée, mais hors composite
-        proprietes = {"name": "circle", "color": "255,255,255,0", "outline_color": couleur,
-                      "outline_width": "0.8", "size": taille}  # fmt: skip
+def point(
+    couleur: str, creux: bool = False, taille: str = "3.2", forme: str = "circle"
+) -> QgsMarkerSymbol:
+    """Liseré blanc : un point reste visible sur une zone de la même classe."""
+    if creux:  # anneau de couleur sur fond blanc translucide : valeur affichée, hors composite
+        proprietes = {"name": forme, "color": "255,255,255,170", "outline_color": couleur,
+                      "outline_width": "0.9", "size": taille}  # fmt: skip
     else:
-        proprietes = {"name": "circle", "color": couleur, "outline_color": "#333333",
-                      "outline_width": "0.3", "size": taille}  # fmt: skip
+        proprietes = {"name": forme, "color": couleur, "outline_color": "#ffffff",
+                      "outline_width": "0.5", "size": taille}  # fmt: skip
     return QgsMarkerSymbol.createSimple(proprietes)
 
 
@@ -174,9 +178,10 @@ def rendu_piezometres() -> QgsRuleBasedRenderer:
 def rendu_gradue(
     champ: str, bornes: list[float], couleurs: list[str], unite: str, points: bool
 ) -> QgsGraduatedSymbolRenderer:
+    """Plages de valeurs ; en points, des carrés, pour ne pas confondre avec les classes."""
     plages = []
     for bas, haut, couleur in zip(bornes[:-1], bornes[1:], couleurs, strict=True):
-        forme = point(couleur, taille="4") if points else remplissage(couleur)
+        forme = point(couleur, taille="4", forme="square") if points else remplissage(couleur)
         plages.append(QgsRendererRange(bas, haut, forme, f"{bas:g} à {haut:g} {unite}"))
     return QgsGraduatedSymbolRenderer(champ, plages)
 
@@ -202,7 +207,9 @@ def contours_etiquetes(couche: QgsVectorLayer) -> None:
 
 
 ONDE = ([0, 10, 30, 50, 75, 100], ["#ffffd4", "#fed98e", "#fe9929", "#d95f0e", "#993404"])
-RETENUES = ([0, 20, 40, 60, 80, 110], ["#c8102e", "#f28c28", "#ffd92f", "#9ecae1", "#3182bd"])
+# Remplissage : dégradé de bleus (vide pâle, plein foncé), distinct de la palette des classes
+RETENUES = ([0, 20, 40, 60, 80, 110], ["#deebf7", "#9ecae1", "#4292c6", "#2171b5", "#084594"])
+OPACITE_ZONES = 0.7  # le fond de carte et les stations restent lisibles sous les zones
 
 # --- Assemblage ------------------------------------------------------------------------------
 
@@ -244,15 +251,18 @@ def construire() -> Path:
     composite = couche_postgis("Indice composite par zone", "carto", "v_composite_zone", "cle",
                                POLYGONE, '"derniere"')  # fmt: skip
     composite.setRenderer(rendu_classes(QgsFillSymbol))
+    composite.setOpacity(OPACITE_ZONES)
     ajouter(projet, recente, composite, style="classes_zone")
     for indice, titre in (("spi_3", "SPI 3 mois"), ("ips", "IPS"), ("debit", "Débit")):
         couche = couche_postgis(f"{titre} par zone", "carto", "v_indice_zone", "cle", POLYGONE,
                                 f"\"indice\" = '{indice}' AND \"derniere\"")  # fmt: skip
         couche.setRenderer(rendu_classes(QgsFillSymbol))
+        couche.setOpacity(OPACITE_ZONES)
         ajouter(projet, recente, couche, visible=False)
     onde = couche_postgis("ONDE : dernière campagne (% sans écoulement)", "carto",
                           "v_onde_zone", "cle", POLYGONE, '"derniere"')  # fmt: skip
     onde.setRenderer(rendu_gradue("pct_sans_ecoulement", *ONDE, "%", points=False))
+    onde.setOpacity(OPACITE_ZONES)
     ajouter(projet, recente, onde, visible=False, style="onde")
 
     # Historique : curseur temporel (Vue › Panneaux › Contrôleur temporel)
@@ -270,6 +280,8 @@ def construire() -> Path:
     ):  # fmt: skip
         couche = couche_postgis(f"{titre} – historique", "carto", table, "cle", cle_geom, filtre)
         couche.setRenderer(rendu())
+        if cle_geom == POLYGONE:
+            couche.setOpacity(OPACITE_ZONES)
         temporelle(couche)
         ajouter(projet, historique, couche, visible=False)
     historique.setItemVisibilityChecked(False)
@@ -331,6 +343,17 @@ def construire() -> Path:
     return chemin
 
 
-chemin_projet = construire()
-print(f"Projet écrit : {chemin_projet}")
-print("Ouvrir avec Projet › Ouvrir. Pour le versionner : copier qgis/ sur la machine Linux.")
+def principal() -> None:
+    application = None
+    if QgsApplication.instance() is None:  # hors de QGIS (make qgis) : application sans interface
+        QgsApplication.setPrefixPath("/usr", True)
+        application = QgsApplication([], False)
+        application.initQgis()
+    try:
+        print(f"Projet écrit : {construire()}")
+    finally:
+        if application is not None:
+            application.exitQgis()
+
+
+principal()

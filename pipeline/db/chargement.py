@@ -5,8 +5,10 @@ reste intacte."""
 from __future__ import annotations
 
 import io
+import json
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 import geopandas as gpd
@@ -95,6 +97,46 @@ def _charger(connexion: Connection, table: Table, donnees: pd.DataFrame, srid: i
         copie.write(csv)
 
 
+PROJETS_QGIS = "carto.qgis_projects"
+
+
+def projet_qgis(config: Config) -> Path:
+    """Projet QGIS versionné du territoire (généré par `make qgis`)."""
+    return config.projet.chemins.qgis / f"secheresse_{config.projet.territoire.slug}.qgz"
+
+
+def _charger_projet_qgis(connexion: Connection, config: Config) -> int:
+    """Copie le projet versionné dans `carto.qgis_projects` (stockage de projets de QGIS) ;
+    0 s'il n'a pas encore été généré."""
+    chemin = projet_qgis(config)
+    if not chemin.is_file():
+        return 0
+    modifie = datetime.fromtimestamp(chemin.stat().st_mtime).isoformat(timespec="seconds")
+    connexion.execute(
+        text(
+            f"INSERT INTO {PROJETS_QGIS} (name, metadata, content) "
+            "VALUES (:nom, CAST(:metadonnees AS jsonb), :contenu) "
+            "ON CONFLICT (name) DO UPDATE SET metadata = EXCLUDED.metadata, "
+            "content = EXCLUDED.content"
+        ),
+        {
+            "nom": chemin.stem,
+            "metadonnees": json.dumps(
+                {"last_modified_time": modifie, "last_modified_user": "pipeline"}
+            ),
+            "contenu": chemin.read_bytes(),
+        },
+    )
+    log.info("%s : projet %s chargé", PROJETS_QGIS, chemin.stem)
+    return 1
+
+
+def charger_projet_qgis(config: Config, moteur: Engine) -> int:
+    """Recharge seulement le projet QGIS (après `make qgis`), sans reconstruire la base."""
+    with moteur.begin() as connexion:
+        return _charger_projet_qgis(connexion, config)
+
+
 def reconstruire(config: Config, moteur: Engine) -> dict[str, int]:
     """Supprime et recrée les schémas, puis charge toutes les tables ; renvoie les effectifs."""
     dossier = config.projet.chemins.data
@@ -114,6 +156,7 @@ def reconstruire(config: Config, moteur: Engine) -> dict[str, int]:
                 )
             effectifs[table.nom] = en_base
             log.info("%s : %d lignes", table.nom, en_base)
+        effectifs[PROJETS_QGIS] = _charger_projet_qgis(connexion, config)
     with moteur.connect() as connexion:
         connexion.execution_options(isolation_level="AUTOCOMMIT").execute(text("ANALYZE"))
     return effectifs

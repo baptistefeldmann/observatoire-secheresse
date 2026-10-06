@@ -250,6 +250,7 @@ idx.composite_zone (zone_id,    semaine, valeur, classe, detail jsonb, version_m
 -- derniere (semaine la plus récente ; dernière campagne ONDE ; dernier relevé de retenue).
 carto.v_composite_zone, carto.v_indice_zone, carto.v_onde_zone      -- géométrie de la zone
 carto.v_indice_station, carto.v_retenue                             -- géométrie de la station
+carto.qgis_projects (name, metadata jsonb, content bytea)            -- projets QGIS (migration 0004)
 
 -- Catalogue raster [V2]
 rst.produit (
@@ -377,7 +378,7 @@ Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make h
 
 ### 8.3 QGIS
 
-- Projet `qgis/secheresse_<slug>.qgz` versionné, connecté à PostGIS (connexion par service `pg_service.conf`, sans mot de passe dans le projet), généré par le script PyQGIS `qgis/construire_projet.py` à partir de `config/` et des vues `carto` : groupe « Dernière semaine », groupe « Historique » parcouru par le contrôleur temporel (pas d'une semaine), référentiels, fond OpenStreetMap.
+- Projet `qgis/secheresse_<slug>.qgz` versionné, connecté à PostGIS (connexion par service `pg_service.conf`, sans mot de passe dans le projet), généré par `make qgis` (script PyQGIS `qgis/construire_projet.py` exécuté dans QGIS en Docker, à partir de `config/` et des vues `carto`) et chargé dans PostGIS (`carto.qgis_projects`, migration 0004), d'où les postes distants l'ouvrent par le tunnel SSH : groupe « Dernière semaine », groupe « Historique » parcouru par le contrôleur temporel (pas d'une semaine), référentiels, fond OpenStreetMap.
 - Styles QML versionnés dans `qgis/styles/`, reprenant la palette des 7 classes (couleurs du BSH, définies dans `config/classes.yaml` et partagées avec le dashboard).
 - Rasters COG chargés depuis `rasters/`.
 - Couches de fond : OSM, mosaïque EOX `s2cloudless`, WMS Copernicus Data Space (configuration personnelle).

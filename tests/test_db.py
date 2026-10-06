@@ -46,8 +46,12 @@ def test_reconstruction_depuis_data(config: Config, client: ClientHttp) -> None:
     referentiels.construire(config, client, date(2026, 9, 30))
     ingestion.ingerer(config, client, date(2026, 9, 30), date(2026, 9, 1))
     base = moteur(URL_TEST)
+    projet = chargement.projet_qgis(config)  # projet QGIS versionné (contenu factice)
+    projet.parent.mkdir(parents=True)
+    projet.write_bytes(b"PK projet")
 
     effectifs = chargement.reconstruire(config, base)
+    assert effectifs[chargement.PROJETS_QGIS] == 1
     assert effectifs["ref.zone"] == 1
     assert effectifs["obs.piezo_jour"] == 9
     assert effectifs["obs.meteo_jour"] > 0
@@ -77,3 +81,7 @@ def test_reconstruction_depuis_data(config: Config, client: ClientHttp) -> None:
         ]  # fmt: skip
         for vue in vues:
             connexion.execute(text(f"SELECT * FROM carto.{vue} WHERE derniere LIMIT 1")).all()
+        nom, contenu = connexion.execute(
+            text("SELECT name, content FROM carto.qgis_projects")
+        ).one()
+        assert (nom, bytes(contenu)) == ("secheresse_vendee", b"PK projet")

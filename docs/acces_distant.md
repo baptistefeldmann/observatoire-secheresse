@@ -8,7 +8,7 @@ Le poste Windows n'a besoin que de trois choses :
 |---|---|---|
 | Couches vectorielles | PostGIS (machine Linux) | tunnel SSH, port 5433 |
 | Rasters COG [V2] | `rasters/` servi par l'API (machine Linux) | tunnel SSH, port 8010 |
-| Projet `.qgz` et styles | dossier `qgis/` du dépôt | clone Git |
+| Projet QGIS | table `carto.qgis_projects` de PostGIS | tunnel SSH, port 5433 |
 
 PostGIS n'écoute que sur la machine Linux elle-même (`POSTGRES_BIND=127.0.0.1`) : aucun port n'est ouvert sur le réseau, SSH assure l'authentification et le chiffrement.
 
@@ -70,13 +70,7 @@ On préfère `pgpass` à une configuration d'authentification QGIS : cette derni
 
 ### Projet QGIS
 
-Cloner le dépôt depuis la machine Linux (ou depuis DagsHub une fois le remote configuré) :
-
-```powershell
-git clone ssh://secheresse/<chemin du dépôt sur la machine Linux>
-```
-
-Sur le portable servent le dossier `qgis/` et la configuration (`config/`, lue par le script de génération du projet) ; `git pull` récupère les mises à jour. Génération et ouverture du projet : [README, section 6.2](../README.md#62-générer-le-projet).
+Rien à installer ni à copier : le projet est rangé dans PostGIS et s'ouvre par le tunnel (étape 3). Il est généré sur la machine Linux par `make qgis` ([README, section 6.2](../README.md#62-générer-le-projet-machine-linux)).
 
 ## 3. À chaque session
 
@@ -92,7 +86,9 @@ Sur le portable servent le dossier `qgis/` et la configuration (`config/`, lue p
    Test-NetConnection localhost -Port 5433
    ```
 
-3. Ouvrir QGIS (redémarré après le `setx`). Première fois seulement : Explorateur › PostgreSQL › Nouvelle connexion, nom `secheresse_vendee`, champ **Service** = `secheresse_vendee`, laisser hôte, port, base et authentification vides, puis « Tester la connexion ».
+3. Ouvrir QGIS (redémarré après le `setx`). Première fois seulement : Explorateur › PostgreSQL › Nouvelle connexion, nom `secheresse_vendee`, champ **Service** = `secheresse_vendee`, laisser hôte, port, base et authentification vides, cocher l'autorisation de charger les projets QGIS depuis la base, puis « Tester la connexion ».
+
+4. Ouvrir le projet : Projet › Ouvrir depuis › PostgreSQL, connexion `secheresse_vendee`, schéma `carto`, projet `secheresse_vendee`.
 
 ## Rasters [V2]
 

@@ -1,4 +1,4 @@
-.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices hebdo db-rebuild config test test-db lint format
+.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices hebdo qgis db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -43,6 +43,17 @@ indices:  ## Indices hebdomadaires de tout l'historique -> data/indices/
 
 hebdo:  ## Job hebdomadaire : ingestion, indices, DVC + Git (commit, tag, push), PostGIS
 	$(PIPELINE) hebdo
+
+# QGIS en Docker, de la même version que les postes qui ouvrent le projet
+QGIS_IMAGE = qgis/qgis:3.44.8
+qgis:  ## Génère le projet QGIS (QGIS en Docker, rôle lecteur) et le charge dans PostGIS
+	@set -a; . ./.env; set +a; \
+	docker run --rm --network host --user $$(id -u):$$(id -g) -v "$(CURDIR)":/depot -w /depot \
+		-e HOME=/tmp -e QT_QPA_PLATFORM=offscreen \
+		-e PGSERVICEFILE=/depot/qgis/pg_service.conf.example \
+		-e PGPASSWORD="$$POSTGRES_LECTEUR_PASSWORD" \
+		$(QGIS_IMAGE) python3 qgis/construire_projet.py
+	$(PIPELINE) projet-qgis
 
 db-rebuild:  ## Reconstruit PostGIS depuis data/
 	$(PIPELINE) db-rebuild

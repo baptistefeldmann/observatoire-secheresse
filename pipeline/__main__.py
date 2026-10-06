@@ -46,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     sous.add_parser("referentiels", help="communes, mailles SIM et stations (data/referentiels/)")
     sous.add_parser("ingest", help="ingestion complète : référentiels puis sources")
     sous.add_parser("db-rebuild", help="reconstruction de PostGIS depuis data/")
+    sous.add_parser("projet-qgis", help="charge le projet QGIS de qgis/ dans PostGIS")
     sous.add_parser("reference", help="calcul des normales -> data/normales/")
     calcul = sous.add_parser("indices", help="indices hebdomadaires -> data/indices/")
     calcul.add_argument("--debut", help="première semaine AAAA-Www (défaut : historique_debut)")
@@ -85,6 +86,12 @@ def main(argv: list[str] | None = None) -> int:
         fin = args.fin or derniere_semaine_complete(date.today())
         for nom, calcule in indices.calculer(config, debut, fin).items():
             print(f"{nom:<16} {len(calcule):>9} lignes ({debut} à {fin})")
+        return 0
+    if args.commande == "projet-qgis":
+        if not chargement.charger_projet_qgis(config, moteur()):
+            print(f"{chargement.projet_qgis(config)} absent : lancer make qgis", file=sys.stderr)
+            return 1
+        print(f"{chargement.projet_qgis(config)} -> {chargement.PROJETS_QGIS}")
         return 0
     if args.commande == "db-rebuild":
         for table, n in chargement.reconstruire(config, moteur()).items():

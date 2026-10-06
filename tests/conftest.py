@@ -81,7 +81,11 @@ def config(tmp_path: Path) -> Config:
     zonage réduit à l'emprise des fixtures."""
     base = charger_config(RACINE / "config")
     chemins = base.projet.chemins.model_copy(
-        update={"data": tmp_path / "data", "rapports": tmp_path / "rapports"}
+        update={
+            "data": tmp_path / "data",
+            "rapports": tmp_path / "rapports",
+            "qgis": tmp_path / "qgis",
+        }
     )
     projet = base.projet.model_copy(update={"chemins": chemins})
     return base.model_copy(update={"projet": projet, "zonage": ZONAGE_FIXTURES})

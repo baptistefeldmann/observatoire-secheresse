@@ -100,6 +100,7 @@ Quelques règles utiles pour lire les résultats :
 | Normales | `make reference` | `pipeline/reference/` | `data/normales/` : paramètres du SPI, échantillons de référence de l'IPS et des débits, ruptures détectées |
 | Indices | `make indices` | `pipeline/indices/` | `data/indices/` : indices par station, par zone, composite |
 | Base | `make db-rebuild` | `pipeline/db/` (migrations Alembic) | PostGIS rechargé depuis `data/` |
+| Projet QGIS | `make qgis` | `qgis/construire_projet.py` (QGIS en Docker) | `qgis/secheresse_<slug>.qgz` et `qgis/styles/`, chargés dans PostGIS |
 | Job hebdomadaire | `make hebdo` | `pipeline/run_hebdo.py`, `pipeline/publication.py` | ingestion des 90 derniers jours → indices → DVC et Git → PostGIS → rapport |
 
 Les paramètres métier (périodes, seuils, fenêtres, pondérations) sont dans `config/*.yaml`, jamais dans le code.
@@ -222,9 +223,11 @@ Toutes les tables d'indices ont une colonne `semaine` au format `AAAA-Www` (ex. 
 
 ## 6. Utiliser l'observatoire dans QGIS
 
-Le projet QGIS est généré par un script, [`qgis/construire_projet.py`](qgis/construire_projet.py), qui produit `qgis/secheresse_<slug>.qgz` et les styles `qgis/styles/*.qml`. Toutes les couches lisent PostGIS par le **service** `secheresse_<slug>` : le projet ne contient ni hôte ni mot de passe, et il fonctionne sur tous les postes.
+Le projet QGIS est **rangé dans PostGIS** (table `carto.qgis_projects`). Un poste distant l'ouvre par le tunnel SSH, comme les données : il n'a besoin ni d'une copie du dépôt, ni de copier de fichier. Toutes les couches lisent la base par le **service** `secheresse_<slug>`, sans hôte ni mot de passe dans le projet.
 
-### 6.1 Se connecter
+Le projet est généré sur la machine Linux par `make qgis` (section 6.2). Le fichier `qgis/secheresse_<slug>.qgz` est versionné et fait foi ; `make qgis` et `make db-rebuild` le chargent en base.
+
+### 6.1 Se connecter (une fois par poste)
 
 **Sur la machine Linux qui héberge PostGIS :**
 
@@ -234,23 +237,23 @@ Le projet QGIS est généré par un script, [`qgis/construire_projet.py`](qgis/c
    localhost:5433:secheresse_vendee:lecteur:<POSTGRES_LECTEUR_PASSWORD>
    ```
 
-**Depuis un autre poste (Windows)** : même principe, à travers un tunnel SSH. La procédure complète (tunnel, `PGSERVICEFILE`, `pgpass.conf`) est dans [`docs/acces_distant.md`](docs/acces_distant.md). À chaque session, ouvrir le tunnel avec `ssh -N secheresse-tunnel` et le laisser ouvert.
+**Depuis un autre poste (Windows)** : même principe, à travers un tunnel SSH. La procédure complète (tunnel, `PGSERVICEFILE`, `pgpass.conf`) est dans [`docs/acces_distant.md`](docs/acces_distant.md).
 
-### 6.2 Générer le projet
+**Dans QGIS** : Explorateur › PostgreSQL › clic droit › Nouvelle connexion. Nom `secheresse_vendee`, champ **Service** = `secheresse_vendee`, laisser hôte, port, base et authentification vides. Cocher la case qui autorise le chargement des projets QGIS depuis la base, puis « Tester la connexion ».
 
-À faire une fois, puis après chaque changement des couches ou de la palette (`config/classes.yaml`).
+**Ouvrir le projet** (à chaque session, PostGIS démarré et tunnel ouvert) : Projet › Ouvrir depuis › PostgreSQL, connexion `secheresse_vendee`, schéma `carto`, projet `secheresse_vendee`.
 
-1. Mettre à jour le dépôt sur le poste QGIS (`git pull`), ouvrir le tunnel, et vérifier que la base est à jour (`make db-rebuild` sur la machine Linux).
-2. Dans QGIS (3.44 LTR) : Extensions › Console Python › Afficher l'éditeur, ouvrir `qgis/construire_projet.py`, puis Exécuter. Le projet ouvert dans QGIS n'est pas modifié.
-3. Le script écrit `qgis/secheresse_vendee.qgz` et `qgis/styles/`. Il s'arrête avec un message explicite si une couche ne se connecte pas (tunnel, service, pgpass).
-4. Ouvrir le projet : Projet › Ouvrir.
+### 6.2 Générer le projet (machine Linux)
 
-Pour versionner un projet généré sur le portable, copier les fichiers sur la machine Linux, puis les committer depuis celle-ci :
-
-```powershell
-scp qgis\secheresse_vendee.qgz secheresse:<chemin du dépôt>/qgis/
-scp -r qgis\styles secheresse:<chemin du dépôt>/qgis/
+```bash
+make qgis
 ```
+
+La commande lance le script [`qgis/construire_projet.py`](qgis/construire_projet.py) dans QGIS 3.44 en Docker (image `qgis/qgis:3.44.8`, environ 2 Go une fois installée, téléchargée au premier lancement). Le script se connecte avec le rôle `lecteur` et lit `config/` (territoire, palette des classes). Il écrit ensuite `qgis/secheresse_vendee.qgz` et `qgis/styles/*.qml`, puis charge le projet en base. Cela prend environ 20 secondes. Il s'arrête avec un message explicite si une couche ne se connecte pas.
+
+À relancer après un changement des couches, des styles ou de la palette (`config/classes.yaml`), puis versionner `qgis/`. Inutile après `make hebdo` : le projet lit toujours la base, et le groupe « Dernière semaine » suit seul les nouvelles semaines.
+
+Garder la version de l'image (`QGIS_IMAGE` dans le `Makefile`) égale ou inférieure à celle des postes : un projet enregistré par une version plus récente s'ouvre avec un avertissement.
 
 ### 6.3 Contenu du projet
 
@@ -292,7 +295,7 @@ Les tables `idx.indice_zone`, `idx.composite_zone` et `obs.*` se chargent comme 
 - Toujours se connecter par le service, avec le rôle `lecteur` : aucun mot de passe ne doit apparaître dans un projet QGIS versionné.
 - La base est entièrement reconstruite par `make db-rebuild` : ne rien y écrire depuis QGIS (le rôle `lecteur` l'interdit de toute façon), et ne pas y stocker de couche personnelle.
 - Après un `make hebdo` ou un `make db-rebuild`, recharger les couches (F5) pour voir la nouvelle semaine.
-- Modifier les couches ou les styles dans le script plutôt qu'à la main dans le projet : sinon, la prochaine génération écraserait ces modifications.
+- Modifier les couches ou les styles dans le script plutôt qu'à la main dans le projet : sinon, la prochaine génération écraserait ces modifications. Le rôle `lecteur` ne peut de toute façon pas enregistrer le projet en base : pour une version personnelle, Projet › Enregistrer sous… dans un fichier local.
 
 ## 7. Adapter à un autre département
 

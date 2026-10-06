@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Observatoire de la sécheresse</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+  <script>window.OBSERVATOIRE = { statique: true };</script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="entete">
+    <div>
+      <h1 id="titre">Observatoire de la sécheresse</h1>
+      <p class="sous-titre" id="sous-titre">Indices hebdomadaires par zone et par station</p>
+    </div>
+    <form class="semaine" id="choix-semaine" aria-label="Semaine affichée">
+      <button type="button" id="semaine-precedente" title="Semaine précédente">‹</button>
+      <label for="semaine">Semaine</label>
+      <input type="week" id="semaine" required>
+      <button type="button" id="semaine-suivante" title="Semaine suivante">›</button>
+      <button type="button" id="semaine-derniere">Dernière</button>
+    </form>
+  </header>
+
+  <p class="bandeau" id="bandeau" role="note" hidden></p>
+  <p class="alerte" id="alerte" role="alert" hidden></p>
+
+  <section class="tuiles" id="tuiles" aria-label="Chiffres clés de la semaine"></section>
+
+  <main class="principal">
+    <div class="carte-bloc">
+      <div id="carte" role="region" aria-label="Carte des zones"></div>
+      <aside class="legende" id="legende" aria-label="Légende et couches"></aside>
+    </div>
+    <section class="panneau" id="panneau" aria-live="polite"></section>
+  </main>
+
+  <footer class="pied">
+    <span id="pied-methode"></span><span id="lien-api"> · <a href="/docs">API</a></span>
+    <p id="sources"></p>
+  </footer>
+</body>
+</html>

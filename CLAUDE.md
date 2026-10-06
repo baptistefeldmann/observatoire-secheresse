@@ -26,7 +26,7 @@ Pour reprendre le projet, lire d'abord `passation.md` (état d'avancement, erreu
 
 ```
 make config        # valide et affiche la configuration du territoire
-make up            # démarre PostGIS
+make up            # démarre PostGIS et l'API (port 8010)
 make referentiels  # communes, mailles SIM, stations -> data/referentiels/
 make ingest        # ingestion complète de l'historique
 make reference     # calcul des normales

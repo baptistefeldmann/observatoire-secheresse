@@ -63,6 +63,9 @@ TABLES = (
            "version_methodo")),
     Table("idx.composite_zone", "indices/composite_zone_*.parquet",
           ("zone_id", "semaine", "valeur", "classe", "detail", "version_methodo")),
+    Table("idx.enveloppe_station", "normales/enveloppe_station.parquet",
+          ("station_id", "indice", "pas", "periode", "minimum", "mediane", "maximum",
+           "n_annees", "periode_ref", "hors_reference")),
 )  # fmt: skip
 
 

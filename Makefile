@@ -17,10 +17,10 @@ dvc-auth:  ## Copie les identifiants DagsHub de .env dans .dvc/config.local (non
 	uv run dvc remote modify --local origin password "$$DAGSHUB_TOKEN" && \
 	echo "Identifiants DagsHub configurés pour le remote DVC « origin »"
 
-up:  ## Démarre PostGIS
-	docker compose up -d --wait
+up:  ## Démarre PostGIS et l'API (port 8010) ; reconstruit l'image de l'API si le code a changé
+	docker compose up -d --build --wait
 
-down:  ## Arrête PostGIS (le volume est conservé)
+down:  ## Arrête PostGIS et l'API (le volume de la base est conservé)
 	docker compose down
 
 db-roles:  ## (Re)crée le rôle en lecture seule pour QGIS et le dashboard
@@ -67,12 +67,12 @@ test-db:  ## Test d'intégration PostGIS sur une base jetable (Docker, port 5543
 		-p 127.0.0.1:55433:5432 postgis/postgis:16-3.4 >/dev/null
 	@until docker exec $(BASE_TEST) pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; do sleep 1; done
 	@SECHERESSE_TEST_POSTGRES_URL=postgresql+psycopg://postgres:test@localhost:55433/test \
-		uv run pytest -q tests/test_db.py; statut=$$?; docker stop $(BASE_TEST) >/dev/null; exit $$statut
+		uv run pytest -q tests/test_db.py tests/test_api.py; statut=$$?; docker stop $(BASE_TEST) >/dev/null; exit $$statut
 
 lint:  ## ruff + mypy
 	uv run ruff check .
 	uv run ruff format --check .
-	uv run mypy pipeline tests
+	uv run mypy pipeline api tests
 
 format:  ## Formate le code
 	uv run ruff check --fix .

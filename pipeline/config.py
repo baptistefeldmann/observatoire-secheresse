@@ -65,6 +65,10 @@ class Ingestion(_Modele):
     piezo_inactif_apres_jours: int = Field(ge=1)
 
 
+class Api(_Modele):
+    simplification_m: float = Field(ge=0)
+
+
 class Chemins(_Modele):
     data: Path
     rasters: Path
@@ -130,6 +134,7 @@ class Projet(_Modele):
     ingestion: Ingestion
     indices: Indices
     hebdo: Hebdo
+    api: Api
     chemins: Chemins
 
     @field_validator("crs")
@@ -389,12 +394,23 @@ class Environnement(BaseSettings):
     postgres_user: str = "secheresse"
     postgres_password: SecretStr = SecretStr("")
     postgres_db: str = "secheresse"
+    postgres_lecteur_user: str = "lecteur"
+    postgres_lecteur_password: SecretStr = SecretStr("")
 
     meteofrance_api_key: SecretStr | None = None
     copernicus_user: str | None = None
     copernicus_password: SecretStr | None = None
     dagshub_user: str | None = None
     dagshub_token: SecretStr | None = None
+
+    @property
+    def url_lecteur(self) -> str:
+        """Rôle en lecture seule (QGIS, API)."""
+        mdp = self.postgres_lecteur_password.get_secret_value()
+        return (
+            f"postgresql+psycopg://{self.postgres_lecteur_user}:{mdp}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
 
     @property
     def url_postgres(self) -> str:

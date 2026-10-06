@@ -90,6 +90,10 @@ Rien à installer ni à copier : le projet est rangé dans PostGIS et s'ouvre pa
 
 4. Ouvrir le projet : Projet › Ouvrir depuis › PostgreSQL, connexion `secheresse_vendee`, schéma `carto`, projet `secheresse_vendee`.
 
+## API
+
+Avec le tunnel ouvert, l'API est accessible depuis le navigateur du portable : <http://localhost:8010/docs> (documentation interactive), ou par exemple <http://localhost:8010/semaines/2026-W39/synthese>. Elle est démarrée par `make up` sur la machine Linux.
+
 ## Rasters [V2]
 
 Une fois l'API en place, elle servira le dossier `rasters/` en HTTP sur le port 8010. QGIS lit un COG directement par son URL (Couche › Ajouter une couche raster › Protocole HTTP) :

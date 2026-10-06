@@ -1,0 +1,13 @@
+# Contexte de construction de l'image de l'API : code seulement
+.git
+.venv
+.dvc
+data
+rasters
+logs
+qgis
+docs
+tests
+**/__pycache__
+.env
+*.parquet

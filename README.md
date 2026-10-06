@@ -4,7 +4,7 @@ Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone
 
 Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
 
-> État : V1 en cours, étapes 1 à 7 sur 9 (référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS). L'API et le dashboard viennent ensuite. Détail dans [`passation.md`](passation.md).
+> État : V1 en cours, étapes 1 à 8 sur 9 (référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS, API). Le dashboard vient ensuite. Détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -14,8 +14,9 @@ Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « 
 4. [Utilisation](#4-utilisation)
 5. [Les données en base](#5-les-données-en-base)
 6. [Utiliser l'observatoire dans QGIS](#6-utiliser-lobservatoire-dans-qgis)
-7. [Adapter à un autre département](#7-adapter-à-un-autre-département)
-8. [Arborescence et documentation](#8-arborescence-et-documentation)
+7. [L'API](#7-lapi)
+8. [Adapter à un autre département](#8-adapter-à-un-autre-département)
+9. [Arborescence et documentation](#9-arborescence-et-documentation)
 
 ## 1. Ce que produit l'observatoire
 
@@ -78,8 +79,8 @@ Quelques règles utiles pour lire les résultats :
   schémas ref · obs · idx · rst
         │                         │
         ▼                         ▼
-  QGIS (rôle lecteur,        API FastAPI → dashboard web
-  tunnel SSH si distant)     (étapes 8 et 9, à venir)
+  QGIS (rôle lecteur,        API FastAPI, port 8010 → dashboard web
+  tunnel SSH si distant)     (rôle lecteur)             (étape 9, à venir)
 ```
 
 ### Principes
@@ -89,7 +90,7 @@ Quelques règles utiles pour lire les résultats :
 - **Idempotence** : relancer une étape sur les mêmes données réécrit des fichiers identiques au bit près. Une valeur corrigée à la source remplace l'ancienne ; une valeur inchangée garde sa date d'ingestion.
 - **Robustesse** : une station ou une source en échec est consignée sans bloquer les autres.
 - **CRS** : tout est stocké et calculé en Lambert 93 (EPSG:2154).
-- **Généricité** : le code ne contient aucune référence au territoire, tout passe par `config/` (section 7).
+- **Généricité** : le code ne contient aucune référence au territoire, tout passe par `config/` (section 8).
 
 ### Les étapes du pipeline
 
@@ -115,7 +116,7 @@ cd observatoire-secheresse
 cp .env.example .env      # renseigner au minimum POSTGRES_PASSWORD et POSTGRES_LECTEUR_PASSWORD
 make install              # environnement Python (uv sync)
 make config               # vérifie la configuration du territoire
-make up                   # démarre PostGIS (port 5433, limité à la machine)
+make up                   # démarre PostGIS (port 5433) et l'API (port 8010), limités à la machine
 ```
 
 Ensuite, deux possibilités.
@@ -213,6 +214,7 @@ La base `secheresse_<slug>` (ici `secheresse_vendee`) comporte quatre schémas d
 | `idx.indice_zone` | SPI, IPS, débit et ONDE par zone et semaine, `n_stations`, `detail` (JSON) | — |
 | `idx.composite_zone` | composite par zone et semaine, `detail` (composantes, poids appliqués, `partiel`) | — |
 | `rst.produit` | catalogue des rasters Sentinel-2 (V2, vide) | emprise |
+| `idx.enveloppe_station` | enveloppe de la normale par station : minimum, médiane, maximum par mois (nappes, m NGF) ou par semaine (débits, Q7 en l/s) | — |
 | `carto.v_composite_zone` | composite joint à sa zone : `debut` (lundi), `fin` (dimanche), `n_composantes`, `partiel`, `manquantes`, `derniere` | multipolygone |
 | `carto.v_indice_zone` | SPI, IPS et débit par zone, mêmes colonnes de semaine | multipolygone |
 | `carto.v_onde_zone` | campagnes ONDE par zone : `date_campagne`, `pct_sans_ecoulement`, `n_assec`, `n_rupture`, `derniere` (dernière campagne de la zone) | multipolygone |
@@ -297,7 +299,25 @@ Les tables `idx.indice_zone`, `idx.composite_zone` et `obs.*` se chargent comme 
 - Après un `make hebdo` ou un `make db-rebuild`, recharger les couches (F5) pour voir la nouvelle semaine.
 - Modifier les couches ou les styles dans le script plutôt qu'à la main dans le projet : sinon, la prochaine génération écraserait ces modifications. Le rôle `lecteur` ne peut de toute façon pas enregistrer le projet en base : pour une version personnelle, Projet › Enregistrer sous… dans un fichier local.
 
-## 7. Adapter à un autre département
+## 7. L'API
+
+L'API sert les indices au dashboard (étape 9) et à tout autre client, en lecture seule (rôle `lecteur`). Elle tourne dans le service `api` de `docker-compose.yml` : `make up` démarre PostGIS et l'API, et reconstruit l'image si le code a changé ; `make down` arrête les deux. Elle écoute sur le port **8010**, limité à la machine. Depuis le portable, elle est accessible par le tunnel SSH, déjà configuré pour ce port : <http://localhost:8010/docs> donne la documentation interactive, où l'on peut essayer chaque requête.
+
+| Requête | Réponse |
+|---|---|
+| `GET /` | territoire, version de la méthode, dernière semaine calculée |
+| `GET /classes` | seuils, libellés et couleurs des 7 classes (légende) |
+| `GET /semaines` | semaines disponibles, de la plus récente à la plus ancienne |
+| `GET /zones?semaine=` | zones en GeoJSON (WGS84, contours simplifiés à 20 m) avec l'indice composite de la semaine (la dernière par défaut) |
+| `GET /zones/{zone_id}/series?indice=&debut=&fin=` | série hebdomadaire d'un indice de zone : `composite` (défaut), `spi_1`, `spi_3`, `spi_6`, `ips`, `debit`, `onde` |
+| `GET /stations?source=&semaine=` | stations en GeoJSON : indice de la semaine (piézomètres, stations hydrométriques), dernier relevé (retenues) ou dernière observation (ONDE) |
+| `GET /stations/{station_id}/series?debut=&fin=` | chronique brute (niveau, débit, remplissage, modalité ONDE), indices hebdomadaires et enveloppe de la normale (minimum, médiane, maximum) |
+| `GET /semaines/{semaine}/synthese` | synthèse départementale : composite par zone et répartition des classes, stations, dernières campagnes ONDE, remplissage total des retenues comparé aux années précédentes |
+| `GET /sante` | disponibilité de la base |
+
+Exemples : `/zones/SUD_VENDEE/series?indice=spi_3&debut=2022-W01&fin=2022-W52`, `/stations/piezo:05634X0013/SF3/series?debut=2026-01-01`. Les semaines sont des semaines ISO (`AAAA-Www`), les dates au format `AAAA-MM-JJ`. Un paramètre invalide renvoie une erreur 422 qui l'explique.
+
+## 8. Adapter à un autre département
 
 Le code ne contient aucune référence au territoire : tout passe par `config/`.
 
@@ -314,7 +334,7 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 
 `classes.yaml` (échelle à 7 classes) et `sources.yaml` (points d'accès des API) sont communs à tous les départements.
 
-## 8. Arborescence et documentation
+## 9. Arborescence et documentation
 
 ```
 config/      paramètres : territoire, zones et pondérations, classes, sources, stations
@@ -322,7 +342,7 @@ pipeline/    sources/ (une par API), reference/ (normales), indices/, db/ (PostG
 tests/       tests pytest sur réponses API enregistrées (fixtures/), sans réseau
 data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/
 qgis/        script de génération du projet, projet .qgz, styles QML, service PostgreSQL d'exemple
-api/         FastAPI (étape 8)
+api/         API FastAPI (app.py, requêtes SQL, Dockerfile)
 dashboard/   front web (étape 9)
 rasters/     COG Sentinel-2 (V2), locaux et non versionnés
 docker/      initialisation de PostGIS (rôle lecteur)

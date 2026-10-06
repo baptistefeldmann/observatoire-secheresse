@@ -185,6 +185,7 @@ data/
 │   └── retenues/retenues_<annee>.parquet
 ├── normales/                 # make reference (méthodologie D7)
 │   ├── spi_zone.parquet
+│   ├── enveloppe_station.parquet
 │   ├── ips_station.parquet
 │   └── debit_station.parquet
 ├── indices/                 # make indices (méthodologie D9), un fichier par table et par année ISO
@@ -251,6 +252,10 @@ idx.composite_zone (zone_id,    semaine, valeur, classe, detail jsonb, version_m
 carto.v_composite_zone, carto.v_indice_zone, carto.v_onde_zone      -- géométrie de la zone
 carto.v_indice_station, carto.v_retenue                             -- géométrie de la station
 carto.qgis_projects (name, metadata jsonb, content bytea)            -- projets QGIS (migration 0004)
+
+-- Enveloppe de la normale par station (migration 0005, data/normales/enveloppe_station.parquet)
+idx.enveloppe_station (station_id, indice, pas, periode, minimum, mediane, maximum, n_annees,
+                       periode_ref, hors_reference)
 
 -- Catalogue raster [V2]
 rst.produit (
@@ -362,11 +367,13 @@ Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make h
 
 ### 8.1 API (FastAPI)
 
-- `GET /zones` : zones avec géométrie et dernier indice composite (GeoJSON).
-- `GET /zones/{zone_id}/series?indice=&debut=&fin=` : séries hebdomadaires.
-- `GET /stations?source=` : stations avec dernier indice (GeoJSON).
-- `GET /stations/{station_id}/series` : chronique brute + indice.
+- `GET /zones?semaine=` : zones avec géométrie et indice composite de la semaine, la dernière par défaut (GeoJSON en WGS84, contours simplifiés à `api.simplification_m`).
+- `GET /zones/{zone_id}/series?indice=&debut=&fin=` : séries hebdomadaires (`composite`, `spi_1`, `spi_3`, `spi_6`, `ips`, `debit`, `onde`).
+- `GET /stations?source=&semaine=` : stations avec indice de la semaine, dernier relevé (retenues) ou dernière observation (ONDE) (GeoJSON).
+- `GET /stations/{station_id}/series?debut=&fin=` : chronique brute + indices + enveloppe de la normale (`idx.enveloppe_station` ; retenues : années précédentes, D6).
 - `GET /semaines/{semaine}/synthese` : synthèse départementale d'une semaine.
+- Ajouts : `GET /` (état), `GET /classes` (légende des 7 classes), `GET /semaines` (semaines disponibles), `GET /sante`.
+- Service `api` de docker-compose (`api/Dockerfile`), rôle `lecteur`, port 8010 limité à la machine (accès distant par le tunnel SSH).
 - TiTiler monté sur `/tiles` pour servir les COG [V2].
 
 ### 8.2 Dashboard web

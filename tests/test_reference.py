@@ -11,7 +11,7 @@ import pytest
 from pipeline import ingestion, reference, referentiels
 from pipeline.config import Config, Periode, Rupture
 from pipeline.http import ClientHttp
-from pipeline.reference import commun, debit, ips, spi
+from pipeline.reference import commun, debit, enveloppe, ips, spi
 from pipeline.reference import ruptures as detection
 
 REF = Periode(debut=1991, fin=2020, annees_min=15)
@@ -187,3 +187,15 @@ def test_detection_signale_les_ruptures(config: Config) -> None:
         table.loc["piezo:SAUT", "traitee"]
     )
     assert not bool(table.loc["piezo:STABLE", "significative"])
+
+
+def test_enveloppe_de_la_normale() -> None:
+    ips_normales = pd.DataFrame(
+        {"station_id": ["piezo:A"], "mois": [9], "valeurs_ref": [[3.0, 1.0, 2.0, 10.0]],
+         "n_annees": [4], "periode_ref": ["1991-2020"], "hors_reference": [False]}
+    )  # fmt: skip
+    debit_vide = pd.DataFrame(columns=ips_normales.columns.str.replace("mois", "semaine"))
+    table = enveloppe.enveloppes(ips_normales, debit_vide)
+    ligne = table.iloc[0]
+    assert (ligne["indice"], ligne["pas"], ligne["periode"]) == ("ips", "mois", 9)
+    assert (ligne["minimum"], ligne["mediane"], ligne["maximum"]) == (1.0, 2.5, 10.0)

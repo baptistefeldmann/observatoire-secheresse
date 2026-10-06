@@ -65,6 +65,11 @@ hebdo:
     pluie_max_mm_jour: 200       # maximum observé par maille SIM sur 1990-2026 : 89 mm
     remplissage_max: 1.05        # volume / capacité d'une retenue ; maximum observé : 1,03
 
+# API (SPEC §8.1) : contours de zones simplifiés pour le web (1,8 Mo en GeoJSON bruts,
+# 250 ko à 20 m pour la Vendée, sans différence visible à l'échelle du département)
+api:
+  simplification_m: 20
+
 chemins:
   data: data
   rasters: rasters

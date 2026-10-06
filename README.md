@@ -4,7 +4,7 @@ Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone
 
 Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
 
-> État : V1 en cours, étapes 1 à 6 sur 9 terminées (référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire). Le projet QGIS prêt à l'emploi, l'API et le dashboard viennent ensuite. Détail dans [`passation.md`](passation.md).
+> État : V1 en cours, étapes 1 à 7 sur 9 (référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS). L'API et le dashboard viennent ensuite. Détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -195,7 +195,7 @@ uv run dvc push
 
 ## 5. Les données en base
 
-La base `secheresse_<slug>` (ici `secheresse_vendee`) comporte quatre schémas. QGIS et le dashboard s'y connectent avec le rôle **`lecteur`**, en lecture seule.
+La base `secheresse_<slug>` (ici `secheresse_vendee`) comporte quatre schémas de tables et un schéma de vues (`carto`). QGIS et le dashboard s'y connectent avec le rôle **`lecteur`**, en lecture seule.
 
 | Table | Contenu | Géométrie |
 |---|---|---|
@@ -212,16 +212,19 @@ La base `secheresse_<slug>` (ici `secheresse_vendee`) comporte quatre schémas. 
 | `idx.indice_zone` | SPI, IPS, débit et ONDE par zone et semaine, `n_stations`, `detail` (JSON) | — |
 | `idx.composite_zone` | composite par zone et semaine, `detail` (composantes, poids appliqués, `partiel`) | — |
 | `rst.produit` | catalogue des rasters Sentinel-2 (V2, vide) | emprise |
+| `carto.v_composite_zone` | composite joint à sa zone : `debut` (lundi), `fin` (dimanche), `n_composantes`, `partiel`, `manquantes`, `derniere` | multipolygone |
+| `carto.v_indice_zone` | SPI, IPS et débit par zone, mêmes colonnes de semaine | multipolygone |
+| `carto.v_onde_zone` | campagnes ONDE par zone : `date_campagne`, `pct_sans_ecoulement`, `n_assec`, `n_rupture`, `derniere` (dernière campagne de la zone) | multipolygone |
+| `carto.v_indice_station` | IPS et débit par station, `anciennete_jours` de la mesure | point |
+| `carto.v_retenue` | relevés des retenues, `remplissage_pct`, `derniere` (dernier relevé) | point |
 
-Toutes les tables d'indices ont une colonne `semaine` au format `AAAA-Www` (ex. `2026-W39`) et une colonne `version_methodo` (identifiant de la dernière décision de méthode, ex. `D9`). Les indices n'ont pas de géométrie : on les joint à `ref.zone` ou `ref.station` (section 6).
+Toutes les tables d'indices ont une colonne `semaine` au format `AAAA-Www` (ex. `2026-W39`) et une colonne `version_methodo` (identifiant de la dernière décision de méthode, ex. `D9`). Les tables d'indices n'ont pas de géométrie : les vues `carto` les joignent à leur zone ou à leur station. Leur colonne `derniere` repère la semaine la plus récente, et `debut` sert au contrôleur temporel de QGIS. Chaque vue a une clé unique `cle`.
 
 ## 6. Utiliser l'observatoire dans QGIS
 
-Le projet QGIS prêt à l'emploi, avec ses styles, arrive à l'étape 7 (`qgis/secheresse_<slug>.qgz`). En attendant, toutes les données sont accessibles en se connectant directement à PostGIS.
+Le projet QGIS est généré par un script, [`qgis/construire_projet.py`](qgis/construire_projet.py), qui produit `qgis/secheresse_<slug>.qgz` et les styles `qgis/styles/*.qml`. Toutes les couches lisent PostGIS par le **service** `secheresse_<slug>` : le projet ne contient ni hôte ni mot de passe, et il fonctionne sur tous les postes.
 
 ### 6.1 Se connecter
-
-La connexion passe par un **service PostgreSQL** : la source des couches ne contient que `service=secheresse_vendee`, sans hôte ni mot de passe. Le même projet fonctionne ainsi sur tous les postes.
 
 **Sur la machine Linux qui héberge PostGIS :**
 
@@ -233,92 +236,52 @@ La connexion passe par un **service PostgreSQL** : la source des couches ne cont
 
 **Depuis un autre poste (Windows)** : même principe, à travers un tunnel SSH. La procédure complète (tunnel, `PGSERVICEFILE`, `pgpass.conf`) est dans [`docs/acces_distant.md`](docs/acces_distant.md). À chaque session, ouvrir le tunnel avec `ssh -N secheresse-tunnel` et le laisser ouvert.
 
-**Dans QGIS (une seule fois)** : Explorateur › PostgreSQL › clic droit › Nouvelle connexion. Nom `secheresse_vendee`, champ **Service** = `secheresse_vendee`, laisser hôte, port, base et authentification vides, puis « Tester la connexion ».
+### 6.2 Générer le projet
 
-### 6.2 Afficher les référentiels
+À faire une fois, puis après chaque changement des couches ou de la palette (`config/classes.yaml`).
 
-Dans l'Explorateur, déplier la connexion puis le schéma `ref` et glisser les tables dans le projet :
+1. Mettre à jour le dépôt sur le poste QGIS (`git pull`), ouvrir le tunnel, et vérifier que la base est à jour (`make db-rebuild` sur la machine Linux).
+2. Dans QGIS (3.44 LTR) : Extensions › Console Python › Afficher l'éditeur, ouvrir `qgis/construire_projet.py`, puis Exécuter. Le projet ouvert dans QGIS n'est pas modifié.
+3. Le script écrit `qgis/secheresse_vendee.qgz` et `qgis/styles/`. Il s'arrête avec un message explicite si une couche ne se connecte pas (tunnel, service, pgpass).
+4. Ouvrir le projet : Projet › Ouvrir.
 
-- `zone` : contour des 12 zones ;
-- `station` : filtrer par source (clic droit › Filtrer…, `"source" = 'piezo'`) pour séparer piézomètres, stations hydrométriques, ONDE et retenues ;
-- `commune`, `maille_safran` : repères.
+Pour versionner un projet généré sur le portable, copier les fichiers sur la machine Linux, puis les committer depuis celle-ci :
 
-Les tables `obs.*` et `idx.*` n'ont pas de géométrie : QGIS les charge comme de simples tables attributaires.
-
-### 6.3 Carte des zones pour une semaine
-
-Les indices se joignent aux géométries par une **couche SQL** :
-
-1. Menu Base de données › Gestionnaire BD, sélectionner PostGIS › `secheresse_vendee`, puis ouvrir la fenêtre SQL.
-2. Coller une requête ci-dessous et l'exécuter.
-3. Cocher « Charger en tant que nouvelle couche ». Colonne avec des valeurs uniques : `zone_id` (ou `station_id`), colonne de géométrie : `geom`. Nommer la couche, puis Charger.
-
-**Indice composite de la dernière semaine calculée :**
-
-```sql
-SELECT z.zone_id, z.libelle, c.semaine, c.valeur, c.classe,
-       (c.detail->>'n_composantes')::int AS n_composantes,
-       (c.detail->>'partiel')::boolean   AS partiel,
-       z.geom
-FROM ref.zone z
-JOIN idx.composite_zone c USING (zone_id)
-WHERE c.semaine = (SELECT max(semaine) FROM idx.composite_zone);
+```powershell
+scp qgis\secheresse_vendee.qgz secheresse:<chemin du dépôt>/qgis/
+scp -r qgis\styles secheresse:<chemin du dépôt>/qgis/
 ```
 
-Pour une autre semaine, remplacer la sous-requête par `'2022-W33'`, par exemple. Sur une couche déjà chargée : clic droit › Mettre à jour la couche SQL….
+### 6.3 Contenu du projet
 
-**Un indice de zone en particulier** (ici le SPI 3 mois ; `ips`, `debit`, `spi_1`, `spi_6` de la même façon) :
+| Groupe | Couches | Affichage |
+|---|---|---|
+| **Dernière semaine** | piézomètres (IPS), stations hydrométriques (débit), retenues (% de remplissage), indice composite par zone ; masquées par défaut : SPI 3 mois, IPS et débit par zone, dernière campagne ONDE | se met à jour seul à chaque `make hebdo` |
+| **Historique (contrôleur temporel)** | composite, piézomètres, stations hydrométriques, ONDE, retenues | masqué ; voir 6.4 |
+| **Référentiels** | zones (contours et noms) ; masquées : stations par source, communes, mailles SIM | |
+| **Fond** | OpenStreetMap | demande un accès à Internet |
 
-```sql
-SELECT z.zone_id, z.libelle, i.semaine, i.valeur, i.classe, i.n_stations, z.geom
-FROM ref.zone z
-JOIN idx.indice_zone i USING (zone_id)
-WHERE i.indice = 'spi_3' AND i.semaine = '2026-W39';
-```
+Lecture des symboles :
 
-**Dernière campagne ONDE par zone** (part de stations sans écoulement, de 0 à 1) :
+- **Classes 1 à 7** : palette du bulletin de situation hydrologique, du rouge (très bas) au bleu foncé (très haut), en passant par le vert (normal). Les couleurs viennent de `config/classes.yaml`.
+- **Piézomètres** : rond plein s'il entre au composite de la semaine, simple contour si sa dernière mesure a plus de 45 jours (D1). La table attributaire donne `date_mesure` et `anciennete_jours`.
+- **Composite** : `n_composantes`, `partiel` et `manquantes` dans la table attributaire indiquent les composantes absentes.
+- **ONDE** : part des stations sans écoulement à la dernière campagne de la zone (`date_campagne`), du jaune pâle (0 %) au brun (100 %).
+- **Retenues** : remplissage du dernier relevé, du rouge (moins de 20 %) au bleu (plus de 80 %).
 
-```sql
-SELECT DISTINCT ON (z.zone_id)
-       z.zone_id, z.libelle, i.semaine, i.valeur AS part_sans_ecoulement, i.n_stations,
-       i.detail->>'date_campagne' AS date_campagne, z.geom
-FROM ref.zone z
-JOIN idx.indice_zone i USING (zone_id)
-WHERE i.indice = 'onde'
-ORDER BY z.zone_id, i.semaine DESC;
-```
+### 6.4 Parcourir l'historique
 
-### 6.4 Stations
+1. Masquer le groupe « Dernière semaine » et cocher une couche du groupe « Historique ».
+2. Ouvrir le contrôleur temporel : Vue › Panneaux › Contrôleur temporel, puis cliquer sur « Navigation animée » (icône de lecture).
+3. Le pas est d'une semaine, de 1991 à la date de génération du projet. Déplacer le curseur, ou saisir une date dans le champ de la plage, pour afficher la semaine qui la contient. Ex. : 15 août 2022 pour la sécheresse de 2022.
 
-**IPS des piézomètres, avec l'ancienneté de leur dernière mesure :**
+Sans le contrôleur temporel, une couche du groupe « Historique » affiche toutes les semaines superposées : ne la cocher qu'avec la navigation activée.
 
-```sql
-SELECT s.station_id, s.libelle, s.zone_id, i.semaine, i.valeur, i.classe,
-       i.date_mesure, i.dans_composite, i.hors_reference, i.periode_ref, s.geom
-FROM ref.station s
-JOIN idx.indice_station i USING (station_id)
-WHERE i.indice = 'ips'
-  AND i.semaine = (SELECT max(semaine) FROM idx.indice_station);
-```
+### 6.5 Ajouter une couche à la main
 
-Remplacer `'ips'` par `'debit'` pour les stations hydrométriques. `dans_composite = false` signale une mesure trop ancienne (plus de 45 jours). `hors_reference = true` signale une normale établie hors de 1991–2020, par exemple après une rupture de fonctionnement.
+Toutes les vues `carto` (section 5) se chargent depuis l'Explorateur : PostgreSQL › `secheresse_vendee` › `carto`. Pour se limiter à la dernière semaine : clic droit › Filtrer…, `"derniere"`. Pour un indice : `"indice" = 'spi_3' AND "derniere"`. Pour une semaine donnée : `"semaine" = '2022-W33'`. Les styles de `qgis/styles/` s'appliquent par Propriétés › Symbologie › Style › Charger le style.
 
-**Dernier remplissage des retenues :**
-
-```sql
-SELECT s.station_id, s.libelle, r.date,
-       round((100 * r.volume_m3 / r.capacite_m3)::numeric, 1) AS remplissage_pct, s.geom
-FROM ref.station s
-JOIN LATERAL (
-    SELECT * FROM obs.retenue_semaine o
-    WHERE o.station_id = s.station_id ORDER BY o.date DESC LIMIT 1
-) r ON true
-WHERE s.source = 'retenue';
-```
-
-### 6.5 Symbologie
-
-En attendant les styles QML de l'étape 7 : Propriétés de la couche › Symbologie › **Catégorisé** sur le champ `classe`, puis Classer. Choisir une palette divergente, du rouge (1, très sec) au bleu (7, très humide), avec le gris ou le blanc pour 4 (normal). Pour ONDE et les retenues, utiliser **Gradué** sur la part ou le pourcentage.
+Pour une requête SQL libre : Base de données › Gestionnaire BD, fenêtre SQL, « Charger en tant que nouvelle couche ».
 
 ### 6.6 Séries temporelles
 
@@ -328,7 +291,8 @@ Les tables `idx.indice_zone`, `idx.composite_zone` et `obs.*` se chargent comme 
 
 - Toujours se connecter par le service, avec le rôle `lecteur` : aucun mot de passe ne doit apparaître dans un projet QGIS versionné.
 - La base est entièrement reconstruite par `make db-rebuild` : ne rien y écrire depuis QGIS (le rôle `lecteur` l'interdit de toute façon), et ne pas y stocker de couche personnelle.
-- Après un `make db-rebuild`, recharger les couches (F5) pour voir les nouvelles semaines.
+- Après un `make hebdo` ou un `make db-rebuild`, recharger les couches (F5) pour voir la nouvelle semaine.
+- Modifier les couches ou les styles dans le script plutôt qu'à la main dans le projet : sinon, la prochaine génération écraserait ces modifications.
 
 ## 7. Adapter à un autre département
 
@@ -354,7 +318,7 @@ config/      paramètres : territoire, zones et pondérations, classes, sources,
 pipeline/    sources/ (une par API), reference/ (normales), indices/, db/ (PostGIS, Alembic)
 tests/       tests pytest sur réponses API enregistrées (fixtures/), sans réseau
 data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/
-qgis/        service PostgreSQL d'exemple ; projet et styles à venir (étape 7)
+qgis/        script de génération du projet, projet .qgz, styles QML, service PostgreSQL d'exemple
 api/         FastAPI (étape 8)
 dashboard/   front web (étape 9)
 rasters/     COG Sentinel-2 (V2), locaux et non versionnés

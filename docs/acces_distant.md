@@ -76,7 +76,7 @@ Cloner le dépôt depuis la machine Linux (ou depuis DagsHub une fois le remote 
 git clone ssh://secheresse/<chemin du dépôt sur la machine Linux>
 ```
 
-Seul le dossier `qgis/` est utile sur le portable ; `git pull` récupère les mises à jour du projet et des styles.
+Sur le portable servent le dossier `qgis/` et la configuration (`config/`, lue par le script de génération du projet) ; `git pull` récupère les mises à jour. Génération et ouverture du projet : [README, section 6.2](../README.md#62-générer-le-projet).
 
 ## 3. À chaque session
 

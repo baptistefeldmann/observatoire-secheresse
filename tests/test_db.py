@@ -66,3 +66,14 @@ def test_reconstruction_depuis_data(config: Config, client: ClientHttp) -> None:
             text("SELECT zone_id FROM ref.station WHERE station_id = 'piezo:05068X0028/SP010'")
         ).scalar_one()
         assert rattachee == "ILE_NOIRMOUTIER"
+        # vues de restitution (migration 0003) : présentes, interrogeables, géométrie typée
+        vues: list[str] = list(
+            connexion.execute(
+                text("SELECT f_table_name FROM geometry_columns WHERE f_table_schema = 'carto'")
+            ).scalars()
+        )
+        assert sorted(vues) == [
+            "v_composite_zone", "v_indice_station", "v_indice_zone", "v_onde_zone", "v_retenue",
+        ]  # fmt: skip
+        for vue in vues:
+            connexion.execute(text(f"SELECT * FROM carto.{vue} WHERE derniere LIMIT 1")).all()

@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 NUL = r"\N"
 SOMME_EMPREINTES = "coalesce(sum(hashtextextended(t::text, 0)), 0)"
-SCHEMAS = ("rst", "idx", "obs", "ref")
+SCHEMAS = ("carto", "rst", "idx", "obs", "ref")  # carto : vues, supprimées en premier
 
 
 @dataclass(frozen=True)

@@ -204,7 +204,7 @@ Un fichier par source et par année : chaque semaine, seul le fichier de l'anné
 
 ### 5.3 Schéma PostGIS
 
-Quatre schémas : `ref` (référentiels), `obs` (observations), `idx` (indices), `rst` (catalogue raster).
+Quatre schémas de tables : `ref` (référentiels), `obs` (observations), `idx` (indices), `rst` (catalogue raster) ; un schéma de vues de restitution, `carto` (migration 0003).
 
 ```sql
 -- Référentiels
@@ -244,6 +244,12 @@ idx.indice_station (station_id, semaine, indice, valeur, classe, periode_ref, ho
 idx.indice_zone    (zone_id,    semaine, indice, valeur, classe, n_stations, detail jsonb,
                     version_methodo)                                       -- ONDE : D3, D9
 idx.composite_zone (zone_id,    semaine, valeur, classe, detail jsonb, version_methodo)
+
+-- Vues de restitution (migration 0003) : indices joints à leur géométrie, pour QGIS et l'API.
+-- Colonnes communes : cle (identifiant unique), semaine, debut (lundi), fin (dimanche),
+-- derniere (semaine la plus récente ; dernière campagne ONDE ; dernier relevé de retenue).
+carto.v_composite_zone, carto.v_indice_zone, carto.v_onde_zone      -- géométrie de la zone
+carto.v_indice_station, carto.v_retenue                             -- géométrie de la station
 
 -- Catalogue raster [V2]
 rst.produit (
@@ -371,8 +377,8 @@ Code : `pipeline/run_hebdo.py` et `pipeline/publication.py`, lancés par `make h
 
 ### 8.3 QGIS
 
-- Projet `qgis/secheresse_<slug>.qgz` versionné, connecté à PostGIS (connexion par service `pg_service.conf`, sans mot de passe dans le projet).
-- Styles QML versionnés dans `qgis/styles/`, reprenant la palette des 7 classes.
+- Projet `qgis/secheresse_<slug>.qgz` versionné, connecté à PostGIS (connexion par service `pg_service.conf`, sans mot de passe dans le projet), généré par le script PyQGIS `qgis/construire_projet.py` à partir de `config/` et des vues `carto` : groupe « Dernière semaine », groupe « Historique » parcouru par le contrôleur temporel (pas d'une semaine), référentiels, fond OpenStreetMap.
+- Styles QML versionnés dans `qgis/styles/`, reprenant la palette des 7 classes (couleurs du BSH, définies dans `config/classes.yaml` et partagées avec le dashboard).
 - Rasters COG chargés depuis `rasters/`.
 - Couches de fond : OSM, mosaïque EOX `s2cloudless`, WMS Copernicus Data Space (configuration personnelle).
 
@@ -434,6 +440,7 @@ observatoire-secheresse/
 ├── api/
 ├── dashboard/
 ├── qgis/
+│   ├── construire_projet.py     # génération du projet (PyQGIS)
 │   ├── secheresse_<slug>.qgz
 │   └── styles/
 ├── data/                        # suivi par DVC

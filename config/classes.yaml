@@ -3,11 +3,13 @@
 
 seuils: [-1.28, -0.84, -0.25, 0.25, 0.84, 1.28]
 
+# Couleurs : légende des cartes de nappes du BSH et d'Info-Sécheresse (rouge -> vert pour la
+# normale -> bleu), teintes approchées. Utilisées par les styles QGIS et le dashboard.
 classes:
-  - {classe: 1, libelle: "Très bas / extrêmement sec"}
-  - {classe: 2, libelle: "Bas / modérément sec"}
-  - {classe: 3, libelle: "Modérément bas"}
-  - {classe: 4, libelle: "Normal"}
-  - {classe: 5, libelle: "Modérément haut"}
-  - {classe: 6, libelle: "Haut"}
-  - {classe: 7, libelle: "Très haut / extrêmement humide"}
+  - {classe: 1, libelle: "Très bas / extrêmement sec", couleur: "#c8102e"}
+  - {classe: 2, libelle: "Bas / modérément sec", couleur: "#f28c28"}
+  - {classe: 3, libelle: "Modérément bas", couleur: "#ffd92f"}
+  - {classe: 4, libelle: "Normal", couleur: "#4daf4a"}
+  - {classe: 5, libelle: "Modérément haut", couleur: "#9ecae1"}
+  - {classe: 6, libelle: "Haut", couleur: "#3182bd"}
+  - {classe: 7, libelle: "Très haut / extrêmement humide", couleur: "#08306b"}

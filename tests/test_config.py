@@ -106,6 +106,14 @@ def test_seuils_et_classes_incoherents(copie_config: Path) -> None:
         charger_config(copie_config)
 
 
+def test_couleur_de_classe_invalide(copie_config: Path) -> None:
+    classes = [{"classe": n, "libelle": str(n), "couleur": "#c8102e"} for n in range(1, 8)]
+    classes[3]["couleur"] = "vert"
+    _modifier(copie_config / "classes.yaml", {"classes": classes})
+    with pytest.raises(ValidationError, match="pattern"):
+        charger_config(copie_config)
+
+
 def test_stations_yaml_facultatif(copie_config: Path) -> None:
     (copie_config / "stations.yaml").unlink()
     assert charger_config(copie_config).stations.raccordements_hydro == []

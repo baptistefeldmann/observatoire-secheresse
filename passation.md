@@ -5,7 +5,7 @@
 ## 1. En bref
 
 - **Objectif** : suivi hebdomadaire de la sécheresse en Vendée, par zone hydrogéologique, à partir des nappes, des débits, des observations ONDE, de la pluie (SIM), du remplissage des retenues, et plus tard de Sentinel-2. Les données servent un dashboard web et QGIS. Le code est générique : un autre département se configure dans `config/`.
-- **Avancement** : V0 (spikes) **terminée**. V1 **étapes 1 à 6 terminées** sur 9 (référentiels, ingestion, PostGIS, normales, indices de la semaine, job hebdomadaire). Prochaine étape : **7, le projet QGIS**.
+- **Avancement** : V0 (spikes) **terminée**. V1 **étapes 1 à 6 terminées** sur 9 (référentiels, ingestion, PostGIS, normales, indices de la semaine, job hebdomadaire) ; **étape 7 (projet QGIS) écrite, en attente d'exécution par l'utilisateur dans QGIS 3.44** sur son portable. Ensuite : **8, l'API**.
 - **Dépôts** : code sur GitHub [`baptistefeldmann/observatoire-secheresse`](https://github.com/baptistefeldmann/observatoire-secheresse) (public) ; données sur DagsHub (remote DVC `origin`, `https://dagshub.com/baptistefeldmann/observatoire-secheresse.dvc`).
 - **Mode de travail** : Claude prépare et indexe (`git add`) ; **l'utilisateur committe et pousse lui-même** (`git commit`, `git push`, `uv run dvc push`), à partir des commandes que Claude lui donne. Messages de commit en français. Seule exception, voulue par l'utilisateur : `make hebdo` committe et pousse lui-même les fichiers `data/*.dvc` et l'étiquette de la semaine.
 
@@ -57,6 +57,7 @@ Sans publication (ni DVC, ni commit, ni étiquette) : `uv run python -m pipeline
 3. **PostGIS** (`pipeline/db/`) : migration Alembic du schéma `ref` / `obs` / `idx` / `rst` (SPEC §5.3, plus `obs.retenue_semaine`) ; `make db-rebuild` en une transaction (COPY) ; reconstruction à l'identique vérifiée par empreinte (critère n°4 de la V1).
 4. **Normales** (`pipeline/reference/`) : SPI 1, 3 et 6 mois par zone (loi gamma, calibration vérifiée), IPS par piézomètre et par mois (37 stations), indice de débit par station et par semaine (29 stations) ; détection des ruptures à chaque calcul.
 5. **Indices de la semaine** (`pipeline/indices/`, D9) : SPI par zone, IPS et débit par station (rang de Gringorten), part d'assecs ONDE par campagne, indices de zone, composite à poids renormalisés ; tout l'historique 1991-W01 → 2026-W39 dans `data/indices/` (91 612 indices de station, 97 262 de zone, 22 380 composites, 3,2 Mo) ; migration `0002` (colonnes `hors_reference`, `date_mesure`, `dans_composite` ; `detail` des zones) ; tables `idx.*` chargées par `make db-rebuild`. Idempotence vérifiée par empreinte : calcul complet, partiel, à cheval sur deux années.
+7. **Projet QGIS** (en cours de validation) : vues de restitution `carto.*` (migration 0003 : indices joints à leur géométrie, `debut`/`fin` de semaine, `derniere`, clé `cle`), testées avec le rôle `lecteur` ; couleurs des 7 classes dans `config/classes.yaml` (palette du BSH, choix utilisateur) ; script PyQGIS `qgis/construire_projet.py` (choix utilisateur : lancé dans le QGIS du portable, QGIS n'étant pas installé sur la machine Linux) qui génère `qgis/secheresse_vendee.qgz` et `qgis/styles/*.qml`. **Non exécuté à ce jour** : la configuration est lue correctement hors QGIS, mais les appels PyQGIS n'ont pas pu être testés ici. Retour de l'utilisateur attendu (erreurs, rendu).
 6. **Job hebdomadaire** (`pipeline/run_hebdo.py`, `pipeline/publication.py`, `make hebdo`) : ingestion des 90 derniers jours (piézomètres publiés par lots : depuis leur dernière mesure en stock), recalcul de tout l'historique des indices, contrôles de vraisemblance (`hebdo.controles`), publication DVC + commit des seuls `data/*.dvc` + étiquette `data-AAAA-Www` + push (garde-fous : branche `main`, pas de commit sans changement, étiquette déplacée après correction), rechargement de PostGIS, rapport Markdown. Testé sur un dépôt Git jetable ; exécuté sur les vraies données sans publication : 2 min 54 s, 165 nouvelles valeurs, 23 débits corrigés par Hub'Eau (N322201010, juillet-septembre) répercutés sur les semaines 27 à 36 ; seconde exécution identique au bit près (critère n°10).
 
 ### Décisions de méthode (détail dans `docs/methodologie.md`)
@@ -106,8 +107,8 @@ Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies d
 
 | # | Étape | Contenu | Points d'attention |
 |---|---|---|---|
-| **7** | **Projet QGIS** | `qgis/secheresse_vendee.qgz` + styles QML des 7 classes, connexion par service | pas de mot de passe dans le projet |
-| 8 | API | FastAPI, endpoints du §8.1 (port 8010) | service des rasters (`/rasters`) en V2 |
+| **7** | **Projet QGIS : validation** | exécuter `qgis/construire_projet.py` dans QGIS 3.44 (README §6.2), corriger les éventuelles erreurs PyQGIS, vérifier le rendu, rapatrier `qgis/` sur la machine Linux (scp) et le versionner | API PyQGIS non testée ici ; le contrôleur temporel n'affiche qu'à partir de la plage enregistrée à la génération |
+| **8** | **API** | FastAPI, endpoints du §8.1 (port 8010) | service des rasters (`/rasters`) en V2 |
 | 9 | Dashboard | **React + MapLibre + ECharts** (recommandé ; à inscrire dans la spec §10 après confirmation de l'utilisateur) | carte des zones par semaine, séries avec l'enveloppe de la normale, retenues et ONDE hors composite |
 
 ### Points ouverts

@@ -149,6 +149,7 @@ class Projet(_Modele):
 class Classe(_Modele):
     classe: int
     libelle: str
+    couleur: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
 
 
 class Classes(_Modele):

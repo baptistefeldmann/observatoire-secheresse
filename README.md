@@ -2,9 +2,11 @@
 
 Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone hydrogéologique** : nappes, débits des cours d'eau, écoulement observé (ONDE), pluie (SIM de Météo-France) et remplissage des retenues d'eau potable, puis, à terme, télédétection Sentinel-2 et occupation du sol. Instance de référence : **Vendée (85)**, découpée en 12 zones.
 
-Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans **QGIS** et, à terme, dans un dashboard web.
+Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans un **dashboard web**, dans **QGIS** et par une **API**.
 
-> État : V1 terminée (étapes 1 à 9 : référentiels, ingestion, base PostGIS, normales, indices de la semaine, job hebdomadaire, projet QGIS, API, dashboard), avec une version publique du dashboard sur GitHub Pages. Étape suivante : valider l'indice sur les sécheresses passées. Détail dans [`passation.md`](passation.md).
+**Voir le dashboard public : <https://baptistefeldmann.github.io/observatoire-secheresse/>** (prototype : l'indice est en cours de validation).
+
+> État : V1 terminée et en service depuis octobre 2026 (indices hebdomadaires de 1991 à aujourd'hui, job hebdomadaire, base PostGIS, projet QGIS, API, dashboard et sa version publique). Prochaine étape : valider l'indice sur les sécheresses passées. Voir la [feuille de route](#10-feuille-de-route) ; détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -17,6 +19,8 @@ Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « 
 7. [L'API et le dashboard](#7-lapi-et-le-dashboard)
 8. [Adapter à un autre département](#8-adapter-à-un-autre-département)
 9. [Arborescence et documentation](#9-arborescence-et-documentation)
+10. [Feuille de route](#10-feuille-de-route)
+11. [Licence](#11-licence)
 
 ## 1. Ce que produit l'observatoire
 
@@ -76,11 +80,14 @@ Quelques règles utiles pour lire les résultats :
                  │  make db-rebuild (une transaction, reconstruction complète)
                  ▼
   PostGIS (Docker)  COUCHE DE SERVICE          reconstructible à tout moment
-  schémas ref · obs · idx · rst
+  tables ref · obs · idx · rst, vues carto, projet QGIS
         │                         │
         ▼                         ▼
   QGIS (rôle lecteur,        API FastAPI, port 8010 ── dashboard web (/dashboard/)
   tunnel SSH si distant)     (rôle lecteur)            MapLibre + ECharts
+                                  │
+                                  ▼  make site / make pages (export statique)
+                             GitHub Pages : dashboard public, sans API ni base
 ```
 
 ### Principes
@@ -98,10 +105,11 @@ Quelques règles utiles pour lire les résultats :
 |---|---|---|---|
 | Référentiels | `make referentiels` | `pipeline/referentiels.py`, `pipeline/zonage.py` | communes, zones, mailles SIM, stations rattachées à leur zone |
 | Ingestion | `make ingest` | `pipeline/ingestion.py`, `pipeline/sources/` (un module par source) | `data/raw/<source>/<prefixe>_<annee>.parquet` |
-| Normales | `make reference` | `pipeline/reference/` | `data/normales/` : paramètres du SPI, échantillons de référence de l'IPS et des débits, ruptures détectées |
+| Normales | `make reference` | `pipeline/reference/` | `data/normales/` : paramètres du SPI, échantillons de référence de l'IPS et des débits, enveloppes (minimum, médiane, maximum), ruptures détectées |
 | Indices | `make indices` | `pipeline/indices/` | `data/indices/` : indices par station, par zone, composite |
 | Base | `make db-rebuild` | `pipeline/db/` (migrations Alembic) | PostGIS rechargé depuis `data/` |
 | Projet QGIS | `make qgis` | `qgis/construire_projet.py` (QGIS en Docker) | `qgis/secheresse_<slug>.qgz` et `qgis/styles/`, chargés dans PostGIS |
+| Site public | `make site`, `make pages` | `api/export.py` | `build/pages/`, publié sur la branche `gh-pages` (GitHub Pages) |
 | Job hebdomadaire | `make hebdo` | `pipeline/run_hebdo.py`, `pipeline/publication.py` | ingestion des 90 derniers jours → indices → DVC et Git → PostGIS → rapport |
 
 Les paramètres métier (périodes, seuils, fenêtres, pondérations) sont dans `config/*.yaml`, jamais dans le code.
@@ -355,8 +363,9 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 4. Dans `.env` : `COMPOSE_PROJECT_NAME`, `POSTGRES_DB` et, si plusieurs instances tournent sur la même machine, `POSTGRES_PORT`.
 5. Créer un dépôt DagsHub pour le territoire et remplacer l'URL du remote : `uv run dvc remote modify origin url https://dagshub.com/<compte>/<depot>.dvc`, puis `make dvc-auth`.
 6. Adapter `qgis/pg_service.conf.example` (nom du service `secheresse_<slug>`, base, port).
-7. `make config` pour valider, puis `make ingest`, `make reference`, `make indices` et `make db-rebuild`.
-8. Examiner les ruptures signalées par `make reference` (journal et `data/normales/ruptures.parquet`) et inscrire celles qui sont confirmées dans `config/stations.yaml` (D8).
+7. Dans `config/projet.yaml`, bloc `publication` : texte de l'avertissement et sources citées par la version publique du dashboard.
+8. `make config` pour valider, puis `make ingest`, `make reference`, `make indices`, `make db-rebuild` et `make qgis`.
+9. Examiner les ruptures signalées par `make reference` (journal et `data/normales/ruptures.parquet`) et inscrire celles qui sont confirmées dans `config/stations.yaml` (D8).
 
 `classes.yaml` (échelle à 7 classes) et `sources.yaml` (points d'accès des API) sont communs à tous les départements.
 
@@ -372,13 +381,40 @@ api/         API FastAPI (app.py, requêtes SQL, Dockerfile)
 dashboard/   dashboard web (index.html, app.js, style.css), servi par l'API
 rasters/     COG Sentinel-2 (V2), locaux et non versionnés
 docker/      initialisation de PostGIS (rôle lecteur)
-docs/        spécification, méthodologie, accès distant, comptes rendus de spikes
+docs/        spécification, méthodologie, accès distant, feuille de route, comptes rendus de spikes
+build/       site statique du dashboard (make site), régénérable, non versionné
+logs/        rapports du job hebdomadaire, non versionnés
 ```
 
 | Document | Contenu |
 |---|---|
 | [`docs/SPEC.md`](docs/SPEC.md) | spécification de référence : architecture, sources, schéma, méthode, phases V1 à V4 |
 | [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D9 et contrôles chiffrés (elles priment sur la spec) |
-| [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS depuis un poste Windows par tunnel SSH |
+| [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS, dashboard et API depuis un poste Windows par tunnel SSH |
+| [`docs/roadmap.svg`](docs/roadmap.svg) | schéma de la feuille de route (section 10) |
+| [`LICENSE`](LICENSE), [`LICENCE-DONNEES.md`](LICENCE-DONNEES.md) | licences du code et des données (section 11) |
 | [`docs/spikes/`](docs/spikes/) | validations techniques de la V0 (SIM, Hub'Eau, Sentinel-2, DVC, retenues) |
 | [`passation.md`](passation.md) | état d'avancement, erreurs corrigées, reste à faire |
+
+## 10. Feuille de route
+
+![Feuille de route : V0 et V1 terminées, validation de l'indice en prochaine étape, puis V2 (satellite), V3 (pression et tension) et V4 (prévision)](docs/roadmap.svg)
+
+La V1 tourne chaque semaine. Avant d'aller plus loin, l'indice doit être confronté aux sécheresses connues : c'est la condition pour le présenter aux acteurs du territoire (DDTM 85, Vendée Eau, syndicats de bassin).
+
+**Validation de l'indice (prochaine étape)**
+
+- Comparer les classes de 2011, 2017, 2019 et 2022 aux arrêtés de restriction et au bulletin de situation hydrologique. Exemple qui la motive : la semaine du 15 août 2022, seules 6 zones sur 12 sont en classe 1 ou 2.
+- Trancher la rareté des classes extrêmes dans les moyennes par zone (composite en classe 1 de 5,4 % à 11,8 % du temps pour 10 % attendus) : restandardiser ou documenter (décision D9).
+- Vérifier les pondérations du marais et du Sud-Vendée, qui ne reposent encore sur aucun chiffre.
+- Documenter l'origine des ruptures de Noirmoutier et du marais breton auprès du BRGM ou des gestionnaires, et examiner le piézomètre 05634X0013/SF3.
+
+**Phases suivantes** (spécification, §2) : V2 ajoute la végétation par satellite (Sentinel-2, occupation du sol), V3 l'axe pression et la carte de tension, V4 la prévision. Le schéma de données et l'arborescence sont déjà prévus pour elles.
+
+**Exploitation**, en parallèle : planifier le job hebdomadaire (ligne cron dans la section 4), intégration continue, redémarrage automatique de PostGIS, image de l'API allégée. La liste complète des points ouverts est dans [`passation.md`](passation.md).
+
+## 11. Licence
+
+- **Code** : licence MIT ([`LICENSE`](LICENSE)). Chacun peut réutiliser, modifier et redistribuer le code, en conservant la mention de l'auteur.
+- **Données produites par l'observatoire** (indices, normales, zones) : [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/), avec mention de la source.
+- **Données des fournisseurs** : elles gardent leurs propres conditions. Les relevés de remplissage des retenues n'ont pas de licence publiée et ne sont pas couverts. Détail dans [`LICENCE-DONNEES.md`](LICENCE-DONNEES.md).

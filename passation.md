@@ -101,6 +101,7 @@ Les leçons à retenir sont en gras.
 | Normales | **Non-stationnarité ignorée au départ** : 9 piézomètres sur 38 (Noirmoutier, marais breton) ont changé de régime ; L'Épine aurait été « très haut » en permanence. Repéré par l'utilisateur dans QGIS | D8 : détection + liste validée + référence post-rupture |
 | Job hebdo | La fenêtre de 90 jours de la spec aurait perdu les lots piézométriques : 8 piézomètres suivis sur 39 sans mesure depuis plus de 90 jours (marais breton, Noirmoutier, dernière mesure en mars) | fenêtre par station, depuis la dernière mesure en stock (choix utilisateur) |
 | Projet QGIS | Script prévu pour le QGIS du portable : il exigeait un clone du dépôt, et un copier-coller dans la console l'a fait chercher `config/` dans un dossier temporaire | génération sur la machine Linux (QGIS en Docker) et projet rangé dans PostGIS. **Tester soi-même plutôt que faire tester l'utilisateur quand c'est possible** |
+| API | Les tests « paramètres invalides » (sans base) ouvraient une connexion avant de valider : ils ne passaient que PostGIS démarré, contre la règle « aucun test ne dépend d'un service externe ». Vu le jour où PostGIS était arrêté | connexion factice dans ces tests. **Lancer `make test` aussi PostGIS arrêté** |
 | Indices | Recalcul partiel non identique au calcul complet (écart de 10⁻¹⁷) : la moyenne par zone sommait les stations dans un ordre qui dépendait de la plage calculée | tri par station avant la moyenne. **Pour l'idempotence au bit près, fixer l'ordre des sommes** |
 
 Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies données**, ou par les tests sur réponses enregistrées. Garder cette pratique : contrôler les sorties (effectifs, plages de dates, doublons, idempotence) après chaque étape.
@@ -115,6 +116,7 @@ Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies d
 
 ### Points ouverts
 
+- **Licences** (2026-10-07, choix utilisateur) : code sous MIT (`LICENSE`), données produites sous Licence Ouverte 2.0 (`LICENCE-DONNEES.md`). Conditions de Hub'Eau et de l'IGN à confirmer sur leurs sites ; relevés des retenues non couverts. Titularité des droits à vérifier si le projet relève du cadre professionnel de l'utilisateur.
 - **Classes extrêmes rares dans les zones** (D9, à réexaminer) : composite en classe 1 de 5,4 % (marais breton) à 11,8 % (Noirmoutier) du temps sur 1991–2020, pour 10 % attendus ; IPS de zone du Sud-Vendée (14 piézomètres) en classe 1 4 % du temps. Pistes : restandardiser sur l'historique de la zone, ou accepter. À trancher avec la validation sur les sécheresses passées.
 - **API** : pas de CORS configuré (à décider avec la pile du dashboard : même origine ou non) ; image Docker lourde (982 Mo), à alléger si besoin en séparant les dépendances de l'API.
 - **Retenues, qualité de la source** : relevés en dents de scie chez plusieurs retenues (Albert : 31 %, 63 %, 28 % trois semaines de suite en janvier 2025 ; 66 sauts de plus de 10 points pour Albert, 67 pour Pierre-Brune). Transferts entre retenues ou erreurs de saisie : à éclaircir avec Vendée Eau si l'indicateur doit être exploité finement.
@@ -131,6 +133,8 @@ Plusieurs défauts n'ont été trouvés qu'en confrontant le code aux **vraies d
 - **Retenues sur la version publique** : publiées sans licence explicite du Département (choix utilisateur) ; à retirer si le Département le demande (filtre dans `api/export.py`).
 
 ### Après la V1
+
+Schéma de la feuille de route : [`docs/roadmap.svg`](docs/roadmap.svg), affiché dans le README (section 10). À mettre à jour à la fin de chaque phase (statut, date).
 
 - **Valider l'indice sur les sécheresses passées** (2011, 2017, 2019, 2022) contre les arrêtés et le bulletin de situation hydrologique : indispensable avant toute présentation à des acteurs (DDTM 85, Vendée Eau, syndicats de bassin).
 - **V2** : composites Sentinel-2 (NDVI/NDMI par décade), carte d'occupation du sol interne, anomalies par classe ; seuil minimal d'observations valides ; écriture par blocs (RAM) ; prévoir 12 Go par an dans `rasters/`.

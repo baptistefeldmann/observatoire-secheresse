@@ -28,7 +28,10 @@ SEMAINE = "2026-W39"
 
 @pytest.fixture
 def client_api(config: Config) -> Iterator[TestClient]:
+    """Client sans base : la connexion est factice, une requête qui l'utilise échoue. Les
+    paramètres sont validés avant tout accès à la base (erreur 422)."""
     api.app.dependency_overrides[api.config] = lambda: config
+    api.app.dependency_overrides[api.connexion] = lambda: None
     yield TestClient(api.app)
     api.app.dependency_overrides.clear()
 
@@ -106,6 +109,7 @@ def client_base(config: Config, client: ClientHttp, client_api: TestClient) -> T
     _indices_synthetiques(config)
     base = moteur(URL_TEST)
     chargement.reconstruire(config, base)
+    api.app.dependency_overrides.pop(api.connexion)  # vraie connexion, sur la base jetable
     api.app.dependency_overrides[api.moteur] = lambda: base
     return client_api
 

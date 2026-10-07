@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-label="Feuille de route : la V1 est en service ; l'indice doit être validé avant toute présentation aux acteurs" font-family="Segoe UI, system-ui, -apple-system, Roboto, sans-serif" font-size="12.5">
+  <!-- Feuille de route de l'observatoire (README, « Feuille de route »). À mettre à jour à la fin de chaque phase. -->
+  <rect width="900" height="900" fill="#ffffff"/>
+
+  <text x="24" y="36" font-size="17" font-weight="600" fill="#1a1a19">La V1 est en service ; l'indice doit être validé avant toute présentation aux acteurs</text>
+  <text x="24" y="58" fill="#5f5e5a">Phases du projet, de la plus ancienne à la plus lointaine. Seules les phases terminées sont datées.</text>
+
+  <!-- Fil des phases : plein pour le réalisé, pointillé pour l'à-venir -->
+  <line x1="60" y1="102" x2="60" y2="318" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="60" y1="318" x2="60" y2="716" stroke="#b5b4ae" stroke-width="2" stroke-dasharray="5 5"/>
+
+  <!-- V0 -->
+  <circle cx="60" cy="102" r="9" fill="#2e7d32"/>
+  <path d="M55.5 102l3 3 6-6" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="88" y="107" font-size="15" font-weight="600" fill="#1a1a19">V0 · Spikes de validation technique</text>
+  <text x="88" y="125" font-size="12" font-weight="600" fill="#2e7d32">Terminé · septembre 2026</text>
+  <text x="88" y="147" fill="#1a1a19">Six vérifications avant de coder : délai des données SIM (un jour), historique Hub'Eau, Sentinel-2</text>
+  <text x="88" y="165" fill="#1a1a19">par Planetary Computer, versionnage DVC sur DagsHub, remplissage des retenues d'eau potable.</text>
+
+  <!-- V1 -->
+  <circle cx="60" cy="210" r="9" fill="#2e7d32"/>
+  <path d="M55.5 210l3 3 6-6" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="88" y="215" font-size="15" font-weight="600" fill="#1a1a19">V1 · Suivi hebdomadaire de la ressource</text>
+  <text x="88" y="233" font-size="12" font-weight="600" fill="#2e7d32">Terminé · octobre 2026</text>
+  <text x="88" y="255" fill="#1a1a19">Normales 1991-2020 et indices de la semaine : pluie (SPI), nappes (IPS), débits, composite pondéré</text>
+  <text x="88" y="273" fill="#1a1a19">pour 12 zones. Job hebdomadaire versionné, PostGIS, projet QGIS, API, dashboard et site public.</text>
+
+  <!-- Validation : prochaine étape -->
+  <rect x="78" y="298" width="798" height="104" rx="8" fill="#2a78d6" fill-opacity="0.08" stroke="#2a78d6" stroke-width="1.5"/>
+  <circle cx="60" cy="318" r="9" fill="#ffffff" stroke="#2a78d6" stroke-width="3"/>
+  <text x="94" y="323" font-size="15" font-weight="600" fill="#1a1a19">Validation de l'indice</text>
+  <text x="94" y="341" font-size="12" font-weight="600" fill="#2a78d6">Prochaine étape</text>
+  <text x="94" y="363" fill="#1a1a19">Confronter l'indice aux sécheresses de 2011, 2017, 2019 et 2022, aux arrêtés de restriction et au BSH.</text>
+  <text x="94" y="381" fill="#1a1a19">Trancher la rareté des classes extrêmes par zone, vérifier les poids du marais, documenter les ruptures.</text>
+
+  <!-- Condition de passage -->
+  <path d="M60 422l11 11-11 11-11-11z" fill="#ffffff" stroke="#5f5e5a" stroke-width="1.5"/>
+  <text x="88" y="431" font-size="13" font-weight="600" fill="#1a1a19">Condition pour la suite : un indice validé</text>
+  <text x="88" y="449" fill="#5f5e5a">avant toute présentation à la DDTM 85, à Vendée Eau et aux syndicats de bassin.</text>
+
+  <!-- V2 -->
+  <circle cx="60" cy="500" r="8" fill="#ffffff" stroke="#8f8e88" stroke-width="2"/>
+  <text x="88" y="505" font-size="15" font-weight="600" fill="#1a1a19">V2 · Végétation par satellite</text>
+  <text x="88" y="523" font-size="12" font-weight="600" fill="#8f8e88">À venir</text>
+  <text x="88" y="545" fill="#1a1a19">Composites Sentinel-2 par décade (NDVI, NDMI) et anomalies par rapport à la référence 2018-2025.</text>
+  <text x="88" y="563" fill="#1a1a19">Carte d'occupation du sol interne : anomalies par classe d'occupation et par zone.</text>
+
+  <!-- V3 -->
+  <circle cx="60" cy="608" r="8" fill="#ffffff" stroke="#8f8e88" stroke-width="2"/>
+  <text x="88" y="613" font-size="15" font-weight="600" fill="#1a1a19">V3 · Pression sur la ressource et tension</text>
+  <text x="88" y="631" font-size="12" font-weight="600" fill="#8f8e88">À venir</text>
+  <text x="88" y="653" fill="#1a1a19">Population présente par commune et par mois, prélèvements (BNPE), surfaces irriguées.</text>
+  <text x="88" y="671" fill="#1a1a19">Croisement avec l'état de la ressource : carte de tension, où les retenues d'eau potable trouvent leur place.</text>
+
+  <!-- V4 -->
+  <circle cx="60" cy="716" r="8" fill="#ffffff" stroke="#8f8e88" stroke-width="2"/>
+  <text x="88" y="721" font-size="15" font-weight="600" fill="#1a1a19">V4 · Prévision</text>
+  <text x="88" y="739" font-size="12" font-weight="600" fill="#8f8e88">À venir</text>
+  <text x="88" y="761" fill="#1a1a19">Nappes à un ou deux mois, scénarios par années analogues, demande saisonnière.</text>
+
+  <!-- Exploitation, en parallèle des phases -->
+  <rect x="24" y="796" width="852" height="80" rx="8" fill="#f4f4f1" stroke="#dcdbd5" stroke-width="1"/>
+  <text x="44" y="824" font-size="13" font-weight="600" fill="#1a1a19">En parallèle : exploitation de la V1</text>
+  <text x="44" y="846" fill="#1a1a19">Planifier le job hebdomadaire (cron), ajouter l'intégration continue (lint et tests), redémarrer PostGIS</text>
+  <text x="44" y="864" fill="#1a1a19">automatiquement, alléger l'image de l'API, clarifier la licence des relevés de retenues.</text>
+</svg>

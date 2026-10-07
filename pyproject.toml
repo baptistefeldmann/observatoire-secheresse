@@ -3,6 +3,8 @@ name = "observatoire-secheresse"
 version = "0.1.0"
 description = "Suivi hebdomadaire de la sécheresse à l'échelle d'un département"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "geopandas>=1.0",

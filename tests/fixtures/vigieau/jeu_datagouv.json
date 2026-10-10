@@ -1,0 +1,12 @@
+{
+ "resources": [
+  {
+   "title": "Arrêtés 2024",
+   "url": "https://vigieau.test/arretes-2024.csv"
+  },
+  {
+   "title": "Arrêtés",
+   "url": "https://vigieau.test/arretes.csv"
+  }
+ ]
+}

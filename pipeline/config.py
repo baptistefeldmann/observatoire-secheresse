@@ -81,6 +81,7 @@ class Chemins(_Modele):
     rasters: Path
     rapports: Path
     qgis: Path
+    rapport_validation: Path
 
 
 class Controles(_Modele):
@@ -133,6 +134,19 @@ class Indices(_Modele):
     spi: ParametresSpi
 
 
+class Validation(_Modele):
+    """Confrontation des indices aux arrêtés sécheresse (`make validation`)."""
+
+    semaine_debut: int = Field(ge=1, le=53)  # saison comparée, en semaines ISO
+    semaine_fin: int = Field(ge=1, le=53)
+
+    @model_validator(mode="after")
+    def _verifier_saison(self) -> Validation:
+        if self.semaine_debut > self.semaine_fin:
+            raise ValueError("la saison de validation doit tenir dans l'année civile")
+        return self
+
+
 class Projet(_Modele):
     territoire: Territoire
     crs: str
@@ -143,6 +157,7 @@ class Projet(_Modele):
     hebdo: Hebdo
     api: Api
     publication: Publication
+    validation: Validation
     chemins: Chemins
 
     @field_validator("crs")
@@ -191,6 +206,9 @@ class Zone(_Modele):
     masses_eau: list[str] = Field(min_length=1)  # codes SANDRE EDL 2019 (CdEuMasseDEau)
     zones_alerte: list[int] = []  # codes SANDRE CdZAS ; vide = pas de croisement
     ponderations: dict[Composante, float]
+    # Validation : zones d'alerte des arrêtés sécheresse (VigiEau) rattachées à la zone, par type
+    # (SUP superficiel, SOU souterrain, AEP), désignées par leur nom (casse et accents ignorés)
+    zones_alerte_arretes: dict[Literal["SUP", "SOU", "AEP"], list[str]] = {}
 
     @field_validator("ponderations")
     @classmethod
@@ -343,12 +361,19 @@ class Sandre(_Modele):
     zones_alerte: CoucheZonesAlerte
 
 
+class VigiEau(_Modele):
+    api_datagouv: str
+    jeu_datagouv: str
+    ressource: str  # titre de la ressource : historique complet des arrêtés (CSV)
+
+
 class Sources(_Modele):
     hubeau: HubEau
     geo_api: str
     sandre: Sandre
     retenues_national: RetenuesNational
     sim: Sim
+    vigieau: VigiEau
     sentinel2: Sentinel2
     http: Http
 

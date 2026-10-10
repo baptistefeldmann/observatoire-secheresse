@@ -8,7 +8,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from pipeline import indices, ingestion, reference, referentiels, run_hebdo
+from pipeline import indices, ingestion, reference, referentiels, run_hebdo, validation
 from pipeline.config import Config, charger_config
 from pipeline.db import chargement
 from pipeline.db.connexion import moteur
@@ -51,6 +51,10 @@ def main(argv: list[str] | None = None) -> int:
     calcul = sous.add_parser("indices", help="indices hebdomadaires -> data/indices/")
     calcul.add_argument("--debut", help="première semaine AAAA-Www (défaut : historique_debut)")
     calcul.add_argument("--fin", help="dernière semaine AAAA-Www (défaut : dernière complète)")
+    valider = sous.add_parser("validation", help="indices confrontés aux arrêtés sécheresse")
+    valider.add_argument(
+        "--hors-ligne", action="store_true", help="réutilise les arrêtés de data/validation/"
+    )
     hebdo = sous.add_parser("hebdo", help="job hebdomadaire (dernière semaine complète)")
     hebdo.add_argument(
         "--sans-publication", action="store_true", help="ni DVC, ni commit, ni étiquette"
@@ -86,6 +90,12 @@ def main(argv: list[str] | None = None) -> int:
         fin = args.fin or derniere_semaine_complete(date.today())
         for nom, calcule in indices.calculer(config, debut, fin).items():
             print(f"{nom:<16} {len(calcule):>9} lignes ({debut} à {fin})")
+        return 0
+    if args.commande == "validation":
+        client = None if args.hors_ligne else ClientHttp(config.sources.http)
+        resultat = validation.executer(config, client)
+        for chemin in (resultat.arretes, resultat.restrictions, resultat.rapport):
+            print(chemin)
         return 0
     if args.commande == "projet-qgis":
         if not chargement.charger_projet_qgis(config, moteur()):

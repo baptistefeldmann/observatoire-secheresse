@@ -47,6 +47,9 @@ ROUTES = {
     ("hubeau.eaufrance.fr", "/ecoulement/campagnes", None): "observations/onde_campagnes.json",
     ("sim.test", "/QUOT_SIM2_2026.csv.gz", None): "sim/QUOT_SIM2_2026.csv.gz",
     ("sim.test", "/QUOT_SIM2_latest.csv.gz", None): "sim/QUOT_SIM2_latest.csv.gz",
+    ("www.data.gouv.fr", "/datasets/662a5e2cd71b24df5e9a0827/", None):
+        "vigieau/jeu_datagouv.json",
+    ("vigieau.test", "/arretes.csv", None): "vigieau/arretes.csv",
 }  # fmt: skip
 
 # Zonage adapté aux deux communes des fixtures (île de Noirmoutier)
@@ -84,6 +87,7 @@ def config(tmp_path: Path) -> Config:
         update={
             "data": tmp_path / "data",
             "rapports": tmp_path / "rapports",
+            "rapport_validation": tmp_path / "validation.md",
             "qgis": tmp_path / "qgis",
         }
     )

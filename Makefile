@@ -1,4 +1,4 @@
-.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices hebdo qgis site pages db-rebuild config test test-db lint format
+.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices validation hebdo qgis site pages db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -40,6 +40,9 @@ reference:  ## Calcul des normales
 
 indices:  ## Indices hebdomadaires de tout l'historique -> data/indices/
 	$(PIPELINE) indices
+
+validation:  ## Confronte les indices aux arrêtés sécheresse (VigiEau) -> docs/validation.md
+	$(PIPELINE) validation
 
 hebdo:  ## Job hebdomadaire : ingestion, indices, DVC + Git (commit, tag, push), PostGIS
 	$(PIPELINE) hebdo

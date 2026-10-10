@@ -28,6 +28,14 @@ sim:
   unite_coordonnees_m: 100    # LAMBX / LAMBY en hectomètres
   pas_grille_m: 8000
 
+# Arrêtés sécheresse, jeu data.gouv.fr « Donnée Sécheresse - VigiEau » (Licence Ouverte 2.0) :
+# historique complet en un CSV, une ligne par arrêté (zones d'alerte et niveaux en listes JSON).
+# Sert uniquement à la validation des indices (make validation), hors composite.
+vigieau:
+  api_datagouv: https://www.data.gouv.fr/api/1/
+  jeu_datagouv: 662a5e2cd71b24df5e9a0827
+  ressource: Arrêtés
+
 # Remplissage des retenues, couche nationale de la DREAL Bretagne (GéoBretagne, WFS) :
 # dernière semaine seulement, archivée chaque semaine par le pipeline (D6).
 retenues_national:

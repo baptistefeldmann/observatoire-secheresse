@@ -83,8 +83,14 @@ publication:
     - "Département de la Vendée : remplissage des retenues d'eau potable"
     - "IGN : Plan IGN (Géoplateforme)"
 
+# Confrontation des indices aux arrêtés sécheresse (make validation)
+validation:
+  semaine_debut: 18          # saison comparée : semaines ISO 18 à 44 (mai à octobre)
+  semaine_fin: 44
+
 chemins:
   data: data
   rasters: rasters
   rapports: logs/hebdo       # rapports d'exécution du job, non versionnés
   qgis: qgis                 # projet QGIS généré par make qgis, chargé dans PostGIS
+  rapport_validation: docs/validation.md   # rapport de make validation, versionné

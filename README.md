@@ -107,6 +107,7 @@ Quelques règles utiles pour lire les résultats :
 | Ingestion | `make ingest` | `pipeline/ingestion.py`, `pipeline/sources/` (un module par source) | `data/raw/<source>/<prefixe>_<annee>.parquet` |
 | Normales | `make reference` | `pipeline/reference/` | `data/normales/` : paramètres du SPI, échantillons de référence de l'IPS et des débits, enveloppes (minimum, médiane, maximum), ruptures détectées |
 | Indices | `make indices` | `pipeline/indices/` | `data/indices/` : indices par station, par zone, composite |
+| Validation | `make validation` | `pipeline/validation/`, `pipeline/sources/vigieau.py` | `data/validation/` : arrêtés sécheresse (VigiEau) et niveau de restriction par zone et par semaine ; rapport [`docs/validation.md`](docs/validation.md) |
 | Base | `make db-rebuild` | `pipeline/db/` (migrations Alembic) | PostGIS rechargé depuis `data/` |
 | Projet QGIS | `make qgis` | `qgis/construire_projet.py` (QGIS en Docker) | `qgis/secheresse_<slug>.qgz` et `qgis/styles/`, chargés dans PostGIS |
 | Site public | `make site`, `make pages` | `api/export.py` | `build/pages/`, publié sur la branche `gh-pages` (GitHub Pages) |
@@ -144,6 +145,7 @@ make ingest               # référentiels + historique complet (~10 min)
 make reference            # normales (~20 s)
 make indices              # indices de 1991 à la dernière semaine complète (~25 s)
 make db-rebuild
+make validation           # indices confrontés aux arrêtés sécheresse -> docs/validation.md (~5 s)
 ```
 
 PostGIS ne redémarre pas seul : après un redémarrage de la machine, relancer `make up`.
@@ -375,7 +377,7 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 config/      paramètres : territoire, zones et pondérations, classes, sources, stations
 pipeline/    sources/ (une par API), reference/ (normales), indices/, db/ (PostGIS, Alembic)
 tests/       tests pytest sur réponses API enregistrées (fixtures/), sans réseau
-data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/
+data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/, validation/
 qgis/        script de génération du projet, projet .qgz, styles QML, service PostgreSQL d'exemple
 api/         API FastAPI (app.py, requêtes SQL, Dockerfile)
 dashboard/   dashboard web (index.html, app.js, style.css), servi par l'API
@@ -390,6 +392,7 @@ logs/        rapports du job hebdomadaire, non versionnés
 |---|---|
 | [`docs/SPEC.md`](docs/SPEC.md) | spécification de référence : architecture, sources, schéma, méthode, phases V1 à V4 |
 | [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D9 et contrôles chiffrés (elles priment sur la spec) |
+| [`docs/validation.md`](docs/validation.md) | indices confrontés aux arrêtés sécheresse, généré par `make validation` |
 | [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS, dashboard et API depuis un poste Windows par tunnel SSH |
 | [`docs/roadmap.svg`](docs/roadmap.svg) | schéma de la feuille de route (section 10) |
 | [`LICENSE`](LICENSE), [`LICENCE-DONNEES.md`](LICENCE-DONNEES.md) | licences du code et des données (section 11) |

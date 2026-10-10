@@ -31,6 +31,7 @@ make referentiels  # communes, mailles SIM, stations -> data/referentiels/
 make ingest        # ingestion complète de l'historique
 make reference     # calcul des normales
 make indices       # indices hebdomadaires de tout l'historique -> data/indices/
+make validation    # indices confrontés aux arrêtés sécheresse (VigiEau) -> docs/validation.md
 make hebdo         # job hebdomadaire
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS
 make site          # dashboard statique -> build/pages (GitHub Pages)

@@ -1,0 +1,6 @@
+id,numero,date_debut,date_signature,date_fin,statut,departement,chemin_fichier,niveau_gravite_specifique_aep,ressource_aep_communique,regle_gestion,arrete_cadre.id,arrete_cadre.numero,arrete_cadre.date_debut,arrete_cadre.date_fin,arrete_cadre.chemin_fichier,zones_alerte.id,zones_alerte.type,zones_alerte.code,zones_alerte.nom,zones_alerte.niveau_gravite,zones_alerte.id_sandre,zones_alerte.communes
+1,A-1,2011-07-08,2011-07-07,2011-08-04,abroge,85,,null,null,undefined,,,,,,,,,,,,
+2,A-2,2012-07-07,2012-07-06,2012-08-31,abroge,01,,null,null,undefined,,,,,,[0],"[""SUP""]","[""01_1""]","[""LAY""]","[""crise""]",,
+3,A-3,2012-08-04,2012-08-03,2012-08-31,abroge,85,,null,null,undefined,,,,,,"[0, 1, 2]","[""SUP"", ""SUP"", ""SOU""]","[""52_85_08"", ""52_85_07"", ""52_85_4""]","[""LAY"", ""VENDEE"", ""NAPPE PLAINE-BOCAGE""]","[""crise"", ""alerte"", ""vigilance""]",,
+4,A-4,2012-08-20,2012-08-17,2012-09-30,abroge,85,,null,null,undefined,,,,,,[0],"[""SUP""]","[""52_85_08""]","[""LAY""]","[""alerte""]",,
+5,A-5,2026-09-14,2026-09-11,null,publie,85,,null,null,undefined,,,,,,"[0, 1, 2]","[""SUP"", ""SUP"", ""SUP""]","[""52_85_000010"", ""52_85_000012"", ""52_85_000006""]","[""Vendée superficiel"", ""Autize superficiel"", ""COTIERS VENDEENS""]","[""vigilance"", ""crise"", ""alerte_renforcee""]",,

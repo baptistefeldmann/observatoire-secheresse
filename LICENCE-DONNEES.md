@@ -24,6 +24,7 @@ Les données brutes (`data/raw/`) et les fonds de carte restent soumis aux condi
 |---|---|---|
 | Réanalyse SIM (pluie, ETP, humidité du sol) | Météo-France, via data.gouv.fr | Licence Ouverte 2.0 |
 | Masses d'eau souterraine, zones d'alerte | SANDRE (OFB) | Licence Ouverte 2.0 (etalab-2.0) |
+| Arrêtés sécheresse (`data/validation/`, validation seulement) | VigiEau (ministère de la Transition écologique), via data.gouv.fr | Licence Ouverte 2.0 |
 | Niveaux de nappe, débits, écoulement ONDE | Hub'Eau (BRGM, OFB, Schapi) | conditions de Hub'Eau et des producteurs, à confirmer sur leurs sites |
 | Communes, Plan IGN | IGN (Géoplateforme, geo.api.gouv.fr) | conditions de l'IGN, à confirmer sur ses sites |
 | **Remplissage des retenues d'eau potable** | Département de la Vendée (table ArcGIS publique) | **aucune licence publiée : non couvert par la Licence Ouverte ci-dessus**. Ces relevés sont affichés à titre d'information et restent la propriété de leur producteur. |

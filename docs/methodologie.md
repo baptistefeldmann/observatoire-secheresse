@@ -167,6 +167,26 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 
 **À réexaminer.** Une moyenne d'indices varie moins que chacun d'eux : plus une zone compte de stations ou de composantes, plus les classes extrêmes y sont rares (Sud-Vendée : 14 piézomètres en moyenne, IPS de zone en classe 1 4 % du temps ; composite en classe 1 5,7 % du temps). Pistes : restandardiser l'indice de zone et le composite sur leur propre historique 1991–2020, ou l'accepter et le documenter. À trancher avec la validation sur les sécheresses passées (2011, 2017, 2019, 2022).
 
+## Validation par les arrêtés sécheresse
+
+*2026-10-10. Protocole en cours, pas encore une décision.*
+
+**Référence.** Les arrêtés de restriction publiés par VigiEau (data.gouv.fr, Licence Ouverte 2.0), seule source qui donne, zone par zone et semaine par semaine, le jugement des services de l'État sur la ressource. En Vendée, 198 arrêtés depuis 2011, dont 173 avec le niveau de chaque zone d'alerte (depuis 2012). Source de validation seulement : elle n'entre ni dans les indices ni dans PostGIS. Calcul par `make validation`, rapport dans [`validation.md`](validation.md).
+
+- **Rattachement** : chaque zone du projet liste ses zones d'alerte par leur nom (`zones_alerte_arretes` dans `zones.yaml`) ; les noms ont changé en 2015 et en 2023, tous sont listés. Bocage et marais breton : zones d'alerte superficielles de même nom ; marais poitevin : zones « Marais » ; Sud-Vendée : zones souterraines des nappes du Lay, de la Vendée et des Autises. Les îles n'ont pas de zone d'alerte propre.
+- **Niveau d'une semaine** : celui en vigueur le dimanche (comme les indices, D9), l'arrêté le plus récent l'emportant ; une zone prend le niveau le plus sévère de ses zones d'alerte (0 aucun, 1 vigilance, 2 alerte, 3 alerte renforcée, 4 crise).
+- **Mesures**, sur les semaines 18 à 44 : classement des années ; par zone, AUC (probabilité qu'une semaine sous alerte ou plus ait une valeur plus sèche qu'une semaine sans) du composite et de chaque composante ; classes du composite par niveau.
+- **Limite** : un arrêté se déclenche sous un seuil fixe de débit ou de niveau, l'indice compare à la normale de la saison. Les petits bassins côtiers passent sous leur seuil presque chaque fin d'été : un désaccord y est attendu.
+
+**Premiers résultats (indices D9, 2012-2026).** Classement des années très cohérent (corrélation de rang −0,92 entre part des semaines sous alerte et composite moyen). Accord semaine par semaine modéré : AUC 0,75 pour le composite (0,71 à 0,81 selon la zone), meilleur que chaque composante (débit 0,73, SPI 3 mois 0,72, IPS 0,69). Un tiers des semaines en crise ont pourtant un composite normal ou plus humide, surtout d'août à octobre en Logne-Boulogne, Vie-Jaunay et Côtiers vendéens.
+
+**Stations examinées (2026-10-10), toutes conservées telles quelles.** Chaque correction a été testée en recalculant le composite : aucune ne change l'accord avec les arrêtés (AUC d'ensemble de 0,752 à 0,756). Les désaccords viennent de la nature des arrêtés (seuils fixes, levée tardive), pas de stations défectueuses.
+
+- *Orages d'été* : le 15 août 2022 (semaine W33), 6 zones sur 12 seulement sont en classe 1 ou 2, contre 9 la semaine précédente. Les orages des 17 et 18 août font remonter le Q7 des petits cours d'eau pendant une semaine (Maine à Saint-Fulgent : 1 puis 233 l/s ; Pont Abert : 0 puis 26 l/s), alors que les arrêtés restent en crise. Comportement attendu d'un débit sur 7 jours.
+- *Ex aequo au minimum* : en été (semaines 27 à 39), la référence de 3 stations compte 27 à 44 % de Q7 nuls (Ciboule, Marillet à Saint-Florent-des-Bois, Boulogne à Rocheservière), 16 à 17 % pour 2 autres (Marillet à Château-Guibert, Doulaye) ; celle du Pont Abert à Challans compte 30 % d'ex aequo sur une valeur minimale non nulle. Une valeur égale au minimum prend le rang moyen des ex aequo et ne descend pas sous −0,6 à −1,15 (552 semaines-stations, 1,3 %, toutes en été sec). **Conservé** : ce plancher reste une information, l'exclure dégrade l'accord dans les Côtiers vendéens (AUC 0,736 → 0,720).
+- *Débits soutenus par des barrages* : le Lay à Mareuil (aval des barrages du Lay) et le Marillet à Mareuil (aval du barrage de Château-Guibert) sont déclarés influencés par Hub'Eau. Médiane d'août du Lay à Mareuil : 4 l/s en 1991–2000, 233 à 384 l/s depuis 2001 ; en été 2022, −0,1 à −1,1 au Lay à Mareuil et +1,0 à +1,8 au Marillet, contre −2 à −3 pour le Lay amont. **Conservés** (choix de l'utilisateur) : ils tirent l'indice de débit du Bocage-Lay vers la normale en été sec (classe 2 au lieu de 1 de W28 à W32 en 2022 ; AUC 0,796, contre 0,805 sans eux). Les 5 autres stations déclarées influencées (Autise, Vendée à Pissotte, Sèvre nantaise à Tiffauges, Auzance, Yon à Nesmy) suivent la sécheresse.
+- *Piézomètre 05634X0013/SF3* (seul de la zone Sèvre nantaise) : +1,45 mi-août 2022. **Conservé** : aucun défaut visible, poids faible (IPS à 0,15) et accord inchangé sans lui (0,759 → 0,756). Origine à demander au BRGM.
+
 ## Règles issues des données
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.
@@ -187,3 +207,4 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 ## Points ouverts
 
 - Faible fréquence des classes extrêmes dans les indices de zone et le composite (D9, « À réexaminer »).
+- Lay à Mareuil et Marillet à Mareuil, débits soutenus par des barrages, conservés dans le composite ; piézomètre 05634X0013/SF3 à documenter (section « Validation par les arrêtés sécheresse »).

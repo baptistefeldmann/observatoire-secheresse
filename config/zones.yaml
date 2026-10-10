@@ -9,6 +9,10 @@
 #
 # Composantes reconnues : spi_3, ips, debit. Les poids d'une zone doivent sommer à 1.
 # ONDE n'entre pas dans le composite en V1 : couche affichée à part (D3).
+#
+# Validation (make validation) : `zones_alerte_arretes` liste, par type (SUP, SOU, AEP), les zones
+# d'alerte des arrêtés sécheresse (VigiEau) comparées à la zone, par leur nom (casse et accents
+# ignorés). Les noms ont changé au fil des arrêtés-cadres : tous les noms portés sont listés.
 
 fragment_max_km2: 20
 
@@ -25,18 +29,28 @@ zones:
     type_zone: hydrogeol
     masses_eau: [FRGG034, FRGG041, FRGG042]
     ponderations: {spi_3: 0.25, ips: 0.50, debit: 0.25}
+    zones_alerte_arretes:
+      SOU: [Nappe du Lay Ouest, Nappe du Lay Est, Nappe de la Vendée Ouest, Nappe de la Vendée Centre,
+            Nappe de la Vendée Est, Nappe des Autises,
+            Bassin du Lay, Bassin de la Vendée, Bassin de l'Autize]     # noms de 2012
 
   - zone_id: MARAIS_POITEVIN
     libelle: Marais poitevin
     type_zone: hydrogeol
     masses_eau: [FRGG126, FRGG127]
     ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
+    zones_alerte_arretes:
+      SUP: [Marais Lay, Marais Vendée, Marais Sèvre Niortaise, Marais Autizes, Marais Niortaise,
+            Sèvre Niortaise et Marais Poitevin]                          # nom de 2012-2013
 
   - zone_id: MARAIS_BRETON
     libelle: Marais breton
     type_zone: hydrogeol
     masses_eau: [FRGG017, FRGG025, FRGG031]
     ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
+    zones_alerte_arretes:
+      SUP: [Marais Breton, Côtiers Breton, Marais Breton réalimenté,
+            Marais Breton - Baie de Bourgneuf]                           # nom de 2012
 
   - zone_id: ILE_NOIRMOUTIER
     libelle: Île de Noirmoutier
@@ -56,6 +70,8 @@ zones:
     masses_eau: *bocage
     zones_alerte: [339, 341]            # Lay, Lay réalimenté
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: [Lay, Lay réalimenté]
 
   - zone_id: BOCAGE_VIE_JAUNAY
     libelle: Bocage - Vie et Jaunay
@@ -63,6 +79,8 @@ zones:
     masses_eau: *bocage
     zones_alerte: [337]
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: [Vie et Jaunay, Vie Aval, Bassin des Vie et Jaunay, Vie - Ligneron - Vertone]
 
   - zone_id: BOCAGE_MAINES
     libelle: Bocage - Maines
@@ -70,6 +88,8 @@ zones:
     masses_eau: *bocage
     zones_alerte: [334]
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: [Maines, Bassin des Maines]
 
   - zone_id: BOCAGE_COTIERS_VENDEENS
     libelle: Bocage - Côtiers vendéens
@@ -77,6 +97,8 @@ zones:
     masses_eau: *bocage
     zones_alerte: [338]
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: [Côtiers Vendéens, Fleuves côtiers Vendéens, Auzance - Vertone]
 
   - zone_id: BOCAGE_SEVRE_NANTAISE
     libelle: Bocage - Sèvre nantaise
@@ -84,6 +106,9 @@ zones:
     masses_eau: *bocage
     zones_alerte: [333]
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: [Sèvre Nantaise]
+      SOU: [Nappe de la Sèvre Nantaise]
 
   - zone_id: BOCAGE_LOGNE_BOULOGNE
     libelle: Bocage - Logne, Boulogne, Ognon et Grand Lieu
@@ -91,6 +116,9 @@ zones:
     masses_eau: *bocage
     zones_alerte: [335]
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: ["Logne, Boulogne, Ognon et Grand Lieu", Boulogne, Bassin de la Boulogne,
+            Logne - Boulogne et Grand-Lieu]
 
   - zone_id: BOCAGE_VENDEE
     libelle: Bocage - Vendée
@@ -98,3 +126,5 @@ zones:
     masses_eau: *bocage
     zones_alerte: [342, 353]            # Vendée superficiel, Autize superficiel
     ponderations: *poids_bocage
+    zones_alerte_arretes:
+      SUP: [Vendée, Vendée superficiel, Autizes superficiel, Autize superficiel]

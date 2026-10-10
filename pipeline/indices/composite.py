@@ -1,4 +1,5 @@
-"""Indices par zone et indice composite (SPEC §6.4, méthodologie D1, D3, D9).
+"""Indices par zone et indice composite (SPEC §6.4, méthodologie D1, D3, D9 ; D10 pour la
+restandardisation, dans `rang.py`).
 
 Indice de zone d'une variable mesurée en station : moyenne des indices des stations de la
 zone qui entrent au composite de la semaine. Composite : moyenne pondérée des composantes

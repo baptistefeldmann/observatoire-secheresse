@@ -14,7 +14,7 @@ from shapely.geometry import Point, box
 
 from pipeline import indices, reference
 from pipeline.config import Config, Zonage, Zone
-from pipeline.indices import commun, composite, debit, ips, onde, spi
+from pipeline.indices import commun, composite, debit, ips, onde, rang, spi
 
 ZONE = Zone(
     zone_id="Z",
@@ -227,6 +227,31 @@ def test_composite_renormalise_les_poids(config_z: Config) -> None:
     assert not complet["partiel"] and table.loc["2026-W40", "valeur"] == pytest.approx(0.2)
 
 
+def test_restandardisation_par_le_rang_de_la_zone(config_z: Config) -> None:
+    # Indice de zone peu dispersé sur 1991-2020 (de -0,5 à 0,5) : la semaine la plus basse
+    # de la référence passe en classe 1 ; avant 1991-2020 : pas d'année de référence
+    semaines = [f"{a}-W{s:02d}" for a in range(1991, 2021) for s in range(1, 53)]
+    valeurs = np.linspace(-0.5, 0.5, len(semaines))
+    brutes = pd.DataFrame(
+        {"zone_id": "Z", "semaine": semaines, "indice": "ips", "valeur": valeurs,
+         "n_stations": 2, "detail": '{"stations": ["piezo:A", "piezo:B"]}'}
+    )  # fmt: skip
+    refs = rang.references(config_z, brutes)
+    assert refs[["indice", "n_semaines", "periode_ref"]].values.tolist() == [
+        ["ips", 1560, "1991-2020"]
+    ]
+    semaine = brutes[brutes["semaine"].isin(["1991-W01", "2005-W30", "2020-W52"])]
+    resultat = rang.restandardiser(semaine, refs)
+    assert resultat.columns.tolist() == brutes.columns.tolist()
+    assert resultat["valeur"].round(2).tolist() == [-3.2, -0.04, 3.2]  # bornées par le rang
+    detail = json.loads(resultat["detail"].iloc[0])
+    assert detail == {"stations": ["piezo:A", "piezo:B"], "valeur_brute": -0.5,
+                      "reference": "1991-2020", "hors_reference": False}  # fmt: skip
+    # zone sans référence : ligne retirée
+    autre = semaine.assign(zone_id="SANS_REF")
+    assert rang.restandardiser(autre, refs).empty
+
+
 # --- De bout en bout -----------------------------------------------------------------------
 
 
@@ -289,6 +314,12 @@ def test_calcul_et_idempotence(config_z: Config) -> None:
     zones = pd.read_parquet(dossier / "indice_zone_2026.parquet")
     assert set(zones["indice"]) == {"spi_1", "spi_3", "spi_6", "ips", "debit", "onde"}
     assert zones.loc[zones["indice"] == "onde", "classe"].isna().all()
+    # indices de zone et composite restandardisés (D10) : valeur brute gardée dans le détail
+    for table in (composites, zones[zones["indice"].isin(["ips", "debit"])]):
+        details = table["detail"].map(json.loads)
+        assert details.map(lambda d: "valeur_brute" in d and d["reference"] == "1991-2020").all()
+    refs = pd.read_parquet(config_z.projet.chemins.data / "normales" / "rang_zone.parquet")
+    assert sorted(refs["indice"]) == ["composite", "debit", "ips"]
 
     # relancer, en entier ou sur une partie des semaines, réécrit des fichiers identiques
     contenus = {f.name: f.read_bytes() for f in dossier.iterdir()}

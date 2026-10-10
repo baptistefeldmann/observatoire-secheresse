@@ -1,12 +1,12 @@
 # Passation — Observatoire de la sécheresse (Vendée)
 
-État au **2026-10-10**. Ce document permet de reprendre le projet dans une nouvelle conversation, sans l'historique des échanges. À lire avec [`CLAUDE.md`](CLAUDE.md) (règles du projet), [`docs/SPEC.md`](docs/SPEC.md) (référence) et [`docs/methodologie.md`](docs/methodologie.md) (décisions D1 à D9, qui priment sur la spec).
+État au **2026-10-10**. Ce document permet de reprendre le projet dans une nouvelle conversation, sans l'historique des échanges. À lire avec [`CLAUDE.md`](CLAUDE.md) (règles du projet), [`docs/SPEC.md`](docs/SPEC.md) (référence) et [`docs/methodologie.md`](docs/methodologie.md) (décisions D1 à D10, qui priment sur la spec).
 
 ## 1. En bref
 
 - **Objectif** : suivi hebdomadaire de la sécheresse en Vendée, **par zone hydrogéologique** (12 zones), à partir de la pluie (SIM), des nappes, des débits, des observations ONDE et du remplissage des retenues. Chaque variable est comparée à sa normale 1991-2020, convertie en valeur standardisée classée sur 7 niveaux, puis combinée par zone en un **indice composite** pondéré. Le code est générique : un autre département se configure dans `config/`.
-- **Avancement** : V0 (spikes) et **V1 terminées**, tous les critères d'acceptation de la V1 remplis (SPEC §12). Le premier `make hebdo` complet a tourné le 2026-10-06 (commit « Données 2026-W40 », étiquette `data-2026-W40`). Depuis : version publique du dashboard sur GitHub Pages, licences, README et feuille de route.
-- **Prochaine étape** : **valider l'indice sur les sécheresses passées** (section 7.1). C'est la condition pour le présenter aux acteurs (DDTM 85, Vendée Eau, syndicats de bassin).
+- **Avancement** : V0 (spikes) et **V1 terminées**, tous les critères d'acceptation de la V1 remplis (SPEC §12). Le premier `make hebdo` complet a tourné le 2026-10-06 (commit « Données 2026-W40 », étiquette `data-2026-W40`). Depuis : version publique du dashboard sur GitHub Pages, licences, README et feuille de route ; puis, le 2026-10-10, **validation en cours** : confrontation aux arrêtés sécheresse (`make validation`) et décision **D10** (échelle fixe dans le temps : références figées, indices de zone et composite restandardisés).
+- **Prochaine étape** : poursuivre la validation (section 7.1) : vérifier les pondérations du marais poitevin et du Sud-Vendée, puis confronter quelques semaines au bulletin de situation hydrologique. C'est la condition pour présenter l'indice aux acteurs (DDTM 85, Vendée Eau, syndicats de bassin).
 - **Où voir les résultats** : dashboard public <https://baptistefeldmann.github.io/observatoire-secheresse/> (semaine 2026-W40 au 2026-10-10) ; en local, <http://localhost:8010/dashboard/> après `make up` ; QGIS par le tunnel SSH.
 - **Dépôts** : code sur GitHub [`baptistefeldmann/observatoire-secheresse`](https://github.com/baptistefeldmann/observatoire-secheresse) (public, branche `main`, site sur la branche `gh-pages`) ; données sur DagsHub (remote DVC `origin`, `https://dagshub.com/baptistefeldmann/observatoire-secheresse.dvc`).
 
@@ -32,7 +32,7 @@ Préférences constantes, à respecter dès la première réponse :
 | Ports déjà pris sur la machine | 5432 (`pg_container`), 8000 (`mlops_meteo_australie-nginx-1`) |
 | Secrets | `.env` (non versionné) : `POSTGRES_PASSWORD`, `POSTGRES_LECTEUR_PASSWORD`, `DAGSHUB_USER`, `DAGSHUB_TOKEN` ; `make dvc-auth` copie DagsHub dans `.dvc/config.local`. Clé SSH GitHub sans phrase de passe (utilisée par `make hebdo` et `make pages`) |
 | Accès distant | portable Windows → tunnel `ssh -N secheresse-tunnel` (ports 5433 et 8010), service PostgreSQL `secheresse_vendee`, rôle `lecteur`, `PGSERVICEFILE` et `pgpass.conf` en place. Procédure : [`docs/acces_distant.md`](docs/acces_distant.md) |
-| Outils de vérification | Playwright + Chromium étaient installés dans le dossier temporaire de la session : à réinstaller (`npm i playwright && npx playwright install chromium` dans un dossier temporaire) pour refaire des captures du dashboard |
+| Outils de vérification | Playwright + Chromium étaient installés dans le dossier temporaire de la session : à réinstaller (`npm i playwright@1.55.0 && npx playwright install chromium` dans un dossier temporaire) pour refaire des captures du dashboard. **Pas de version plus ancienne** : avec Playwright 1.47 (Chromium 129), le worker de MapLibre 6.13 ne se charge pas et la carte reste sans zones (fausse alerte) |
 
 ## 4. Commandes
 
@@ -42,14 +42,15 @@ make down          # arrête les deux (la base est conservée)
 make config        # valide et affiche la configuration du territoire
 make referentiels  # communes, zones, mailles SIM, stations -> data/referentiels/ (~1 min)
 make ingest        # référentiels + historique complet -> data/raw/ (~10 min)
-make reference     # normales, enveloppes, ruptures -> data/normales/ (~20 s)
+make reference     # normales, enveloppes, ruptures, références des zones (D10) -> data/normales/ (~30 s)
 make indices       # indices 1991 -> dernière semaine complète -> data/indices/ (~25 s)
+make validation    # arrêtés VigiEau -> data/validation/, rapport docs/validation.md (~5 s)
 make db-rebuild    # recharge PostGIS depuis data/ en une transaction (~1 min)
 make hebdo         # job hebdomadaire complet, publication comprise (~3 min) ; rapport dans logs/hebdo/
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS (~20 s)
 make site          # dashboard statique -> build/pages (~80 s, ~100 Mo ; PostGIS démarré)
 make pages         # make site puis remplace la branche gh-pages (pousse sur GitHub)
-make test          # 102 tests sans réseau ni service (à lancer aussi PostGIS arrêté)
+make test          # 121 tests sans réseau ni service (à lancer aussi PostGIS arrêté)
 make test-db       # 19 tests d'intégration sur une base PostGIS jetable (Docker, port 55433)
 make lint          # ruff + mypy strict (pipeline, api, tests)
 ```
@@ -92,6 +93,8 @@ Migrations PostGIS : `0001` schéma initial, `0002` colonnes des indices, `0003`
 | Document de méthodologie | « Méthodologie des normales et de l'indice composite » : document Claude Docs privé (<https://claude.ai/code/artifact/d49d372c-7fa7-4724-b9d5-d456e236edd9>) et PDF de 6 pages dans `/media/lfrn1dgt04/D/baptiste/Methodologie_normales_indice_composite_2026-10-07.pdf`. Le PDF ne suit pas les modifications du document : à régénérer si besoin |
 | README | réécrit : présentation, architecture, installation, utilisation, base, QGIS, API et dashboard, adaptation à un autre département, arborescence, feuille de route (section 10), licence (section 11) |
 | Feuille de route | schéma [`docs/roadmap.svg`](docs/roadmap.svg) (fond blanc, lisible en thème sombre) : à mettre à jour à la fin de chaque phase |
+| Validation par les arrêtés | `make validation` (`pipeline/validation/`, `pipeline/sources/vigieau.py`) : arrêtés sécheresse VigiEau (data.gouv.fr, Licence Ouverte) du département, niveau de restriction par zone et par semaine (`data/validation/`, DVC), rapport généré [`docs/validation.md`](docs/validation.md). Rattachement des zones d'alerte par leur nom dans `zones.yaml` (`zones_alerte_arretes`). Source de validation seulement, ni indice ni PostGIS. Choix de l'utilisateur |
+| Décision D10 | références hors 1991-2020 figées à l'année de gel 2025 ; IPS de zone, débit de zone et composite reclassés par le rang parmi les semaines de référence de leur zone (`pipeline/indices/rang.py`, `data/normales/rang_zone.parquet`) ; valeur brute dans `detail` ; note dans le panneau de zone du dashboard ; `version_methodo` = « D10 ». Indices recalculés, PostGIS rechargé en local ; **site public pas encore mis à jour** (`make pages`) |
 | Licences | code sous **MIT** (`LICENSE`, aussi dans `pyproject.toml`) ; données produites (indices, normales, zones) sous **Licence Ouverte 2.0** ; données des fournisseurs sous leurs propres conditions ; relevés des retenues exclus ([`LICENCE-DONNEES.md`](LICENCE-DONNEES.md)) |
 
 ## 6. Choix effectués
@@ -108,7 +111,8 @@ Migrations PostGIS : `0001` schéma initial, `0002` colonnes des indices, `0003`
 | D6 | Retenues d'eau potable : source ajoutée, affichée hors composite, comparées aux mêmes semaines depuis 2019 |
 | D7 | Normales : critère **par période** (mois valide à 10 jours de mesures ; Q7 à 5 jours sur 7, fenêtre de ±15 jours) ; 1991-2020 si 15 ans valides, sinon toutes les années avec avertissement ; SPI sur la **pluie moyenne de la zone** |
 | D8 | Ruptures de fonctionnement : détection automatique (Pettitt), traitement d'une liste **validée à la main** (`config/stations.yaml`) ; normale limitée au nouveau régime dès 8 ans. 7 piézomètres traités (marais breton depuis 2011 ou 2016, Noirmoutier depuis 2021, sans IPS avant 2028) |
-| D9 | Indices de la semaine : IPS sur le **mois en cours** s'il a 10 jours de mesures, sinon le dernier mois valide ; rang de **Gringorten** ; SPI borné à ±3 ; indice de zone = moyenne des stations retenues ; composite à poids renormalisés ; `version_methodo` = « D9 » |
+| D9 | Indices de la semaine : IPS sur le **mois en cours** s'il a 10 jours de mesures, sinon le dernier mois valide ; rang de **Gringorten** ; SPI borné à ±3 ; indice de zone = moyenne des stations retenues ; composite à poids renormalisés |
+| D10 | **Échelle fixe dans le temps**, pour suivre la fréquence des sécheresses avec le changement climatique (la part des semaines en classe 1 est l'indicateur, pas le record) : référence de suivi 1991-2020 pour toujours ; références hors période figées (années jusqu'à 2025, sinon premières années) ; IPS et débit de zone puis composite reclassés par le rang parmi leurs semaines de référence (10 % en classe 1 sur 1991-2020 dans chaque zone, valeurs bornées) ; `version_methodo` = « D10 ». Écartés : écart-type, restandardisation saisonnière, prolongement au-delà du record, référence glissante |
 
 Pondérations du composite (`config/zones.yaml`, SPI 3 mois / IPS / débits) : Sud-Vendée 0,25 / 0,50 / 0,25 ; marais 0,30 / 0,40 / 0,30 ; îles 0,40 / 0,60 / 0 ; bocage 0,40 / 0,15 / 0,45.
 
@@ -135,13 +139,15 @@ Pondérations du composite (`config/zones.yaml`, SPI 3 mois / IPS / débits) : S
 
 ## 7. Ce qu'il reste à faire
 
-### 7.1 Prochaine étape : valider l'indice
+### 7.1 Prochaine étape : poursuivre la validation de l'indice
 
-À faire avant toute présentation aux acteurs. Démarrer par une proposition de protocole chiffrée, à soumettre à l'utilisateur.
+Protocole accepté par l'utilisateur le 2026-10-10 (détail dans `docs/methodologie.md`, section « Validation par les arrêtés sécheresse ») : 1. stations, 2. D10, 3. pondérations, 4. bulletin de situation hydrologique. **Étapes 1 et 2 faites.**
 
-- **Confronter les classes** de 2011, 2017, 2019 et 2022 aux arrêtés de restriction (VigiEau, historique des arrêtés) et au bulletin de situation hydrologique. Exemple qui motive la validation : la semaine du 15 août 2022, seules 6 zones sur 12 sont en classe 1 ou 2.
-- **Trancher la rareté des classes extrêmes** dans les moyennes par zone : composite en classe 1 de 5,4 % (marais breton) à 11,8 % (Noirmoutier) du temps sur 1991-2020, pour 10 % attendus ; IPS de zone du Sud-Vendée en classe 1 4 % du temps. Pistes : restandardiser l'indice de zone et le composite sur leur propre historique, ou documenter l'effet. Toute modification = nouvelle décision D10 et `version_methodo` à changer.
-- **Vérifier les pondérations** du marais et du Sud-Vendée : elles viennent de la spécification d'origine, sans justification chiffrée.
+- **Fait, résultats** (2012-2026, semaines 18 à 44, 10 zones ; les îles n'ont pas de zone d'alerte) : classement des années très cohérent (corrélation de rang −0,92) ; accord hebdomadaire modéré, AUC 0,755 pour le composite (0,71 à 0,81 selon la zone), meilleur que chaque composante ; un tiers des semaines en crise ont un composite normal ou plus humide, surtout d'août à octobre dans les petits bassins côtiers (seuils fixes des arrêtés contre normale de saison, levée tardive des arrêtés, orages d'été). Le « 6 zones sur 12 » du 15 août 2022 vient des orages des 17-18 août (8 sur 12 avec D10).
+- **Fait, stations conservées telles quelles** (choix de l'utilisateur, aucune correction ne change l'accord) : débits bloqués au plancher par les ex aequo à débit nul ; Lay à Mareuil et Marillet à Mareuil soutenus par des barrages ; piézomètre 05634X0013/SF3.
+- **À faire : vérifier les pondérations** du marais poitevin et du Sud-Vendée (spécification d'origine, sans justification chiffrée). Limite à rappeler : les arrêtés se déclenchent eux-mêmes sur des débits et des nappes, ajuster les poids dessus serait en partie circulaire (vérifier, pas choisir).
+- **À faire : bulletin de situation hydrologique** : vérification à l'œil de quelques semaines clés de 2011 (arrêtés sans détail par zone), 2017, 2019, 2022.
+- **À proposer** : un indicateur de récurrence (part des semaines en classe 1-2 par année et par zone), demandé implicitement par l'utilisateur pour suivre l'effet du changement climatique (D10) ; et la mise à jour du bandeau du site public (`publication.avertissement` dit encore que l'indice « n'a pas encore été confronté aux sécheresses passées »).
 - **Ruptures** : documenter l'origine des ruptures de Noirmoutier et du marais breton (BRGM, gestionnaires) ; trancher les deux ruptures signalées et non traitées (05342X0073/F, jugée faux positif ; 05863X0203/F, +0,3 m en 2010) ; examiner le piézomètre **05634X0013/SF3** (bocage Sèvre nantaise, seul piézomètre de sa zone), « haut » sur 2020-2022 sécheresse comprise, écart de +2,2 m non significatif au test.
 
 ### 7.2 Exploitation
@@ -199,6 +205,9 @@ Les leçons à retenir sont en gras. Plusieurs défauts n'ont été trouvés qu'
 | API | Colonnes `jsonb` décodées deux fois (erreur 500) ; arrondis `numeric` renvoyés en texte (`"40.0"`) | pas de `json.loads` sur du `jsonb` ; `::float8` après `round` |
 | API | Tests « paramètres invalides » qui ouvraient une connexion : ils ne passaient que PostGIS démarré | connexion factice. **Lancer `make test` aussi PostGIS arrêté** |
 | Dashboard | MapLibre 6 n'est publié qu'en module ES (pas de `maplibre-gl.js`, pas de variable globale) | `import * as maplibregl from ".../maplibre-gl.mjs"` |
+| Validation | Hypothèse « débits soutenus par des barrages » avancée trop vite pour 4 stations proches de la normale le 15 août 2022 : c'étaient les orages des 17-18 août. **Regarder les débits jour par jour avant d'interpréter un indice** |
+| Validation | Liste YAML entre crochets : le nom « Logne, Boulogne, Ognon et Grand Lieu » était coupé aux virgules | nom entre guillemets |
+| DVC | `autostage = true` : `dvc add` indexe les `.dvc` dans Git, et les mêle à un lot déjà préparé | `git restore --staged` des `.dvc` concernés |
 | Dashboard | Défauts vus sur les captures : île d'Yeu sous la légende, mois en anglais, crues écrasant les étiages, légende incomplète, « null » affiché, ordre des modalités ONDE (clés numériques d'un objet JS triées d'abord) | marges de cadrage, axes en français, débits en échelle log, `Map` pour l'ordre. **Regarder le rendu avant de livrer** |
 | Environnement | `uv sync` sans option a désinstallé les paquets Sentinel-2 | `uv sync --extra raster` |
 | Shell | `pkill -f "<motif>"` a tué le shell qui le lançait (le motif figurait dans sa propre ligne de commande, code 144) | motif à crochets (`"[u]vicorn"`) et commande `pkill` lancée seule |
@@ -210,7 +219,8 @@ Les leçons à retenir sont en gras. Plusieurs défauts n'ont été trouvés qu'
 | Paramètres du territoire, seuils, pondérations | `config/projet.yaml`, `zones.yaml`, `classes.yaml`, `stations.yaml`, `sources.yaml` ; modèles dans `pipeline/config.py` |
 | Point d'entrée du pipeline | `pipeline/__main__.py` (`python -m pipeline <commande>`) |
 | Une source de données | `pipeline/sources/<source>.py` |
-| Normales / indices | `pipeline/reference/`, `pipeline/indices/` |
+| Normales / indices | `pipeline/reference/`, `pipeline/indices/` (restandardisation D10 : `pipeline/indices/rang.py`) |
+| Validation par les arrêtés | `pipeline/validation/`, `pipeline/sources/vigieau.py`, rapport `docs/validation.md` |
 | Schéma de la base | `pipeline/db/migrations/versions/0001…0005` ; chargement dans `pipeline/db/chargement.py` |
 | Job hebdomadaire | `pipeline/run_hebdo.py`, `pipeline/publication.py` |
 | API, export statique | `api/app.py`, `api/requetes.py`, `api/export.py`, `api/Dockerfile` |

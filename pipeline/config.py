@@ -45,11 +45,16 @@ class Periode(_Modele):
     fin: int
     annees_min: int | None = Field(default=None, ge=1)
     annees_min_apres_rupture: int | None = Field(default=None, ge=1)
+    # Dernière année admise dans une référence hors période (D10) : la référence ne s'allonge
+    # plus avec les années suivantes, pour que l'échelle reste fixe dans le temps
+    annee_gel: int | None = None
 
     @model_validator(mode="after")
     def _verifier_bornes(self) -> Periode:
         if self.debut > self.fin:
             raise ValueError(f"début ({self.debut}) postérieur à la fin ({self.fin})")
+        if self.annee_gel is not None and self.annee_gel < self.fin:
+            raise ValueError(f"année de gel ({self.annee_gel}) antérieure à la fin ({self.fin})")
         if self.annees_min is not None and self.annees_min > self.fin - self.debut + 1:
             raise ValueError("annees_min dépasse la longueur de la période")
         return self
@@ -112,6 +117,12 @@ class ParametresRuptures(_Modele):
     jours_min_annee: int = Field(ge=1, le=366)
 
 
+class ParametresRangZone(_Modele):
+    """Restandardisation des indices de zone et du composite (D10)."""
+
+    semaines_min_annee: int = Field(ge=1, le=53)  # année valide de la référence d'une zone
+
+
 class ParametresSpi(_Modele):
     fenetres_jours: dict[str, int]
 
@@ -132,6 +143,7 @@ class Indices(_Modele):
     debit: ParametresDebit
     ruptures: ParametresRuptures
     spi: ParametresSpi
+    rang_zone: ParametresRangZone
 
 
 class Validation(_Modele):

@@ -1,13 +1,15 @@
-"""Indices hebdomadaires (SPEC §6, méthodologie D1 à D9) : `make indices`.
+"""Indices hebdomadaires (SPEC §6, méthodologie D1 à D10) : `make indices`.
 
 Lit les observations (`data/raw/`) et les normales (`data/normales/`), calcule pour chaque
-semaine ISO demandée les indices par station, par zone et le composite, et les écrit dans
+semaine ISO demandée les indices par station, par zone (restandardisés, D10) et le composite
+(restandardisé), et les écrit dans
 `data/indices/<table>_<annee>.parquet` (année ISO de la semaine). Les semaines recalculées
 remplacent les précédentes ; les autres sont conservées. Idempotent."""
 
 from __future__ import annotations
 
 import logging
+from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -15,7 +17,7 @@ import pandas as pd
 
 from pipeline import schema, stockage
 from pipeline.config import Config
-from pipeline.indices import commun, composite, debit, ips, onde, spi
+from pipeline.indices import commun, composite, debit, ips, onde, rang, spi
 from pipeline.reference import commun as reference
 from pipeline.reference.spi import pluie_zones
 
@@ -46,8 +48,14 @@ def _finaliser(table: pd.DataFrame, config: Config, classer: bool = True) -> pd.
     return table
 
 
-def calculer_semaines(config: Config, debut: str, fin: str) -> dict[str, pd.DataFrame]:
-    """Indices des semaines `debut` à `fin` (« AAAA-Www »), sans écriture."""
+def calculer_semaines(
+    config: Config, debut: str, fin: str, restandardiser: bool = True
+) -> dict[str, pd.DataFrame]:
+    """Indices des semaines `debut` à `fin` (« AAAA-Www »), sans écriture.
+
+    `restandardiser` à False : indices de zone et composite bruts (moyennes), pour construire
+    leurs références (`normales_zone`)."""
+    refs = _normales(config, "rang_zone") if restandardiser else None
     dimanches = commun.dimanches(debut, fin)
     semaines = {commun.libelle_semaine(d.date()) for d in dimanches}
     stations = gpd.read_parquet(config.projet.chemins.data / "referentiels" / "stations.parquet")
@@ -65,11 +73,11 @@ def calculer_semaines(config: Config, debut: str, fin: str) -> dict[str, pd.Data
     par_station = _finaliser(par_station, config)
 
     pluie = pluie_zones(config, reference.lire_brut(config, "meteo", "sim"))
+    moyennes = composite.par_zone(par_station, stations)
+    if refs is not None:
+        moyennes = rang.restandardiser(moyennes, refs)
     zones = pd.concat(
-        [
-            spi.calculer(config, pluie, _normales(config, "spi_zone"), dimanches),
-            composite.par_zone(par_station, stations),
-        ],
+        [spi.calculer(config, pluie, _normales(config, "spi_zone"), dimanches), moyennes],
         ignore_index=True,
     )
     zones = _finaliser(zones, config)
@@ -77,8 +85,33 @@ def calculer_semaines(config: Config, debut: str, fin: str) -> dict[str, pd.Data
                                semaines)  # fmt: skip
     zones = pd.concat([zones, _finaliser(ecoulement, config, classer=False)], ignore_index=True)
 
-    composites = _finaliser(composite.composite(config, zones), config)
+    composites = composite.composite(config, zones)
+    if refs is not None:
+        composites = rang.restandardiser(composites.assign(indice=rang.COMPOSITE), refs).drop(
+            columns="indice"
+        )
+    composites = _finaliser(composites, config)
     return {"indice_station": par_station, "indice_zone": zones, "composite_zone": composites}
+
+
+def normales_zone(config: Config) -> pd.DataFrame:
+    """Références de la restandardisation (D10), appelée par `make reference` une fois les
+    normales de station écrites : IPS et débit de zone bruts sur tout l'historique jusqu'à
+    l'année de gel, puis composite calculé avec les indices de zone restandardisés."""
+    ref = config.projet.periode_reference.hydro_meteo
+    derniere = commun.libelle_semaine(date(ref.annee_gel or ref.fin, 12, 28))
+    brutes = calculer_semaines(
+        config, f"{config.projet.indices.historique_debut}-W01", derniere, restandardiser=False
+    )["indice_zone"]
+    moyennes = brutes[brutes["indice"].isin(rang.INDICES_STATIONS)]
+    refs_zone = rang.references(config, moyennes)
+    zones = pd.concat(
+        [brutes[~brutes["indice"].isin(rang.INDICES_STATIONS)],
+         rang.restandardiser(moyennes, refs_zone)],
+        ignore_index=True,
+    )  # fmt: skip
+    composites = composite.composite(config, zones).assign(indice=rang.COMPOSITE)
+    return pd.concat([refs_zone, rang.references(config, composites)], ignore_index=True)
 
 
 def ecrire(config: Config, tables: dict[str, pd.DataFrame], semaines: set[str]) -> list[Path]:

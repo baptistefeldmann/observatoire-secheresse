@@ -91,6 +91,7 @@ def _composite(detail: dict[str, Any] | None) -> dict[str, Any]:
         "partiel": detail.get("partiel"),
         "manquantes": detail.get("manquantes"),
         "composantes": detail.get("composantes"),
+        "valeur_brute": detail.get("valeur_brute"),  # avant restandardisation (D10)
     }
 
 

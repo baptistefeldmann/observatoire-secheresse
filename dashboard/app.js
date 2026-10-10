@@ -540,6 +540,7 @@ async function panneauZone(zoneId) {
     el("h3", {}, "Composantes de la semaine"),
     tableau(["Indice", "Valeur", "Poids prévu", "Poids appliqué"], lignesComposantes, [1, 2, 3]),
     zone.partiel ? el("p", { class: "note" }, "Composante absente : son poids est réparti sur les autres (méthodologie §6.4).") : null,
+    zone.valeur_brute != null ? el("p", { class: "note" }, `Moyenne pondérée des composantes : ${nombre(zone.valeur_brute)}. Elle est reclassée parmi les semaines de référence de la zone (1991-2020) pour donner la valeur du composite, ${nombre(zone.valeur)} (méthodologie D10).`) : null,
     outilsPlage(afficherSelection),
     ...blocGraphique("Indice composite", (g) => grapheIndice(g, composite.points, "Composite"),
       () => composite.points.map((p) => [p.semaine, nombre(p.valeur), `${p.classe} – ${classe(p.classe).libelle}`]), ["Semaine", "Valeur", "Classe"], [1]),

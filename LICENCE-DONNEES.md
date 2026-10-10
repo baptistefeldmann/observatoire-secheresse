@@ -12,7 +12,7 @@ Sous [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licen
 | Normales de référence, enveloppes, ruptures détectées | `data/normales/` |
 | Découpage en zones et rattachement des stations | `data/referentiels/zones.parquet`, `stations.parquet` |
 
-Mention suggérée : « Observatoire de la sécheresse (Vendée), Baptiste Feldmann, d'après Hub'Eau, Météo-France, SANDRE et IGN, méthode D9, données du AAAA-MM-JJ ».
+Mention suggérée : « Observatoire de la sécheresse (Vendée), Baptiste Feldmann, d'après Hub'Eau, Météo-France, SANDRE et IGN, méthode D10, données du AAAA-MM-JJ ».
 
 Les indices sont un prototype en cours de validation (voir la feuille de route du README) : leur réutilisation se fait sans garantie d'exactitude.
 

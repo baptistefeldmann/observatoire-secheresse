@@ -391,7 +391,7 @@ logs/        rapports du job hebdomadaire, non versionnés
 | Document | Contenu |
 |---|---|
 | [`docs/SPEC.md`](docs/SPEC.md) | spécification de référence : architecture, sources, schéma, méthode, phases V1 à V4 |
-| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D9 et contrôles chiffrés (elles priment sur la spec) |
+| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D10 et contrôles chiffrés (elles priment sur la spec) |
 | [`docs/validation.md`](docs/validation.md) | indices confrontés aux arrêtés sécheresse, généré par `make validation` |
 | [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS, dashboard et API depuis un poste Windows par tunnel SSH |
 | [`docs/roadmap.svg`](docs/roadmap.svg) | schéma de la feuille de route (section 10) |
@@ -407,10 +407,10 @@ La V1 tourne chaque semaine. Avant d'aller plus loin, l'indice doit être confro
 
 **Validation de l'indice (prochaine étape)**
 
-- Comparer les classes de 2011, 2017, 2019 et 2022 aux arrêtés de restriction et au bulletin de situation hydrologique. Exemple qui la motive : la semaine du 15 août 2022, seules 6 zones sur 12 sont en classe 1 ou 2.
-- Trancher la rareté des classes extrêmes dans les moyennes par zone (composite en classe 1 de 5,4 % à 11,8 % du temps pour 10 % attendus) : restandardiser ou documenter (décision D9).
+- Fait : confrontation aux arrêtés de restriction de 2012 à 2026 (`make validation`, [`docs/validation.md`](docs/validation.md)) ; échelle fixe dans le temps, avec références figées et indices de zone restandardisés (décision D10).
 - Vérifier les pondérations du marais et du Sud-Vendée, qui ne reposent encore sur aucun chiffre.
-- Documenter l'origine des ruptures de Noirmoutier et du marais breton auprès du BRGM ou des gestionnaires, et examiner le piézomètre 05634X0013/SF3.
+- Confronter quelques semaines clés de 2011, 2017, 2019 et 2022 au bulletin de situation hydrologique.
+- Documenter l'origine des ruptures de Noirmoutier et du marais breton auprès du BRGM ou des gestionnaires, et celle du piézomètre 05634X0013/SF3.
 
 **Phases suivantes** (spécification, §2) : V2 ajoute la végétation par satellite (Sentinel-2, occupation du sol), V3 l'axe pression et la carte de tension, V4 la prévision. Le schéma de données et l'arborescence sont déjà prévus pour elles.
 

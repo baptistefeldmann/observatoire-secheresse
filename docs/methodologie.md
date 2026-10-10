@@ -165,7 +165,35 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 | Débit par station / par zone | 0,97 / 0,93 | 9,1 % / 8,2 % | 9,6 % / 9,2 % |
 | Composite | 0,79 (marais breton) à 1,00 (Noirmoutier) | 5,4 % à 11,8 % | 5,6 % à 10,3 % |
 
-**À réexaminer.** Une moyenne d'indices varie moins que chacun d'eux : plus une zone compte de stations ou de composantes, plus les classes extrêmes y sont rares (Sud-Vendée : 14 piézomètres en moyenne, IPS de zone en classe 1 4 % du temps ; composite en classe 1 5,7 % du temps). Pistes : restandardiser l'indice de zone et le composite sur leur propre historique 1991–2020, ou l'accepter et le documenter. À trancher avec la validation sur les sécheresses passées (2011, 2017, 2019, 2022).
+**Tranché par D10** (restandardisation). Une moyenne d'indices varie moins que chacun d'eux : plus une zone compte de stations ou de composantes, plus les classes extrêmes y sont rares (Sud-Vendée : 14 piézomètres en moyenne, IPS de zone en classe 1 4 % du temps ; composite en classe 1 5,7 % du temps). Pistes : restandardiser l'indice de zone et le composite sur leur propre historique 1991–2020, ou l'accepter et le documenter. À trancher avec la validation sur les sécheresses passées (2011, 2017, 2019, 2022).
+
+## D10 — Échelle fixe dans le temps : références figées et restandardisation des zones
+
+*2026-10-10*
+
+**Principe.** L'observatoire doit montrer l'évolution des sécheresses avec le changement climatique. L'échelle des classes reste donc **fixe** : classe 1 veut toujours dire « aussi sec que les 10 % des semaines les plus sèches de la référence ». Si les sécheresses se multiplient, la part des semaines en classe 1 dépasse 10 % : c'est cet indicateur qui est suivi, plutôt que l'intensité des records. La référence de suivi reste **1991–2020**, même après le passage des normales officielles à 2001–2030 ; aucune référence glissante.
+
+**1. Références hors période figées.** Une station sans assez d'années dans 1991–2020 (D7) ou en rupture (D8) prenait toutes ses années disponibles, recalculées à chaque `make reference` : sa référence s'allongeait, absorbait 2026 et aurait absorbé les sécheresses futures. Désormais, elle ne prend que les années valides jusqu'à `annee_gel` (2025, `periode_reference.hydro_meteo` dans `projet.yaml`, définitif) ; une station qui n'en a pas assez à cette date prend ses premières années (15, ou 8 après une rupture) dès qu'elle les a. Les références 1991–2020 et celles des stations fermées ne changent pas.
+
+| Stations concernées | Avant | Après |
+|---|---|---|
+| Marais breton : 05341X0104/SF7, 05342X0034/F4, 05348X0255/P3 ; 05342X0078/FORAGE | 2011–2026 ; 2016–2026 | 2011–2025 ; 2016–2025 |
+| Île d'Yeu 05596X0058/SF2 ; Vie-Jaunay 05604X0162/SF1, 05612X0007/F | 2011–2026, 2010–2026 | 2011–2025, 2010–2025 |
+| Logne-Boulogne M811261020, M812401010 | 2009–2026, 1995–2026 | 2009–2025, 1995–2025 |
+| Noirmoutier (rupture en 2021) | — | 2021–2028 : IPS à partir de 2029 |
+
+**2. Restandardisation des indices de zone et du composite.** Une moyenne d'indices varie moins que chacun d'eux (D9, contrôles) : le composite n'était en classe 1 que 5,4 % à 11,8 % du temps selon la zone, l'IPS de zone du Sud-Vendée 4,4 %. L'IPS et le débit de zone, puis le composite (calculé avec les indices de zone restandardisés), sont reclassés parmi leurs propres valeurs hebdomadaires de référence de la zone, par le rang de Gringorten comme les stations (D9). Référence d'une zone : même règle que les stations (1991–2020, sinon figée par le point 1), une année comptant si la zone a une valeur au moins `rang_zone.semaines_min_annee` (26) semaines. Les échantillons sont calculés par `make reference` (`data/normales/rang_zone.parquet`) ; `detail` garde la valeur brute (`valeur_brute`), la période de référence (`reference`) et l'avertissement (`hors_reference`). Toutes les zones ont 1991–2020, sauf l'IPS de zone de Vie-Jaunay (2009–2025) et de l'île d'Yeu (2011–2025). Les valeurs restent bornées par le rang, vers ±3,2 (1 566 semaines de référence).
+
+| Effet (Vendée) | Avant (D9) | Après (D10) |
+|---|---|---|
+| Composite en classe 1 / 7 sur 1991–2020 | 5,4 à 11,8 % / 5,6 à 10,3 % | 10,0 % / 10,0 % dans chaque zone |
+| IPS et débit de zone en classe 1 (période de référence) | IPS du Sud-Vendée : 4,4 % | 9,6 à 10,6 % |
+| Composite en classe 1 : 1991–2000 / 2001–2010 / 2011–2020 / 2021–2025 / 2026 | 7,1 / 7,5 / 8,6 / 5,4 / 33,5 % | 8,8 / 10,5 / 10,8 / 8,5 / 38,1 % |
+| Arrêtés 2012–2026 (semaines 18 à 44) : AUC | 0,755 | 0,755 (inchangé : l'ordre des semaines d'une zone ne change pas) |
+| Semaines en crise classées 1-2 / sans restriction classées 1-2 | 34 % / 8 % | 39 % / 9 % |
+| Zones en classe 1-2 le 15 août 2022 (W33) | 6 sur 12 | 8 sur 12 |
+
+**Écartés** : diviser le composite par son écart-type (non borné, 9,3 à 11,8 % de classe 1 selon la zone) ; restandardiser par saison (classe 1 à 10 % en été comme en hiver, mais AUC 0,745) ; prolonger l'échelle au-delà du record par une loi ajustée (l'intérêt est la fréquence des classes sèches, pas l'intensité du record) ; référence glissante (une sécheresse récurrente deviendrait « normale »).
 
 ## Validation par les arrêtés sécheresse
 
@@ -178,7 +206,7 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 - **Mesures**, sur les semaines 18 à 44 : classement des années ; par zone, AUC (probabilité qu'une semaine sous alerte ou plus ait une valeur plus sèche qu'une semaine sans) du composite et de chaque composante ; classes du composite par niveau.
 - **Limite** : un arrêté se déclenche sous un seuil fixe de débit ou de niveau, l'indice compare à la normale de la saison. Les petits bassins côtiers passent sous leur seuil presque chaque fin d'été : un désaccord y est attendu.
 
-**Premiers résultats (indices D9, 2012-2026).** Classement des années très cohérent (corrélation de rang −0,92 entre part des semaines sous alerte et composite moyen). Accord semaine par semaine modéré : AUC 0,75 pour le composite (0,71 à 0,81 selon la zone), meilleur que chaque composante (débit 0,73, SPI 3 mois 0,72, IPS 0,69). Un tiers des semaines en crise ont pourtant un composite normal ou plus humide, surtout d'août à octobre en Logne-Boulogne, Vie-Jaunay et Côtiers vendéens.
+**Premiers résultats (indices D9, 2012-2026).** Classement des années très cohérent (corrélation de rang −0,92 entre part des semaines sous alerte et composite moyen). Accord semaine par semaine modéré : AUC 0,75 pour le composite (0,71 à 0,81 selon la zone), meilleur que chaque composante (débit 0,73, SPI 3 mois 0,72, IPS 0,69). Un tiers des semaines en crise ont pourtant un composite normal ou plus humide, surtout d'août à octobre en Logne-Boulogne, Vie-Jaunay et Côtiers vendéens. Avec D10, l'AUC est inchangée ; les semaines en crise classées 1-2 passent de 34 à 39 %.
 
 **Stations examinées (2026-10-10), toutes conservées telles quelles.** Chaque correction a été testée en recalculant le composite : aucune ne change l'accord avec les arrêtés (AUC d'ensemble de 0,752 à 0,756). Les désaccords viennent de la nature des arrêtés (seuils fixes, levée tardive), pas de stations défectueuses.
 
@@ -206,5 +234,4 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 
 ## Points ouverts
 
-- Faible fréquence des classes extrêmes dans les indices de zone et le composite (D9, « À réexaminer »).
 - Lay à Mareuil et Marillet à Mareuil, débits soutenus par des barrages, conservés dans le composite ; piézomètre 05634X0013/SF3 à documenter (section « Validation par les arrêtés sécheresse »).

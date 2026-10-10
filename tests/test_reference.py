@@ -11,6 +11,7 @@ import pytest
 from pipeline import ingestion, reference, referentiels
 from pipeline.config import Config, Periode, Rupture
 from pipeline.http import ClientHttp
+from pipeline.indices import rang
 from pipeline.reference import commun, debit, enveloppe, ips, spi
 from pipeline.reference import ruptures as detection
 
@@ -33,6 +34,31 @@ def _journalier(station_id: str, debut: str, fin: str, colonne: str, valeur: flo
 def test_choix_des_annees(valides: set[int], annees: list[int], periode: str, hors: bool) -> None:
     choix = commun.choisir_annees(valides, REF)
     assert (choix.annees, choix.periode_ref, choix.hors_reference) == (annees, periode, hors)
+
+
+GEL = Periode(debut=1991, fin=2020, annees_min=15, annees_min_apres_rupture=8, annee_gel=2025)
+
+
+@pytest.mark.parametrize(
+    ("valides", "rupture", "periode"),
+    [
+        (set(range(2011, 2027)), None, "2011-2025"),  # 2026 n'entre pas : référence figée
+        (set(range(2015, 2032)), None, "2015-2029"),  # 11 ans avant le gel : 15 premières années
+        (set(range(1982, 2007)), None, "1991-2020"),  # 16 ans dans la période : inchangé
+        (set(range(2016, 2027)), 2016, "2016-2025"),
+        (set(range(2021, 2030)), 2021, "2021-2028"),  # 8 premières années après la rupture
+        (set(range(2021, 2027)), 2021, ""),  # 6 ans < 8 : pas de normale
+    ],
+)
+def test_reference_figee_a_l_annee_de_gel(
+    valides: set[int], rupture: int | None, periode: str
+) -> None:
+    assert commun.choisir_annees(valides, GEL, rupture).periode_ref == periode
+
+
+def test_annee_de_gel_posterieure_a_la_periode() -> None:
+    with pytest.raises(ValueError, match="année de gel"):
+        Periode(debut=1991, fin=2020, annee_gel=2019)
 
 
 def test_ajustement_gamma_retrouve_les_parametres() -> None:
@@ -75,7 +101,8 @@ def test_normales_ips_avec_et_sans_reference(config: Config) -> None:
 
     a, b = septembre("piezo:A"), septembre("piezo:B")
     assert (a["n_annees"], a["periode_ref"], a["hors_reference"]) == (20, "1991-2020", False)
-    assert (b["n_annees"], b["periode_ref"], b["hors_reference"]) == (16, "2011-2026", True)
+    # hors période, référence figée à l'année de gel (2025, D10)
+    assert (b["n_annees"], b["periode_ref"], b["hors_reference"]) == (15, "2011-2025", True)
     assert list(a["valeurs_ref"]) == [5.0] * 20  # type: ignore[call-overload]
 
 
@@ -119,9 +146,10 @@ def test_pas_assez_d_annees_tables_vides(config: Config, client: ClientHttp) -> 
     referentiels.construire(config, client, date(2026, 9, 30))
     ingestion.ingerer(config, client, date(2026, 9, 30), date(2026, 9, 1))
     chemins = reference.calculer(config)
-    for chemin in chemins.values():
+    for nom, chemin in chemins.items():
         table = pd.read_parquet(chemin)
-        assert table.empty and "n_annees" in table.columns
+        attendues = rang.COLONNES if nom == "rang_zone" else ["n_annees"]
+        assert table.empty and set(attendues) <= set(table.columns)
 
 
 def _avec_ruptures(config: Config, *ruptures: tuple[str, int]) -> Config:

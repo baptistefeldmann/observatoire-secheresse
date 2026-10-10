@@ -35,25 +35,34 @@ class Choix:
     hors_reference: bool  # avertissement stocké avec l'indice (SPEC §6.1)
 
 
-def choisir_annees(valides: set[int], ref: Periode, rupture: int | None = None) -> Choix:
-    """Années de la période de référence si elles sont assez nombreuses ; à défaut, toutes les
-    années disponibles, avec avertissement ; sinon aucune.
+def _figees(annees: list[int], minimum: int, gel: int | None) -> list[int]:
+    """Référence hors période figée (D10) : années jusqu'à `gel` si elles suffisent, sinon les
+    `minimum` premières dès qu'elles existent ; vide en deçà."""
+    avant_gel = [a for a in annees if gel is None or a <= gel]
+    retenues = avant_gel if len(avant_gel) >= minimum else annees[:minimum]
+    return retenues if len(retenues) >= minimum else []
 
-    Station à rupture confirmée (D8) : seules les années à partir de la rupture comptent,
-    admises dès `annees_min_apres_rupture`, toujours avec avertissement."""
+
+def choisir_annees(valides: set[int], ref: Periode, rupture: int | None = None) -> Choix:
+    """Années de la période de référence si elles sont assez nombreuses ; à défaut, une
+    référence figée hors période (D10), avec avertissement ; sinon aucune.
+
+    Hors période, les années suivant `annee_gel` n'entrent pas, sauf pour atteindre le minimum :
+    la référence ne s'allonge plus avec le temps (D10). Station à rupture confirmée (D8) :
+    seules les années à partir de la rupture comptent, admises dès `annees_min_apres_rupture`,
+    toujours avec avertissement."""
     minimum = ref.annees_min or 1
     if rupture is not None:
         apres = sorted(a for a in valides if a >= rupture)
-        if len(apres) >= (ref.annees_min_apres_rupture or minimum):
-            return Choix(apres, f"{apres[0]}-{apres[-1]}", True)
+        retenues = _figees(apres, ref.annees_min_apres_rupture or minimum, ref.annee_gel)
+    else:
+        dans_ref = sorted(a for a in valides if ref.debut <= a <= ref.fin)
+        if len(dans_ref) >= minimum:
+            return Choix(dans_ref, f"{ref.debut}-{ref.fin}", False)
+        retenues = _figees(sorted(valides), minimum, ref.annee_gel)
+    if not retenues:
         return Choix([], "", True)
-    dans_ref = sorted(a for a in valides if ref.debut <= a <= ref.fin)
-    if len(dans_ref) >= minimum:
-        return Choix(dans_ref, f"{ref.debut}-{ref.fin}", False)
-    if len(valides) >= minimum:
-        toutes = sorted(valides)
-        return Choix(toutes, f"{toutes[0]}-{toutes[-1]}", True)
-    return Choix([], "", True)
+    return Choix(retenues, f"{retenues[0]}-{retenues[-1]}", True)
 
 
 def ruptures(config: Config) -> dict[str, int]:

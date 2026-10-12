@@ -28,7 +28,10 @@ from pipeline.indices.commun import dimanche
 INDICES_ZONE = ("composite", "spi_3", "ips", "debit", "onde")  # ceux qu'affiche le dashboard
 PROPRIETES_ZONE = ("zone_id", "libelle", "type_zone", "ponderations")
 PROPRIETES_STATION = ("station_id", "source", "code", "libelle", "en_service", "zone_id")
-INDICATEUR_ZONE = ("valeur", "classe", "n_composantes", "partiel", "manquantes", "composantes")
+INDICATEUR_ZONE = (
+    "valeur", "classe", "n_composantes", "partiel", "manquantes", "composantes",
+    "valeur_brute", "reference",
+)  # fmt: skip
 INDICATEUR_STATION = (
     "indice", "valeur", "classe", "date_mesure", "dans_composite", "hors_reference",
 )  # fmt: skip

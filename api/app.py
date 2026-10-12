@@ -92,6 +92,7 @@ def _composite(detail: dict[str, Any] | None) -> dict[str, Any]:
         "manquantes": detail.get("manquantes"),
         "composantes": detail.get("composantes"),
         "valeur_brute": detail.get("valeur_brute"),  # avant restandardisation (D10)
+        "reference": detail.get("reference"),  # semaines de référence de la zone (D10, D12)
     }
 
 

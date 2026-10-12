@@ -1,4 +1,4 @@
-"""Indices hebdomadaires (SPEC §6, méthodologie D1 à D10) : `make indices`.
+"""Indices hebdomadaires (SPEC §6, méthodologie D1 à D12) : `make indices`.
 
 Lit les observations (`data/raw/`) et les normales (`data/normales/`), calcule pour chaque
 semaine ISO demandée les indices par station, par zone (restandardisés, D10) et le composite
@@ -8,6 +8,7 @@ remplacent les précédentes ; les autres sont conservées. Idempotent."""
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
 from pathlib import Path
@@ -97,7 +98,13 @@ def calculer_semaines(
 def normales_zone(config: Config) -> pd.DataFrame:
     """Références de la restandardisation (D10), appelée par `make reference` une fois les
     normales de station écrites : IPS et débit de zone bruts sur tout l'historique jusqu'à
-    l'année de gel, puis composite calculé avec les indices de zone restandardisés."""
+    l'année de gel, puis composite calculé avec les indices de zone restandardisés.
+
+    Référence du composite d'une zone à `regime_nappes` (D12) : semaines où toutes ses
+    composantes sont présentes, pour ne pas mêler la pluie et les débits seuls d'avant le
+    nouveau régime des nappes aux semaines complètes ; à défaut d'assez d'années complètes,
+    toutes ses semaines. Autres zones : toutes les semaines (D10), leurs lacunes étant
+    ponctuelles."""
     ref = config.projet.periode_reference.hydro_meteo
     derniere = commun.libelle_semaine(date(ref.annee_gel or ref.fin, 12, 28))
     brutes = calculer_semaines(
@@ -111,7 +118,16 @@ def normales_zone(config: Config) -> pd.DataFrame:
         ignore_index=True,
     )  # fmt: skip
     composites = composite.composite(config, zones).assign(indice=rang.COMPOSITE)
-    return pd.concat([refs_zone, rang.references(config, composites)], ignore_index=True)
+    regimes = [z.zone_id for z in config.zonage.zones if z.regime_nappes]
+    complets = ~composites["zone_id"].isin(regimes) | composites["detail"].map(
+        lambda d: not json.loads(d)["partiel"]
+    )
+    refs_complets = rang.references(config, composites[complets])
+    sans = composites[~composites["zone_id"].isin(refs_complets["zone_id"])]
+    refs_composite = pd.concat(
+        [refs_complets, rang.references(config, sans)], ignore_index=True
+    ).sort_values("zone_id", ignore_index=True)
+    return pd.concat([refs_zone, refs_composite], ignore_index=True)
 
 
 def ecrire(config: Config, tables: dict[str, pd.DataFrame], semaines: set[str]) -> list[Path]:

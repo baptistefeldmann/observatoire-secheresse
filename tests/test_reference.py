@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 from pipeline import ingestion, reference, referentiels
-from pipeline.config import Config, Periode, Rupture
+from pipeline.config import Config, Periode, RegimeNappes, Rupture
 from pipeline.http import ClientHttp
 from pipeline.indices import rang
 from pipeline.reference import commun, debit, enveloppe, ips, spi
@@ -178,6 +178,26 @@ def test_reference_apres_rupture() -> None:
     )
     assert commun.choisir_annees(valides, ref, rupture=2018).annees == list(range(2018, 2026))
     assert commun.choisir_annees(valides, ref, rupture=2021).annees == []  # 5 ans < 8
+
+
+def test_regime_des_nappes_d_une_zone(config: Config) -> None:
+    # D12 : les piézomètres d'une zone à `regime_nappes` sont en rupture à cette année, sauf
+    # rupture propre à la station (stations.yaml) ; les stations hydrométriques ne le sont pas
+    referentiels_dir = config.projet.chemins.data / "referentiels"
+    referentiels_dir.mkdir(parents=True)
+    pd.DataFrame(
+        {"station_id": ["piezo:A", "piezo:B", "hydro:Q", "piezo:AUTRE"],
+         "source": ["piezo", "piezo", "hydro", "piezo"],
+         "zone_id": ["ILE_NOIRMOUTIER", "ILE_NOIRMOUTIER", "ILE_NOIRMOUTIER", "AILLEURS"]}
+    ).to_parquet(referentiels_dir / "stations.parquet")  # fmt: skip
+    zone = config.zonage.zones[0].model_copy(
+        update={"regime_nappes": RegimeNappes(annee=2011, motif="test")}
+    )
+    config = _avec_ruptures(config, ("piezo:B", 2016))
+    config = config.model_copy(
+        update={"zonage": config.zonage.model_copy(update={"zones": [zone]})}
+    )
+    assert commun.ruptures(config) == {"piezo:A": 2011, "piezo:B": 2016}
 
 
 def test_normales_ips_limitees_apres_la_rupture(config: Config) -> None:

@@ -195,6 +195,49 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 
 **Écartés** : diviser le composite par son écart-type (non borné, 9,3 à 11,8 % de classe 1 selon la zone) ; restandardiser par saison (classe 1 à 10 % en été comme en hiver, mais AUC 0,745) ; prolonger l'échelle au-delà du record par une loi ajustée (l'intérêt est la fréquence des classes sèches, pas l'intensité du record) ; référence glissante (une sécheresse récurrente deviendrait « normale »).
 
+## D11 — Pondérations du composite vérifiées par les arrêtés
+
+*2026-10-12*
+
+**Question.** Les pondérations des marais (0,30 / 0,40 / 0,30 pour SPI 3 mois / IPS / débit) et du Sud-Vendée (0,25 / 0,50 / 0,25) venaient de la spécification d'origine, sans justification chiffrée. Le composite (D10) a été recalculé pour toutes les combinaisons de poids au pas de 0,05, et comparé aux arrêtés sécheresse (AUC, 2012–2026, semaines 18 à 44, deux sous-périodes). Ces arrêtés se déclenchent eux-mêmes sur des seuils de débit ou de nappe : ils servent à **vérifier** des poids, pas à les choisir (l'optimum ferait du composite une copie de leur critère).
+
+**Marais poitevin : poids ramenés à 0,40 / 0,60 / 0.** Ses deux stations hydrométriques (Lay en estuaire, soumis à la marée ; Sèvre niortaise à Maillé) n'ont aucun débit journalier dans Hub'Eau : le poids du débit ne s'appliquait jamais et le composite valait toujours 0,43 × SPI + 0,57 × IPS, signalé « partiel » chaque semaine. Les poids réels sont écrits, comme pour les îles. AUC 0,783 → 0,785 ; 3,7 % des classes changent sur 1991–2026. Écarté : 0,20 / 0,80 (meilleur accord, 0,798, mais 23 % des classes changent, et les arrêtés de marais dépendent en partie des nappes).
+
+**Marais breton : poids conservés.** L'accord varie à peine avec les poids (AUC de 0,72 à 0,78 ; 130 combinaisons sur 231 à moins de 0,01 du maximum) ; les poids actuels (0,776) sont à 0,002 du meilleur.
+
+**Sud-Vendée : poids conservés (choix de l'utilisateur)**, pour garder le rôle central des nappes sédimentaires, ressource clé de la zone. *Revu par D12 : l'IPS était faussé par sa référence ; poids portés à 0,20 / 0,60 / 0,20 et marais poitevin à 0,30 / 0,70 une fois la référence corrigée.*
+
+| Sud-Vendée | AUC (2012–18 / 2019–26) | Classes changées | Été en classe 1-2 : 2019 / 2022 / 2026 |
+|---|---|---|---|
+| **retenu : 0,25 / 0,50 / 0,25** | 0,805 (0,859 / 0,775) | — | 8 / 85 / 62 % |
+| équilibré : 0,35 / 0,35 / 0,30 | 0,811 (0,872 / 0,777) | 15 % | 15 / 100 / 100 % |
+| débit dominant : 0,05 / 0,05 / 0,90 | 0,828 (0,890 / 0,781) | 52 % | 31 / 100 / 92 % |
+| IPS seul | 0,734 | 46 % | — |
+
+Effet connu, à garder en tête à la lecture : l'IPS de zone (moyenne mensuelle de 14 piézomètres) reste proche de la normale en été 2022 et 2026 (−0,15 et −0,23) alors que pluie et débits sont très bas et que les arrêtés de nappe atteignent l'alerte (2026 : année la plus restreinte de ces nappes). Avec un poids de 0,50, il tire le composite vers la normale : 62 % seulement de l'été 2026 en classe 1-2. À réexaminer si les arrêtés de nappe continuent de diverger de l'IPS.
+
+## D12 — Nappes du Sud-Vendée et du marais poitevin : référence du régime actuel, nappes prioritaires
+
+*2026-10-12*
+
+**Constat (signalé par l'utilisateur sur les forages).** La baisse des nappes en été 2026 est nette, alors que l'IPS de zone du Sud-Vendée restait proche de la normale (−0,23 en moyenne sur les semaines 27 à 39). Le minimum d'été des piézomètres du Sud-Vendée **monte régulièrement depuis 1990** : tendance à la hausse significative (Kendall, p < 0,05) sur 12 forages sur 17 ; rang médian du minimum d'été de 0,21 en 1990–1994, 0,39 en 2010–2014, 0,79 en 2020–2024. Le climat ne l'explique pas : baisse probable des prélèvements d'irrigation d'été (gestion volumétrique, réserves de substitution), à confirmer auprès de l'établissement public du Marais poitevin. La référence 1991–2020 compte donc des étés fortement pompés : comparé à elle, l'été 2026 paraît normal, alors que son minimum est plus bas que la plupart des étés 2011–2025 et que la baisse du printemps à l'été compte parmi les plus fortes depuis 1991 (05863X0203/F, 05857X0145/PZ, 05865X0068/S, 05858X0203/S). Tendance plus faible dans le marais poitevin (2 forages sur 5), même système de nappes et même gestion. Le test de Pettitt sur les moyennes annuelles (D8) ne le voyait pas : seul 05863X0203/F était signalé.
+
+**Décision.**
+
+- **Référence du régime actuel** : tous les piézomètres du Sud-Vendée et du marais poitevin sont traités comme des ruptures (D8) en 2011 (`regime_nappes` dans `zones.yaml`, une rupture propre à une station dans `stations.yaml` l'emportant). Référence 2011–2025 figée (D10) ; **pas d'IPS avant 2011** dans ces zones, pour ne pas mêler deux régimes de gestion (les années 1990 paraîtraient très sèches à cause des pompages, et on lirait une fausse amélioration du climat). 2011 : premières années de la gestion actuelle des volumes, et 15 ans de référence jusqu'à l'année de gel.
+- **Référence du composite de ces zones** : semaines où toutes les composantes sont présentes (2011–2025), pour ne pas classer les composites complets parmi ceux d'avant 2011, faits de la pluie et des débits seuls. Les autres zones gardent toutes leurs semaines (D10) : leurs lacunes sont ponctuelles, et la règle aurait déplacé la référence de Vie-Jaunay à 2009–2025.
+- **Nappes prioritaires** : Sud-Vendée 0,20 / 0,60 / 0,20 (SPI 3 mois / IPS / débit), marais poitevin 0,30 / 0,70 / 0. Avant la correction de la référence, renforcer l'IPS aurait tiré le composite vers la normale (Sud-Vendée à 0,15 / 0,70 / 0,15 : 0 % de l'été 2022 en classe 1-2).
+
+| | Sud-Vendée avant (D11) | Sud-Vendée D12 | Marais poitevin avant (D11) | Marais poitevin D12 |
+|---|---|---|---|---|
+| IPS de zone, été 2026 | −0,23 | −0,94 | +0,01 | −0,51 |
+| AUC de l'IPS / du composite (arrêtés 2012–2026) | 0,734 / 0,805 | 0,798 / 0,826 | 0,794 / 0,785 | 0,823 / 0,815 |
+| Été en classe 1-2 : 2019 / 2022 / 2026 | 8 / 85 / 62 % | 15 / 92 / 100 % | 15 / 31 / 62 % | 38 / 92 / 92 % |
+
+Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semaines en crise avec un composite normal ou plus humide de 33 à 30 % ; zones en classe 1-2 le 15 août 2022 (W33) : 9 sur 12. Composite en classe 1 : 8,4 % (1991–2000), 10,4 % (2001–2010), 11,0 % (2011–2020), 8,4 % (2021–2025), 37,9 % (2026).
+
+**Limite.** Avant 2011, le composite de ces deux zones ne repose que sur la pluie et les débits (Sud-Vendée) ou la pluie seule (marais poitevin) : la fréquence des classes sèches n'y est pas comparable entre avant et après 2011. **Écartés** : retirer la tendance des niveaux (effacerait aussi l'effet du climat, D8) ; garder l'IPS avant 2011 comparé à 2011–2025 (régimes mêlés) ; ne rien changer.
+
 ## Validation par les arrêtés sécheresse
 
 *2026-10-10. Protocole en cours, pas encore une décision.*

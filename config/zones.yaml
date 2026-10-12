@@ -28,7 +28,13 @@ zones:
     libelle: Sud-Vendée sédimentaire
     type_zone: hydrogeol
     masses_eau: [FRGG034, FRGG041, FRGG042]
-    ponderations: {spi_3: 0.25, ips: 0.50, debit: 0.25}
+    ponderations: {spi_3: 0.20, ips: 0.60, debit: 0.20}   # D12 : nappes prioritaires
+    regime_nappes: &regime_marais_poitevin
+      annee: 2011
+      motif: >-
+        Niveaux d'été en hausse continue depuis 1990 (12 piézomètres sur 17), sans lien avec le
+        climat : baisse probable des prélèvements d'irrigation (gestion volumétrique, réserves de
+        substitution). Référence limitée au fonctionnement actuel (D12).
     zones_alerte_arretes:
       SOU: [Nappe du Lay Ouest, Nappe du Lay Est, Nappe de la Vendée Ouest, Nappe de la Vendée Centre,
             Nappe de la Vendée Est, Nappe des Autises,
@@ -38,7 +44,8 @@ zones:
     libelle: Marais poitevin
     type_zone: hydrogeol
     masses_eau: [FRGG126, FRGG127]
-    ponderations: {spi_3: 0.30, ips: 0.40, debit: 0.30}
+    ponderations: {spi_3: 0.30, ips: 0.70, debit: 0.0}   # D11 : pas de débit exploitable ; D12 : nappes prioritaires
+    regime_nappes: *regime_marais_poitevin
     zones_alerte_arretes:
       SUP: [Marais Lay, Marais Vendée, Marais Sèvre Niortaise, Marais Autizes, Marais Niortaise,
             Sèvre Niortaise et Marais Poitevin]                          # nom de 2012-2013

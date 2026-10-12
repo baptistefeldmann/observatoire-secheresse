@@ -211,6 +211,15 @@ class Classes(_Modele):
 # --- zones.yaml --------------------------------------------------------------
 
 
+class RegimeNappes(_Modele):
+    """Nappes de la zone au fonctionnement modifié par la gestion (D12) : chaque piézomètre de la
+    zone est traité comme une rupture (D8) à partir de `annee`, sauf rupture propre au
+    piézomètre dans `stations.yaml`."""
+
+    annee: int
+    motif: str
+
+
 class Zone(_Modele):
     zone_id: str = Field(pattern=r"^[A-Z0-9_]+$")
     libelle: str
@@ -221,6 +230,7 @@ class Zone(_Modele):
     # Validation : zones d'alerte des arrêtés sécheresse (VigiEau) rattachées à la zone, par type
     # (SUP superficiel, SOU souterrain, AEP), désignées par leur nom (casse et accents ignorés)
     zones_alerte_arretes: dict[Literal["SUP", "SOU", "AEP"], list[str]] = {}
+    regime_nappes: RegimeNappes | None = None
 
     @field_validator("ponderations")
     @classmethod

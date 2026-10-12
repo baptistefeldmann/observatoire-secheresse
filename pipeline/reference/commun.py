@@ -66,5 +66,17 @@ def choisir_annees(valides: set[int], ref: Periode, rupture: int | None = None) 
 
 
 def ruptures(config: Config) -> dict[str, int]:
-    """station_id -> première année du nouveau régime (stations.yaml, D8)."""
-    return {r.station: r.annee for r in config.stations.ruptures}
+    """station_id -> première année du nouveau régime : ruptures des piézomètres d'une zone à
+    `regime_nappes` (zones.yaml, D12), puis ruptures propres à une station (stations.yaml, D8),
+    qui l'emportent."""
+    annees: dict[str, int] = {}
+    regimes = {z.zone_id: z.regime_nappes.annee for z in config.zonage.zones if z.regime_nappes}
+    chemin = config.projet.chemins.data / "referentiels" / "stations.parquet"
+    if regimes and chemin.is_file():
+        stations = pd.read_parquet(chemin, columns=["station_id", "source", "zone_id"])
+        piezos = stations[(stations["source"] == "piezo") & stations["zone_id"].isin(regimes)]
+        annees = {
+            str(s): regimes[str(z)]
+            for s, z in zip(piezos["station_id"], piezos["zone_id"], strict=True)
+        }
+    return annees | {r.station: r.annee for r in config.stations.ruptures}

@@ -124,6 +124,17 @@ def test_zones_en_geojson_wgs84(client_base: TestClient) -> None:
     assert -3 < longitude < -1 and 46 < latitude < 48  # degrés, et non Lambert 93
 
 
+def test_recurrence(client_base: TestClient) -> None:
+    r = client_base.get("/recurrence").json()
+    assert r["derniere_semaine"] == SEMAINE and r["annee_incomplete"] == 2026
+    assert r["part_attendue_classe_1"] == pytest.approx(0.1003, abs=1e-4)
+    assert r["part_attendue_classes_1_2"] == pytest.approx(0.2005, abs=1e-4)
+    (zone,) = r["zones"]
+    assert zone["zone_id"] == "ILE_NOIRMOUTIER" and zone["annees"] == [
+        {"annee": 2026, "n_semaines": 1, "n_classe_1": 1, "n_classes_1_2": 1, "n_partielles": 0}
+    ]
+
+
 def test_zone_sans_indice_cette_semaine(client_base: TestClient) -> None:
     zone = client_base.get("/zones?semaine=2020-W10").json()["features"][0]
     assert zone["properties"]["valeur"] is None and zone["properties"]["zone_id"]

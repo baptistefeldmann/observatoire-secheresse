@@ -99,6 +99,7 @@ def exporter(sortie: Path, client: TestClient) -> dict[str, int]:
     for nom, chemin in (("accueil", "/"), ("classes", "/classes")):
         tailles["generalites"] += ecrire(donnees / f"{nom}.json", lire(chemin))
     tailles["generalites"] += ecrire(donnees / "semaines.json", lire("/semaines"))
+    tailles["generalites"] += ecrire(donnees / "recurrence.json", lire("/recurrence"))
 
     # Par semaine : indicateurs des zones et des stations, synthèse
     hebdo: dict[str, dict[str, Any]] = defaultdict(

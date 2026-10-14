@@ -193,6 +193,8 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 | Semaines en crise classées 1-2 / sans restriction classées 1-2 | 34 % / 8 % | 39 % / 9 % |
 | Zones en classe 1-2 le 15 août 2022 (W33) | 6 sur 12 | 8 sur 12 |
 
+**Indicateur de récurrence (2026-10-15).** Part des semaines de l'année ISO en classe 1 du composite, par zone et pour le département (moyenne des zones) : 10 % attendus sur la référence, davantage si les sécheresses se multiplient. Point d'accès `/recurrence`, graphique départemental et tableau zones × années dans la synthèse du dashboard, barres annuelles dans le panneau de zone. Les années où le composite d'une zone est partiel la plupart des semaines (Sud-Vendée et marais poitevin avant 2011, D12) sont signalées comme peu comparables. Valeurs D13 : 9 % (années 1990), 10 % (2000), 12 % (2010), 12 % (2020-2025) ; plus de 30 % en 2005, 2011, 2017, 2022 et 2026.
+
 **Écartés** : diviser le composite par son écart-type (non borné, 9,3 à 11,8 % de classe 1 selon la zone) ; restandardiser par saison (classe 1 à 10 % en été comme en hiver, mais AUC 0,745) ; prolonger l'échelle au-delà du record par une loi ajustée (l'intérêt est la fréquence des classes sèches, pas l'intensité du record) ; référence glissante (une sécheresse récurrente deviendrait « normale »).
 
 ## D11 — Pondérations du composite vérifiées par les arrêtés

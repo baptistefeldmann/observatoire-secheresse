@@ -120,6 +120,7 @@ td.nombre, th.nombre { text-align: right; font-variant-numeric: tabular-nums; }
 
 .graphique { width: 100%; height: 230px; }
 .graphique.bas { height: 170px; }
+.graphique.haut { height: 330px; }
 .outils { display: flex; gap: 6px; align-items: center; margin: 10px 0 4px; flex-wrap: wrap; }
 .outils .espace { flex: 1; }
 .tableau { max-height: 220px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--trait); border-radius: 6px; }

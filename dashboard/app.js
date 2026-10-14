@@ -37,7 +37,7 @@ const GRIS = { axe: "#c9c8c2", grille: "#ecebe6", texte: "#52514e", enveloppe: "
 
 const etat = {
   territoire: "", version: "", classes: [], seuils: [], semaines: [], semaine: null,
-  zones: null, stations: null, synthese: null, selection: null, plage: "2 ans",
+  zones: null, stations: null, synthese: null, selection: null, plage: "2 ans", recurrence: null,
 };
 let carte;
 const bulle = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10 });
@@ -88,6 +88,7 @@ const dansPlage = (valeur, debut, fin) => valeur >= debut && valeur <= fin;
 
 const source = STATIQUE ? {
   generalites: () => Promise.all(["accueil", "classes", "semaines"].map((n) => fichier(`donnees/${n}.json`))),
+  recurrence: () => fichier("donnees/recurrence.json"),
   async semaine(semaine) {
     const [zones, stations, annee] = await Promise.all([
       fichier("donnees/zones.geojson"), fichier("donnees/stations.geojson"), fichier(`donnees/semaines/${semaine.slice(0, 4)}.json`),
@@ -118,6 +119,7 @@ const source = STATIQUE ? {
   },
 } : {
   generalites: () => Promise.all([api("/"), api("/classes"), api("/semaines")]),
+  recurrence: () => api("/recurrence"),
   async semaine(semaine) {
     const [zones, stations, synthese] = await Promise.all([
       api(`/zones?semaine=${semaine}`), api(`/stations?semaine=${semaine}`), api(`/semaines/${semaine}/synthese`),
@@ -414,6 +416,114 @@ async function afficherSelection() {
 
 const retour = () => el("button", { class: "lien", onclick: () => selectionner(null) }, "← Synthèse de la semaine");
 
+// --- Récurrence des sécheresses (D10) : part des semaines en classe 1 par année -------------
+
+// Couleurs du tableau zones × années (rouges, du plus clair au plus foncé)
+const PARTS = [[0, 0, "#efeee9", "0 %"], [0, 10, "#f7c1c1", "< 10 %"], [10, 25, "#f09595", "10-25 %"],
+  [25, 40, "#e24b4a", "25-40 %"], [40, 101, "#a32d2d", "≥ 40 %"]];
+const nomCourt = (libelle) => libelle.replace(/^Bocage - /, "").split(",")[0];
+
+function partsZone(zone) {
+  return zone.annees.map((a) => ({ ...a, part: (100 * a.n_classe_1) / a.n_semaines, part12: (100 * a.n_classes_1_2) / a.n_semaines }));
+}
+
+function partsDepartement() {
+  // Moyenne des zones, année par année
+  const parAnnee = new Map();
+  for (const zone of etat.recurrence.zones) {
+    for (const a of partsZone(zone)) parAnnee.set(a.annee, [...(parAnnee.get(a.annee) ?? []), a]);
+  }
+  const moyenne = (l, cle) => l.reduce((s, a) => s + a[cle], 0) / l.length;
+  return [...parAnnee.entries()].sort(([x], [y]) => x - y).map(([annee, l]) => ({ annee, part: moyenne(l, "part"), part12: moyenne(l, "part12") }));
+}
+
+function plagesAnnees(annees) {
+  // [2005, 2006, 2007, 2010] -> « 2005-2007, 2010 »
+  const plages = [];
+  for (const a of annees) {
+    const derniere = plages.at(-1);
+    if (derniere && a === derniere[1] + 1) derniere[1] = a; else plages.push([a, a]);
+  }
+  return plages.map(([d, f]) => (d === f ? `${d}` : `${d}-${f}`)).join(", ");
+}
+
+function grapheRecurrence(instance, points, avecMoyenne) {
+  const { annee_incomplete: incomplete, part_attendue_classe_1: attendue } = etat.recurrence;
+  const couleur = etat.classes[0].couleur;
+  const glissante = points.map((p, i) => {
+    const fenetre = points.slice(Math.max(0, i - 9), i + 1).filter((q) => q.annee !== incomplete);
+    return i < 9 || p.annee === incomplete ? null : fenetre.reduce((s, q) => s + q.part, 0) / fenetre.length;
+  });
+  const series = [{
+    name: "Semaines en classe 1", type: "bar", barMaxWidth: 14, color: couleur,
+    data: points.map((p) => ({ value: p.part, itemStyle: { color: couleur, opacity: p.annee === incomplete ? 0.4 : 1, borderRadius: [3, 3, 0, 0] } })),
+    markLine: { silent: true, symbol: "none", label: { show: false }, lineStyle: { color: GRIS.mediane, type: "dashed", width: 1.5 }, data: [{ yAxis: 100 * attendue }] },
+  }];
+  if (avecMoyenne) series.push({ name: "Moyenne sur 10 ans", type: "line", data: glissante, showSymbol: false, color: GRIS.texte, lineStyle: { width: 2 } });
+  instance.setOption({
+    animation: false, grid: { left: 40, right: 14, top: 34, bottom: 26 },
+    legend: { top: 0, left: 0, textStyle: { color: GRIS.texte }, itemWidth: 14,
+      data: [{ name: "Semaines en classe 1", icon: "rect" }, ...(avecMoyenne ? [{ name: "Moyenne sur 10 ans", icon: TRAIT }] : [])] },
+    xAxis: { type: "category", data: points.map((p) => p.annee), axisLabel: { color: GRIS.texte, hideOverlap: true }, axisLine: { lineStyle: { color: GRIS.axe } } },
+    yAxis: { type: "value", min: 0, max: (v) => Math.max(50, Math.ceil(v.max / 10) * 10), axisLabel: { color: GRIS.texte, formatter: "{value} %" }, splitLine: { lineStyle: { color: GRIS.grille } } },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, formatter: (params) => {
+      const p = points[params[0].dataIndex];
+      const lignes = [`<b>${p.annee}${p.annee === incomplete ? " (année en cours)" : ""}</b>`, `Classe 1 : <b>${nombre(p.part, 0)} %</b> des semaines`, `Classes 1-2 : ${nombre(p.part12, 0)} %`];
+      if (avecMoyenne && glissante[params[0].dataIndex] !== null) lignes.push(`Moyenne sur 10 ans : ${nombre(glissante[params[0].dataIndex], 0)} %`);
+      return lignes.join("<br>");
+    } },
+    series,
+  });
+}
+
+function grapheRecurrenceZones(instance) {
+  const zones = etat.recurrence.zones;
+  const annees = [...new Set(zones.flatMap((z) => z.annees.map((a) => a.annee)))].sort((a, b) => a - b);
+  const donnees = zones.flatMap((z, y) => partsZone(z).map((a) => [annees.indexOf(a.annee), y, Math.round(a.part)]));
+  instance.setOption({
+    animation: false, grid: { left: 118, right: 10, top: 6, bottom: 54 },
+    xAxis: { type: "category", data: annees, splitArea: { show: false }, axisLabel: { color: GRIS.texte, hideOverlap: true }, axisLine: { lineStyle: { color: GRIS.axe } }, axisTick: { show: false } },
+    yAxis: { type: "category", data: zones.map((z) => nomCourt(z.libelle)), inverse: true, axisLabel: { color: GRIS.texte, width: 110, overflow: "truncate" }, axisLine: { show: false }, axisTick: { show: false } },
+    visualMap: { type: "piecewise", orient: "horizontal", left: 0, bottom: 0, itemWidth: 12, itemHeight: 12, textStyle: { color: GRIS.texte },
+      pieces: PARTS.map(([min, max, color, label]) => (min === max ? { value: min, color, label } : { gte: min === 0 ? 0.5 : min, lt: max, color, label })) },
+    tooltip: { formatter: (p) => `${echapper(zones[p.value[1]].libelle)}<br>${annees[p.value[0]]} : <b>${p.value[2]} %</b> des semaines en classe 1` },
+    series: [{ type: "heatmap", data: donnees, itemStyle: { borderColor: "#ffffff", borderWidth: 1 } }],
+  });
+  instance.on("click", (p) => selectionner({ type: "zone", id: zones[p.value[1]].zone_id }));
+}
+
+function blocsRecurrence() {
+  const { recurrence } = etat;
+  if (!recurrence) return [];
+  const departement = partsDepartement();
+  const attendue = nombre(100 * recurrence.part_attendue_classe_1, 0);
+  const zones = recurrence.zones;
+  return [
+    el("h3", {}, "Récurrence des sécheresses"),
+    el("p", { class: "note" }, `Part des semaines de l'année en classe 1 (indice composite). L'échelle est fixe dans le temps (méthodologie D10) : ${attendue} % attendus sur la période de référence (pointillés) ; davantage si les sécheresses se multiplient.${recurrence.annee_incomplete ? ` ${recurrence.annee_incomplete} est en cours (barre claire).` : ""}`),
+    ...blocGraphique("Département (moyenne des zones)", (g) => grapheRecurrence(g, departement, true),
+      () => departement.map((p) => [p.annee, `${nombre(p.part, 0)} %`, `${nombre(p.part12, 0)} %`]), ["Année", "Classe 1", "Classes 1-2"], [1, 2]),
+    ...blocGraphique("Par zone (cliquer une case pour la zone)", (g) => grapheRecurrenceZones(g),
+      () => departement.map((p) => [p.annee, ...zones.map((z) => { const a = partsZone(z).find((x) => x.annee === p.annee); return a ? `${nombre(a.part, 0)} %` : "—"; })]),
+      ["Année", ...zones.map((z) => nomCourt(z.libelle))], zones.map((_, i) => i + 1), "haut"),
+  ];
+}
+
+function blocsRecurrenceZone(zoneId) {
+  const zone = etat.recurrence?.zones.find((z) => z.zone_id === zoneId);
+  if (!zone) return [];
+  const points = partsZone(zone);
+  // Composition variable dans le temps (ex. pas d'IPS avant une rupture des nappes, D12-D13)
+  const partielles = points.filter((a) => a.n_partielles > a.n_semaines / 2).map((a) => a.annee);
+  const variable = partielles.length && partielles.length < points.length;
+  return [
+    ...blocGraphique("Semaines en classe 1 par année", (g) => grapheRecurrence(g, points, false),
+      () => points.map((p) => [p.annee, `${nombre(p.part, 0)} %`, `${nombre(p.part12, 0)} %`, p.n_semaines]), ["Année", "Classe 1", "Classes 1-2", "Semaines"], [1, 2, 3]),
+    el("p", { class: "note" }, `Pointillés : ${nombre(100 * etat.recurrence.part_attendue_classe_1, 0)} % attendus sur la référence de la zone (${zone.reference ?? "1991-2020"}).`
+      + (variable ? ` Composante absente la plupart des semaines en ${plagesAnnees(partielles)} : ces années ne sont pas tout à fait comparables aux autres.` : "")),
+  ];
+}
+
 function panneauSynthese() {
   const { synthese } = etat;
   const lignes = synthese.composite.zones.map((z) => el("li", {}, el("button", { onclick: () => selectionner({ type: "zone", id: z.zone_id }) },
@@ -436,6 +546,7 @@ function panneauSynthese() {
       tableau(["Zone", "Campagne", "Sans écoulement", "Stations"],
         synthese.onde.map((o) => [o.libelle, dateFr(o.date_campagne), pourcent(100 * o.valeur, 0), o.n_stations]), [2, 3]));
   }
+  blocs.push(...blocsRecurrence());
   return blocs;
 }
 
@@ -451,9 +562,9 @@ function tableau(entetes, lignes, colonnesNombres = []) {
     el("tbody", {}, lignes.map((l) => el("tr", {}, l.map((v, i) => el("td", { class: colonnesNombres.includes(i) ? "nombre" : null }, v)))))));
 }
 
-function blocGraphique(titre, construire, lignesTableau, entetes, colonnesNombres) {
+function blocGraphique(titre, construire, lignesTableau, entetes, colonnesNombres, taille) {
   // Chaque graphique a son tableau (accessibilité : aucune valeur réservée à l'info-bulle)
-  const zone = el("div", { class: "graphique" });
+  const zone = el("div", { class: taille ? `graphique ${taille}` : "graphique" });
   let ouvert = false;
   const conteneurTableau = el("div");
   const bouton = el("button", { class: "bouton", "aria-pressed": "false", onclick: () => {
@@ -544,6 +655,7 @@ async function panneauZone(zoneId) {
     outilsPlage(afficherSelection),
     ...blocGraphique("Indice composite", (g) => grapheIndice(g, composite.points, "Composite"),
       () => composite.points.map((p) => [p.semaine, nombre(p.valeur), `${p.classe} – ${classe(p.classe).libelle}`]), ["Semaine", "Valeur", "Classe"], [1]),
+    ...blocsRecurrenceZone(zoneId),
     ...blocGraphique("Composantes (valeurs standardisées)", (g) => grapheComposantes(g, series),
       () => composite.points.map((p) => [p.semaine, ...Object.keys(series).map((i) => nombre(series[i].find((x) => x.semaine === p.semaine)?.valeur))]),
       ["Semaine", ...Object.keys(series).map((i) => NOMS_INDICES[i])], [1, 2, 3]),
@@ -675,6 +787,7 @@ async function demarrer() {
   try {
     const [accueil, classes, semaines] = await source.generalites();
     Object.assign(etat, { territoire: accueil.territoire, version: accueil.version_methodo, classes: classes.classes, seuils: classes.seuils, semaines: semaines.semaines });
+    etat.recurrence = await source.recurrence().catch(() => null); // facultatif : le reste s'affiche sans
     piedDePage(accueil);
   } catch (erreur) {
     alerte(`API injoignable : ${erreur.message}`);

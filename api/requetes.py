@@ -162,3 +162,17 @@ SELECT
                min(annee) || '-' || max(annee) AS periode_ref
         FROM semaines WHERE annee < :annee AND semaine = :numero) e) AS enveloppe
 """
+
+# Récurrence (D10) : semaines en classe 1 (et 1-2) par zone et par année ISO, composites
+# partiels (composante absente) et période de référence du reclassement
+RECURRENCE = """
+SELECT c.zone_id, z.libelle, substr(c.semaine, 1, 4)::int AS annee,
+       count(*)::int AS n_semaines,
+       count(*) FILTER (WHERE c.classe = 1)::int AS n_classe_1,
+       count(*) FILTER (WHERE c.classe <= 2)::int AS n_classes_1_2,
+       count(*) FILTER (WHERE (c.detail ->> 'partiel')::boolean)::int AS n_partielles,
+       max(c.detail ->> 'reference') AS reference
+FROM idx.composite_zone c JOIN ref.zone z USING (zone_id)
+GROUP BY c.zone_id, z.libelle, annee
+ORDER BY c.zone_id, annee
+"""

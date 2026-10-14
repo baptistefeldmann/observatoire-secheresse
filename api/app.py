@@ -10,6 +10,7 @@ import json
 from datetime import date
 from functools import lru_cache
 from pathlib import Path as Chemin
+from statistics import NormalDist
 from typing import Annotated, Any, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
@@ -237,6 +238,35 @@ def serie_station(
 
 
 # --- Synthèse --------------------------------------------------------------------------------
+
+
+@app.get("/recurrence", summary="Part des semaines en classe 1 par zone et par année")
+def recurrence(base: Base, cfg: Configuration) -> dict[str, Any]:
+    """Indicateur de récurrence des sécheresses (D10) : sur une échelle fixe dans le temps, la
+    part des semaines en classe 1 vaut `part_attendue_classe_1` sur la période de référence et
+    augmente si les sécheresses se multiplient. Années ISO ; la dernière peut être incomplète."""
+    derniere = _derniere_semaine(base)
+    annee = int(derniere[:4])
+    semaines_annee = date(annee, 12, 28).isocalendar().week
+    zones: dict[str, dict[str, Any]] = {}
+    for ligne in _lignes(base, requetes.RECURRENCE):
+        zone = zones.setdefault(
+            ligne["zone_id"],
+            {"zone_id": ligne["zone_id"], "libelle": ligne["libelle"], "annees": []},
+        )
+        zone["reference"] = ligne["reference"] or zone.get("reference")
+        zone["annees"].append(
+            {k: ligne[k] for k in ("annee", "n_semaines", "n_classe_1", "n_classes_1_2",
+                                   "n_partielles")}
+        )  # fmt: skip
+    seuils = cfg.classes.seuils
+    return {
+        "derniere_semaine": derniere,
+        "annee_incomplete": annee if int(derniere[6:]) < semaines_annee else None,
+        "part_attendue_classe_1": round(NormalDist().cdf(seuils[0]), 4),
+        "part_attendue_classes_1_2": round(NormalDist().cdf(seuils[1]), 4),
+        "zones": list(zones.values()),
+    }
 
 
 @app.get("/semaines/{semaine}/synthese", summary="Synthèse départementale d'une semaine")

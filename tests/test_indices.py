@@ -247,9 +247,11 @@ def test_restandardisation_par_le_rang_de_la_zone(config_z: Config) -> None:
     detail = json.loads(resultat["detail"].iloc[0])
     assert detail == {"stations": ["piezo:A", "piezo:B"], "valeur_brute": -0.5,
                       "reference": "1991-2020", "hors_reference": False}  # fmt: skip
-    # zone sans référence : ligne retirée
-    autre = semaine.assign(zone_id="SANS_REF")
-    assert rang.restandardiser(autre, refs).empty
+    # zone sans référence (D13) : valeur brute gardée, signalée hors référence
+    autre = rang.restandardiser(semaine.assign(zone_id="SANS_REF"), refs)
+    assert autre["valeur"].tolist() == semaine["valeur"].tolist()
+    detail = json.loads(autre["detail"].iloc[0])
+    assert (detail["reference"], detail["hors_reference"]) == (None, True)
 
 
 # --- De bout en bout -----------------------------------------------------------------------

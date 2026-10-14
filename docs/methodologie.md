@@ -132,7 +132,7 @@ Liste au 2026-09-30 :
 | 05342X0078/FORAGE | marais breton | 2016 (+0,3 m) | IPS sur 2016–2025 |
 | 05068X0028/SP010, 05068X0054/F, 05334X0011/SF7 | Noirmoutier | 2021 (remontée progressive depuis 2016) | pas d'IPS avant 2028 : le composite de l'île repose sur le SPI |
 
-Ruptures signalées et non retenues : 05342X0073/F (creux en 2017–2022 sans changement de régime), 05863X0203/F (hausse modérée de +0,3 m en 2010, sans dérive marquée des classes récentes). L'origine des ruptures de Noirmoutier et du marais breton reste à documenter auprès du BRGM ou des gestionnaires locaux.
+Ruptures signalées et non retenues : 05342X0073/F (creux en 2017–2022 sans changement de régime ; la baisse se prolonge en fait jusqu'en 2025, conservée en D13), 05863X0203/F (hausse modérée de +0,3 m en 2010, sans dérive marquée des classes récentes ; traitée depuis par D12). L'origine des ruptures de Noirmoutier et du marais breton reste à documenter auprès du BRGM ou des gestionnaires locaux.
 
 ## D9 — Indices de la semaine
 
@@ -236,7 +236,36 @@ Effet connu, à garder en tête à la lecture : l'IPS de zone (moyenne mensuelle
 
 Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semaines en crise avec un composite normal ou plus humide de 33 à 30 % ; zones en classe 1-2 le 15 août 2022 (W33) : 9 sur 12. Composite en classe 1 : 8,4 % (1991–2000), 10,4 % (2001–2010), 11,0 % (2011–2020), 8,4 % (2021–2025), 37,9 % (2026).
 
+**Cause probable (2026-10-14).** Sur les 22 piézomètres des deux zones, le minimum d'été monte (14 hausses significatives), le maximum d'hiver ne bouge pas (1 seule hausse, 05863X0203/F, aucune baisse) et l'écart hiver-été diminue (11 baisses significatives) ; les ruptures du minimum d'été tombent entre 2007 et 2014. C'est la signature d'une baisse des pompages d'été dans la nappe : réserves de substitution construites dans les années 2010 (eau stockée l'hiver, utilisée l'été) ou baisse des volumes autorisés (gestion de l'établissement public du Marais poitevin, créé en 2011). Les données ne permettent pas de départager : il faudrait les dates de mise en service et la position des réserves.
+
 **Limite.** Avant 2011, le composite de ces deux zones ne repose que sur la pluie et les débits (Sud-Vendée) ou la pluie seule (marais poitevin) : la fréquence des classes sèches n'y est pas comparable entre avant et après 2011. **Écartés** : retirer la tendance des niveaux (effacerait aussi l'effet du climat, D8) ; garder l'IPS avant 2011 comparé à 2011–2025 (régimes mêlés) ; ne rien changer.
+
+## D13 — Tendances des minima d'été hors Sud-Vendée et marais poitevin
+
+*2026-10-14*
+
+**Recherche.** Après D12, tendance du minimum d'été (juillet à septembre) de chaque station, 1991–2025 (Kendall, pente de Theil-Sen, rupture de Pettitt) : 21 piézomètres et 27 stations de débit hors des deux zones déjà traitées. La pluie d'avril à septembre a légèrement baissé dans toutes les zones (−10 % environ entre 1991–2005 et 2011–2025, non significatif) : une hausse du niveau d'été va donc à contre-sens du climat.
+
+**Règle retenue.** Une **hausse** du minimum d'été est traitée comme une rupture (D8) : elle masquerait les sécheresses, comme au Sud-Vendée. Une **baisse** est conservée : climat ou prélèvements accrus, l'eau manque réellement, ce que l'observatoire doit montrer (D10) ; la part des prélèvements relève de l'axe pression (V3).
+
+| Station | Zone | Constat | Traitement |
+|---|---|---|---|
+| 05634X0013/SF3 | Sèvre nantaise | minimum d'été d'environ 160 m jusqu'en 2019, 163 m depuis 2020 (tendance p = 0,004) ; IPS de zone de +1,75 en été 2022 | **rupture 2020, gardé avec une référence incomplète** (choix de l'utilisateur, seul piézomètre de la zone) : 2020–2025, 6 ans au lieu de 8 (`annees_min` dans `stations.yaml`), signalée hors référence ; IPS à partir de 2020 seulement |
+| 05625X0036/F | Lay | saut de +1,1 m vers 2005, stable depuis (p = 0,048) | **rupture 2005** : référence 2005–2025 |
+| 05366X0035/PIEZO | Maines | baisse lente, −1,5 m depuis 1990 | conservé |
+| 05342X0073/F | marais breton | 0,6 m puis 0,35 m depuis 2015 | conservé |
+| Falleron (N011301010) | marais breton | jours d'été à débit nul : 1 à 7 % avant 2015, 25 % depuis, 58 % en 2025 (données récentes pré-validées) | conservé |
+
+| Effet | Avant | Après |
+|---|---|---|
+| Sèvre nantaise : IPS de zone, été 2022 | +1,75 | +0,86 |
+| Sèvre nantaise : composite, été 2022 en classe 1-2 | 85 % | 100 % |
+| Lay : IPS de zone, été 2022 / 2026 | −1,00 / +0,14 | −1,24 / −0,32 |
+| Lay : composite, été 2022 en classe 1-2 | 77 % | 85 % |
+| AUC (Sèvre nantaise / Lay) | 0,758 / 0,796 | 0,758 / 0,799 |
+
+**Référence incomplète de SF3.** Avec 6 ans, l'IPS de SF3 reste borné à environ ±1,4 (classes 1 et 7 accessibles de justesse) et ne décrit que 2020–2025 ; il reste haut en été 2022 (+0,86) et suit mal les arrêtés (AUC de l'IPS de zone 0,53). Son poids est faible (0,15) : le composite de la zone n'en dépend presque pas. La zone n'ayant que 6 ans d'IPS, l'IPS de zone ne peut pas être reclassé (D10, 15 ans requis) : il garde la valeur de la station, signalée hors référence (`reference` vide dans `detail`). Règle générale : sans référence de zone, l'indice de zone garde la moyenne brute des stations ; avec une seule station, c'est son indice même.
+
 
 ## Validation par les arrêtés sécheresse
 
@@ -277,4 +306,4 @@ Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semai
 
 ## Points ouverts
 
-- Lay à Mareuil et Marillet à Mareuil, débits soutenus par des barrages, conservés dans le composite ; piézomètre 05634X0013/SF3 à documenter (section « Validation par les arrêtés sécheresse »).
+- Lay à Mareuil et Marillet à Mareuil, débits soutenus par des barrages, conservés dans le composite (section « Validation par les arrêtés sécheresse »). Origine du saut de 05634X0013/SF3 en 2020 à établir (D13).

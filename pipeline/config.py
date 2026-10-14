@@ -293,6 +293,9 @@ class Rupture(_Modele):
     station: str  # station_id, ex. « piezo:05068X0028/SP010 »
     annee: int
     motif: str
+    # Référence plus courte admise pour cette station (D13) : seule station de sa zone, par
+    # exemple ; sinon `annees_min_apres_rupture` de projet.yaml
+    annees_min: int | None = Field(default=None, ge=1)
 
 
 class Stations(_Modele):

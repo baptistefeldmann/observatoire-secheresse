@@ -35,6 +35,16 @@ ruptures:
   - station: piezo:05334X0011/SF7
     annee: 2021
     motif: "remontée continue depuis 2016, non stabilisée"
+  # D13 : hausse du niveau d'été à contre-sens de la pluie d'été (en légère baisse)
+  - station: piezo:05634X0013/SF3
+    annee: 2020
+    motif: "minimum d'été d'environ 160 m jusqu'en 2019, 163 m depuis 2020 (IPS de +1,75 en été 2022) ; cause locale à établir (D13)"
+    # seul piézomètre de la Sèvre nantaise : gardé avec une référence incomplète (2020-2025,
+    # 6 ans au lieu de 8), signalée hors référence (D13, choix de l'utilisateur)
+    annees_min: 6
+  - station: piezo:05625X0036/F
+    annee: 2005
+    motif: "saut du minimum d'été de +1,1 m vers 2005, stable depuis (D13)"
 
 # Retenues d'eau potable (docs/methodologie.md, D6). Source propre au territoire : table ArcGIS
 # publique du Département (données Vendée Eau), une ligne par retenue et par semaine, depuis 2019.

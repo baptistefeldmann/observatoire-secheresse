@@ -60,26 +60,30 @@ def references(config: Config, valeurs: pd.DataFrame) -> pd.DataFrame:
 
 def restandardiser(table: pd.DataFrame, refs: pd.DataFrame) -> pd.DataFrame:
     """Remplace `valeur` par son rang dans la référence de la zone ; la valeur brute et la
-    période de référence passent dans `detail`. Sans référence, la ligne est retirée."""
+    période de référence passent dans `detail`. Sans référence (trop peu d'années, ex. zone dont
+    le seul piézomètre a une référence courte, D13), la valeur brute est gardée, signalée hors
+    référence (`reference` vide) : la moyenne d'indices standardisés reste un indice."""
     if table.empty:
         return table
     jointe = table.merge(
         refs[["zone_id", "indice", "valeurs_ref", "periode_ref", "hors_reference"]],
         on=["zone_id", "indice"],
-        how="inner",
+        how="left",
     )
+    avec_ref = jointe["valeurs_ref"].notna()
     valeurs = [
-        z_rang(float(v), np.asarray(r, dtype=float))
-        for v, r in zip(jointe["valeur"], jointe["valeurs_ref"], strict=True)
+        z_rang(float(v), np.asarray(r, dtype=float)) if ok else float(v)
+        for v, r, ok in zip(jointe["valeur"], jointe["valeurs_ref"], avec_ref, strict=True)
     ]
     details = [
         detail_json(
             json.loads(d)
-            | {"valeur_brute": round(float(v), 4), "reference": p, "hors_reference": bool(h)}
+            | {"valeur_brute": round(float(v), 4), "reference": p if ok else None,
+               "hors_reference": bool(h) if ok else True}
         )
-        for d, v, p, h in zip(
+        for d, v, p, h, ok in zip(
             jointe["detail"], jointe["valeur"], jointe["periode_ref"], jointe["hors_reference"],
-            strict=True,
+            avec_ref, strict=True,
         )
     ]  # fmt: skip
     return jointe.assign(valeur=valeurs, detail=details)[list(table.columns)]

@@ -15,7 +15,13 @@ import numpy as np
 import pandas as pd
 
 from pipeline.config import Config
-from pipeline.reference.commun import SEMAINE_MAX, choisir_annees, lire_brut, ruptures
+from pipeline.reference.commun import (
+    SEMAINE_MAX,
+    choisir_annees,
+    lire_brut,
+    minimums_rupture,
+    ruptures,
+)
 
 
 def series(config: Config, obs: pd.DataFrame | None = None) -> pd.DataFrame:
@@ -74,6 +80,7 @@ COLONNES = [
 def normales(config: Config, obs: pd.DataFrame | None = None) -> pd.DataFrame:
     ref = config.projet.periode_reference.hydro_meteo
     annees_rupture = ruptures(config)
+    minimums = minimums_rupture(config)
     parametres = config.projet.indices.debit
     debits = q7(series(config, obs), parametres.jours_min_q7)
     if debits.empty:
@@ -87,7 +94,9 @@ def normales(config: Config, obs: pd.DataFrame | None = None) -> pd.DataFrame:
         couverture = valeurs.groupby(["semaine", "annee"])["q7"].count().reset_index(name="n")
         for semaine, par_annee in couverture.groupby("semaine"):
             valides = {int(a) for a in par_annee.loc[par_annee["n"] >= minimum, "annee"]}
-            choix = choisir_annees(valides, ref, annees_rupture.get(str(station_id)))
+            choix = choisir_annees(
+                valides, ref, annees_rupture.get(str(station_id)), minimums.get(str(station_id))
+            )
             if not choix.annees:
                 continue
             retenues = valeurs[

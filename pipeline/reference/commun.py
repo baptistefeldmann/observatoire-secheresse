@@ -43,18 +43,21 @@ def _figees(annees: list[int], minimum: int, gel: int | None) -> list[int]:
     return retenues if len(retenues) >= minimum else []
 
 
-def choisir_annees(valides: set[int], ref: Periode, rupture: int | None = None) -> Choix:
+def choisir_annees(
+    valides: set[int], ref: Periode, rupture: int | None = None, minimum_rupture: int | None = None
+) -> Choix:
     """Années de la période de référence si elles sont assez nombreuses ; à défaut, une
     référence figée hors période (D10), avec avertissement ; sinon aucune.
 
     Hors période, les années suivant `annee_gel` n'entrent pas, sauf pour atteindre le minimum :
     la référence ne s'allonge plus avec le temps (D10). Station à rupture confirmée (D8) :
     seules les années à partir de la rupture comptent, admises dès `annees_min_apres_rupture`,
-    toujours avec avertissement."""
+    toujours avec avertissement ; `minimum_rupture` remplace ce minimum pour une station (D13)."""
     minimum = ref.annees_min or 1
     if rupture is not None:
         apres = sorted(a for a in valides if a >= rupture)
-        retenues = _figees(apres, ref.annees_min_apres_rupture or minimum, ref.annee_gel)
+        n = minimum_rupture or ref.annees_min_apres_rupture or minimum
+        retenues = _figees(apres, n, ref.annee_gel)
     else:
         dans_ref = sorted(a for a in valides if ref.debut <= a <= ref.fin)
         if len(dans_ref) >= minimum:
@@ -80,3 +83,8 @@ def ruptures(config: Config) -> dict[str, int]:
             for s, z in zip(piezos["station_id"], piezos["zone_id"], strict=True)
         }
     return annees | {r.station: r.annee for r in config.stations.ruptures}
+
+
+def minimums_rupture(config: Config) -> dict[str, int]:
+    """station_id -> minimum d'années admis après la rupture, quand stations.yaml le fixe (D13)."""
+    return {r.station: r.annees_min for r in config.stations.ruptures if r.annees_min}

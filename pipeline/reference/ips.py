@@ -9,7 +9,7 @@ from __future__ import annotations
 import pandas as pd
 
 from pipeline.config import Config
-from pipeline.reference.commun import choisir_annees, lire_brut, ruptures
+from pipeline.reference.commun import choisir_annees, lire_brut, minimums_rupture, ruptures
 
 
 def moyennes_mensuelles(obs: pd.DataFrame, jours_min: int) -> pd.DataFrame:
@@ -37,11 +37,15 @@ COLONNES = [
 def normales(config: Config, obs: pd.DataFrame | None = None) -> pd.DataFrame:
     ref = config.projet.periode_reference.hydro_meteo
     annees_rupture = ruptures(config)
+    minimums = minimums_rupture(config)
     obs = obs if obs is not None else lire_brut(config, "piezo", "chroniques")
     mensuel = moyennes_mensuelles(obs, config.projet.indices.ips.jours_min_mois)
     lignes = []
     for (station_id, mois), groupe in mensuel.groupby(["station_id", "mois"]):
-        choix = choisir_annees(set(groupe["annee"]), ref, annees_rupture.get(str(station_id)))
+        choix = choisir_annees(
+            set(groupe["annee"]), ref, annees_rupture.get(str(station_id)),
+            minimums.get(str(station_id)),
+        )  # fmt: skip
         if not choix.annees:
             continue
         valeurs = groupe.loc[groupe["annee"].isin(choix.annees), "niveau_moyen"]

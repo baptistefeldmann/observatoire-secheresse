@@ -287,6 +287,24 @@ Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semai
 - *Débits soutenus par des barrages* : le Lay à Mareuil (aval des barrages du Lay) et le Marillet à Mareuil (aval du barrage de Château-Guibert) sont déclarés influencés par Hub'Eau. Médiane d'août du Lay à Mareuil : 4 l/s en 1991–2000, 233 à 384 l/s depuis 2001 ; en été 2022, −0,1 à −1,1 au Lay à Mareuil et +1,0 à +1,8 au Marillet, contre −2 à −3 pour le Lay amont. **Conservés** (choix de l'utilisateur) : ils tirent l'indice de débit du Bocage-Lay vers la normale en été sec (classe 2 au lieu de 1 de W28 à W32 en 2022 ; AUC 0,796, contre 0,805 sans eux). Les 5 autres stations déclarées influencées (Autise, Vendée à Pissotte, Sèvre nantaise à Tiffauges, Auzance, Yon à Nesmy) suivent la sécheresse.
 - *Piézomètre 05634X0013/SF3* (seul de la zone Sèvre nantaise) : +1,45 mi-août 2022. **Conservé** : aucun défaut visible, poids faible (IPS à 0,15) et accord inchangé sans lui (0,759 → 0,756). Origine à demander au BRGM.
 
+### Bulletin de situation hydrologique (étape 4 du protocole)
+
+*2026-10-14.* Bulletins mensuels régionaux de la DREAL Pays de la Loire, juin à octobre 2011, 2017, 2019 et 2022 (20 bulletins). Comparaison ponctuelle, non intégrée à `make validation` (le format des PDF change selon les années) ; valeurs extraites dans `data/validation/bsh_hydraulicites.csv` et `bsh_nappes_lectures.csv`.
+
+**Débits (2011, 2017, 2019 ; 2022 n'a qu'une carte sans nom de station).** Le bulletin donne l'**hydraulicité** : débit moyen du mois rapporté à la moyenne de ce mois depuis l'ouverture de la station. 175 couples station-mois, 13 stations.
+
+- *Mêmes données* : l'hydraulicité recalculée depuis Hub'Eau retrouve celle du bulletin à 0,02 près (écart médian) ; les 15 écarts nets viennent de données provisoires à la date du bulletin (septembre 2017) et du raccordement de Tiffauges (D4).
+- *L'hydraulicité exagère les déficits de fin d'été* : la moyenne d'un mois d'été est tirée vers le haut par quelques années très humides. Hydraulicité médiane sur tout l'historique : 0,68 en juin, 0,61 en août, 0,42 en septembre, 0,28 en octobre ; un « déficit de plus de 50 % » touche 58 % des septembres et 64 % des octobres. Les 27 cas « déficit > 50 % » du bulletin que notre indice classe normaux sont des mois de rang médian 0,44 parmi les années de la station : des mois ordinaires.
+- *À méthode comparable, accord bon* : corrélation de rang entre hydraulicité et notre indice de débit du mois 0,58 ; entre le rang de l'hydraulicité parmi les années de la station et notre indice, **0,83**. Le reste de l'écart vient du calcul (moyenne du mois contre Q7 hebdomadaire, période depuis l'ouverture contre 1991–2020).
+
+**Nappes (2011, 2017, 2019, 2022).** Le bulletin reprend les courbes du réseau du Département (vendee.fr) : niveau de l'année, moyenne et enveloppe depuis 1985–1994 jusqu'à l'année précédente. Lecture à l'œil du niveau de fin septembre (sous la moyenne, proche, au-dessus) pour 10 forages présents dans Hub'Eau, 32 lectures.
+
+- *Lecture fiable* : elle concorde avec le rang du niveau de septembre parmi toutes les années antérieures (corrélation de rang 0,77).
+- *Même ordre que notre IPS* : corrélation de rang 0,73 entre la lecture et l'IPS D13 de septembre. Les 9 lectures « sous la moyenne » sont toutes en classe 1-2 chez nous (IPS moyen −1,32). En 2011, le texte du bulletin (« niveaux dans l'ensemble inférieurs aux valeurs moyennes ») rejoint nos IPS (Luçon −1,22, Le Langon −1,38).
+- *Décalage voulu au Sud-Vendée et dans le marais poitevin* : quand le bulletin lit un niveau « proche de la moyenne », notre IPS y vaut en moyenne −0,55 (13 cas), contre +0,24 ailleurs. C'est l'effet de D12 : les courbes du Département comparent à toutes les années depuis 1985, étés pompés des années 1990 compris ; notre IPS compare au régime actuel (2011–2025). Le bulletin et notre ancien IPS (D11) se rejoignent ; l'écart est à expliquer aux acteurs.
+
+**Bilan.** Le bulletin confirme nos données et l'ordre de nos classes, pour les débits comme pour les nappes. Ses deux différences de lecture sont expliquées : l'hydraulicité, rapport à la moyenne, alarme à tort en fin d'été ; les courbes de nappes du Sud-Vendée comparent à une période qui inclut les pompages d'avant 2011.
+
 ## Règles issues des données
 
 - **Piézométrie : seul `niveau_nappe_eau` est ingéré comme mesure.** Dans Hub'Eau, `profondeur_nappe` est une copie du niveau NGF pour 50 stations sur 53. La colonne `obs.piezo_jour.profondeur` est calculée par `altitude_station − niveau_nappe_eau` quand l'altitude est connue (différente de `-999`), sinon laissée vide.

@@ -409,7 +409,7 @@ La V1 tourne chaque semaine. Avant d'aller plus loin, l'indice doit être confro
 
 - Fait : confrontation aux arrêtés de restriction de 2012 à 2026 (`make validation`, [`docs/validation.md`](docs/validation.md)) ; échelle fixe dans le temps, avec références figées et indices de zone restandardisés (décision D10).
 - Fait : pondérations vérifiées par les arrêtés (D11) ; nappes du Sud-Vendée et du marais poitevin comparées à leur régime actuel (2011-2025) et prioritaires dans le composite (D12) ; hausses des minima d'été ailleurs traitées comme des ruptures (D13).
-- Confronter quelques semaines clés de 2011, 2017, 2019 et 2022 au bulletin de situation hydrologique.
+- Fait : comparaison au bulletin de situation hydrologique régional (2011, 2017, 2019, 2022), qui confirme les données et l'ordre des classes ; écarts expliqués (hydraulicité rapportée à la moyenne, nappes du Sud-Vendée comparées aux années pompées).
 - Documenter l'origine des ruptures de Noirmoutier, du marais breton, du Sud-Vendée et du marais poitevin (réserves de substitution ou baisse des volumes autorisés), et celle du piézomètre 05634X0013/SF3, auprès du BRGM ou des gestionnaires.
 
 **Phases suivantes** (spécification, §2) : V2 ajoute la végétation par satellite (Sentinel-2, occupation du sol), V3 l'axe pression et la carte de tension, V4 la prévision. Le schéma de données et l'arborescence sont déjà prévus pour elles.

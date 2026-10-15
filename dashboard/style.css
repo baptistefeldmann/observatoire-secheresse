@@ -67,15 +67,22 @@ button, input { font: inherit; }
 /* --- Carte et panneau ---------------------------------------------------------------------- */
 
 .principal {
-  flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 14px;
+  flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 14px var(--largeur-panneau, 440px); gap: 0;
   padding: 14px 20px; min-height: 620px;
 }
 .carte-bloc { position: relative; min-height: 560px; }
 #carte { position: absolute; inset: 0; border-radius: var(--rayon); border: 1px solid var(--trait); overflow: hidden; }
 
+.bascule-legende {
+  position: absolute; left: 10px; top: 10px; z-index: 1;
+  padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--texte-1);
+  background: rgba(252, 252, 251, .95); border: 1px solid var(--trait); border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+.bascule-legende:hover { background: #fff; }
 .legende {
-  position: absolute; left: 10px; top: 10px; max-width: 250px;
-  max-height: calc(100% - 50px); overflow-y: auto;
+  position: absolute; left: 10px; top: 46px; max-width: 250px;
+  max-height: calc(100% - 86px); overflow-y: auto;
   background: rgba(252, 252, 251, .95); border: 1px solid var(--trait); border-radius: var(--rayon);
   padding: 10px 12px; font-size: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
 }
@@ -89,6 +96,18 @@ button, input { font: inherit; }
 .pastille { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0, 0, 0, .35); }
 .pastille.rond { border-radius: 50%; }
 .pastille.creux { background: #fff !important; border-width: 2px; }
+
+/* Poignée entre la carte et le panneau : glisser pour changer la largeur du panneau */
+.separateur {
+  position: relative; cursor: col-resize; touch-action: none; border-radius: 4px; outline: none;
+}
+.separateur::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 4px; height: 44px; transform: translate(-50%, -50%);
+  border-radius: 2px; background: var(--trait);
+}
+.separateur:hover::before, .separateur:focus-visible::before, .separateur.actif::before { background: var(--accent); }
+.separateur:focus-visible { box-shadow: 0 0 0 2px rgba(42, 120, 214, .35); }
+body.redimensionnement { user-select: none; cursor: col-resize; }
 
 .panneau {
   background: var(--surface-1); border: 1px solid var(--trait); border-radius: var(--rayon);
@@ -136,7 +155,8 @@ td.nombre, th.nombre { text-align: right; font-variant-numeric: tabular-nums; }
 .bulle-ligne { color: var(--texte-2); }
 
 @media (max-width: 1000px) {
-  .principal { grid-template-columns: 1fr; }
+  .principal { grid-template-columns: 1fr; gap: 14px; }
+  .separateur { display: none; }
   .carte-bloc { min-height: 460px; }
   .panneau { max-height: none; min-height: 0; }
 }

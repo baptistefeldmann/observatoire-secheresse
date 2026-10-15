@@ -340,6 +340,79 @@ function legende() {
   );
 }
 
+// --- Mise en page : légende masquable, panneau de droite redimensionnable -------------------
+
+// Réglages gardés dans le navigateur ; sans stockage (navigation privée), ils valent pour la session
+const reglage = {
+  lire(cle) { try { return localStorage.getItem(`observatoire.${cle}`); } catch { return null; } },
+  ecrire(cle, valeur) { try { localStorage.setItem(`observatoire.${cle}`, valeur); } catch { /* réglage non conservé */ } },
+};
+
+function initialiserLegende() {
+  const bouton = document.getElementById("bascule-legende"), bloc = document.getElementById("legende");
+  const afficher = (visible) => {
+    bloc.hidden = !visible;
+    bouton.setAttribute("aria-expanded", String(visible));
+    bouton.textContent = visible ? "Masquer la légende" : "Afficher la légende";
+  };
+  afficher(reglage.lire("legende") !== "masquee");
+  bouton.addEventListener("click", () => {
+    const visible = bloc.hidden;
+    afficher(visible);
+    reglage.ecrire("legende", visible ? "visible" : "masquee");
+  });
+}
+
+const PANNEAU = { defaut: 440, min: 300, carteMin: 320, poignee: 14, marge: 40, pas: 24 };
+
+function initialiserSeparateur() {
+  const principal = document.querySelector(".principal"), poignee = document.getElementById("separateur");
+  const maximum = () => Math.max(PANNEAU.min, principal.clientWidth - PANNEAU.marge - PANNEAU.poignee - PANNEAU.carteMin);
+  let largeur = PANNEAU.defaut;
+  const appliquer = (souhaitee) => {
+    largeur = Math.round(Math.min(maximum(), Math.max(PANNEAU.min, souhaitee)));
+    principal.style.setProperty("--largeur-panneau", `${largeur}px`);
+    poignee.setAttribute("aria-valuemin", String(PANNEAU.min));
+    poignee.setAttribute("aria-valuemax", String(maximum()));
+    poignee.setAttribute("aria-valuenow", String(largeur));
+    carte?.resize();
+  };
+  const memoriser = () => reglage.ecrire("largeurPanneau", String(largeur));
+  const enregistree = Number(reglage.lire("largeurPanneau"));
+  appliquer(enregistree > 0 ? enregistree : PANNEAU.defaut);
+
+  poignee.addEventListener("pointerdown", (e) => {
+    poignee.setPointerCapture(e.pointerId);
+    poignee.classList.add("actif");
+    document.body.classList.add("redimensionnement");
+  });
+  poignee.addEventListener("pointermove", (e) => {
+    if (!poignee.hasPointerCapture(e.pointerId)) return;
+    // Bord droit du contenu moins la position du pointeur, au centre de la poignée
+    const bord = principal.getBoundingClientRect().right - PANNEAU.marge / 2;
+    appliquer(bord - e.clientX - PANNEAU.poignee / 2);
+  });
+  const relacher = (e) => {
+    if (!poignee.hasPointerCapture(e.pointerId)) return;
+    poignee.releasePointerCapture(e.pointerId);
+    poignee.classList.remove("actif");
+    document.body.classList.remove("redimensionnement");
+    memoriser();
+  };
+  poignee.addEventListener("pointerup", relacher);
+  poignee.addEventListener("pointercancel", relacher);
+  poignee.addEventListener("dblclick", () => { appliquer(PANNEAU.defaut); memoriser(); });
+  poignee.addEventListener("keydown", (e) => {
+    const pas = e.shiftKey ? 4 * PANNEAU.pas : PANNEAU.pas;
+    const cible = { ArrowLeft: largeur + pas, ArrowRight: largeur - pas, Home: PANNEAU.min, End: maximum(), Enter: PANNEAU.defaut }[e.key];
+    if (cible === undefined) return;
+    e.preventDefault();
+    appliquer(cible);
+    memoriser();
+  });
+  window.addEventListener("resize", () => appliquer(largeur));
+}
+
 // --- Chargement d'une semaine --------------------------------------------------------------
 
 async function chargerSemaine(semaine) {
@@ -813,10 +886,21 @@ async function demarrer() {
   document.getElementById("choix-semaine").addEventListener("submit", (e) => e.preventDefault());
 
   legende();
+  initialiserLegende();
+  initialiserSeparateur();
   await initialiserCarte();
   await chargerSemaine(lireAdresse());
   ajusterEmprise(etat.zones);
-  window.addEventListener("resize", () => document.querySelectorAll(".graphique").forEach((g) => echarts.getInstanceByDom(g)?.resize()));
+  // Les graphiques suivent la largeur du panneau (fenêtre ou poignée)
+  let redimensionne = false;
+  new ResizeObserver(() => {
+    if (redimensionne) return;
+    redimensionne = true;
+    requestAnimationFrame(() => {
+      redimensionne = false;
+      document.querySelectorAll(".graphique").forEach((g) => echarts.getInstanceByDom(g)?.resize());
+    });
+  }).observe(document.getElementById("panneau"));
 }
 
 demarrer();

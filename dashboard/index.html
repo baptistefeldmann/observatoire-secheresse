@@ -32,8 +32,11 @@
   <main class="principal">
     <div class="carte-bloc">
       <div id="carte" role="region" aria-label="Carte des zones"></div>
+      <button type="button" class="bascule-legende" id="bascule-legende" aria-controls="legende" aria-expanded="true">Masquer la légende</button>
       <aside class="legende" id="legende" aria-label="Légende et couches"></aside>
     </div>
+    <div class="separateur" id="separateur" role="separator" aria-orientation="vertical" tabindex="0"
+         aria-label="Largeur du panneau de droite" title="Glisser pour agrandir ou réduire le panneau (double-clic : taille initiale)"></div>
     <section class="panneau" id="panneau" aria-live="polite"></section>
   </main>
 

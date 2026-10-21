@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 960" role="img" aria-label="Workflow de l'observatoire : des sources publiques au pipeline, aux données versionnées, à la base de service et aux trois usages ; job hebdomadaire" font-family="Segoe UI, system-ui, -apple-system, Roboto, sans-serif" font-size="11">
+  <!-- Workflow complet de l'observatoire (README, « Architecture »). À mettre à jour si une étape ou une commande change. -->
+  <defs>
+    <marker id="fleche" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#8f8e88"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="960" fill="#ffffff"/>
+
+  <text x="24" y="36" font-size="17" font-weight="600" fill="#1a1a19">Des sources publiques aux trois usages : un pipeline reproductible, des données versionnées, une base de service</text>
+  <text x="24" y="58" font-size="12.5" fill="#5f5e5a">Commandes make du dépôt. Les GeoParquet de data/ sont la source de vérité : PostGIS, l'API et le site se reconstruisent à partir d'eux.</text>
+
+  <!-- En-têtes de colonnes -->
+  <g font-size="12" font-weight="600" fill="#5f5e5a">
+    <text x="24" y="88">Sources publiques</text>
+    <text x="290" y="88">Pipeline Python (pipeline/)</text>
+    <text x="588" y="88">data/ : source de vérité</text>
+    <text x="866" y="88">Service (Docker, machine Linux)</text>
+    <text x="1154" y="88">Usages</text>
+  </g>
+
+  <!-- Flèches (sous les boîtes) -->
+  <g fill="none" stroke="#8f8e88" stroke-width="1.5">
+    <path d="M244 134H286" marker-end="url(#fleche)"/>
+    <path d="M244 210H266M244 286H266M244 362H266M266 210V362"/>
+    <path d="M266 234H286" marker-end="url(#fleche)"/>
+    <path d="M244 534H286" marker-end="url(#fleche)"/>
+    <path d="M415 164V200" marker-end="url(#fleche)"/><path d="M415 264V300" marker-end="url(#fleche)"/><path d="M415 364V400" marker-end="url(#fleche)"/><path d="M415 464V500" marker-end="url(#fleche)"/>
+    <path d="M540 134H584" marker-end="url(#fleche)"/><path d="M540 234H584" marker-end="url(#fleche)"/><path d="M540 334H584" marker-end="url(#fleche)"/><path d="M540 434H584" marker-end="url(#fleche)"/><path d="M540 534H584" marker-end="url(#fleche)"/>
+    <path d="M703 570V600" marker-end="url(#fleche)"/><path d="M703 660V682" marker-end="url(#fleche)"/>
+    <path d="M818 134H862" marker-end="url(#fleche)"/>
+    <path d="M986 172V250" marker-end="url(#fleche)"/><path d="M986 314V400" marker-end="url(#fleche)"/>
+    <path d="M1106 134H1150" marker-end="url(#fleche)"/><path d="M1106 284H1150" marker-end="url(#fleche)"/><path d="M1106 434H1150" marker-end="url(#fleche)"/>
+  </g>
+  <path d="M415 604V568" fill="none" stroke="#8f8e88" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#fleche)"/>
+  <text x="425" y="590" fill="#5f5e5a">paramètre chaque étape</text>
+
+  <!-- Sources -->
+  <g>
+    <rect x="24" y="104" width="220" height="60" rx="6" fill="#f4f4f1" stroke="#b5b4ae"/>
+    <text x="36" y="128" font-size="13" font-weight="600" fill="#1a1a19">Référentiels</text>
+    <text x="36" y="148" fill="#5f5e5a">geo.api.gouv.fr · SANDRE</text>
+    <rect x="24" y="180" width="220" height="60" rx="6" fill="#f4f4f1" stroke="#b5b4ae"/>
+    <text x="36" y="204" font-size="13" font-weight="600" fill="#1a1a19">Météo-France · SIM</text>
+    <text x="36" y="224" fill="#5f5e5a">pluie quotidienne (data.gouv.fr)</text>
+    <rect x="24" y="256" width="220" height="60" rx="6" fill="#f4f4f1" stroke="#b5b4ae"/>
+    <text x="36" y="280" font-size="13" font-weight="600" fill="#1a1a19">Hub'Eau</text>
+    <text x="36" y="300" fill="#5f5e5a">nappes · débits · ONDE</text>
+    <rect x="24" y="332" width="220" height="60" rx="6" fill="#f4f4f1" stroke="#b5b4ae"/>
+    <text x="36" y="356" font-size="13" font-weight="600" fill="#1a1a19">Retenues d'eau potable</text>
+    <text x="36" y="376" fill="#5f5e5a">Département · DREAL Bretagne</text>
+    <rect x="24" y="504" width="220" height="60" rx="6" fill="#f4f4f1" stroke="#b5b4ae"/>
+    <text x="36" y="528" font-size="13" font-weight="600" fill="#1a1a19">VigiEau</text>
+    <text x="36" y="548" fill="#5f5e5a">arrêtés sécheresse (validation)</text>
+  </g>
+
+  <!-- Pipeline -->
+  <g>
+    <rect x="290" y="104" width="250" height="60" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="302" y="128" font-size="13" font-weight="600" fill="#0c447c">make referentiels</text>
+    <text x="302" y="148" fill="#185fa5">communes · 12 zones · stations</text>
+    <rect x="290" y="204" width="250" height="60" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="302" y="228" font-size="13" font-weight="600" fill="#0c447c">make ingest</text>
+    <text x="302" y="248" fill="#185fa5">historique, un fichier par année</text>
+    <rect x="290" y="304" width="250" height="60" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="302" y="328" font-size="13" font-weight="600" fill="#0c447c">make reference</text>
+    <text x="302" y="348" fill="#185fa5">normales 1991-2020 · ruptures</text>
+    <rect x="290" y="404" width="250" height="60" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="302" y="428" font-size="13" font-weight="600" fill="#0c447c">make indices</text>
+    <text x="302" y="448" fill="#185fa5">stations → zones → composite</text>
+    <rect x="290" y="504" width="250" height="60" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="302" y="528" font-size="13" font-weight="600" fill="#0c447c">make validation</text>
+    <text x="302" y="548" fill="#185fa5">niveaux par zone · docs/validation.md</text>
+    <rect x="290" y="604" width="250" height="60" rx="6" fill="#f4f4f1" stroke="#b5b4ae" stroke-dasharray="4 3"/>
+    <text x="302" y="628" font-size="13" font-weight="600" fill="#1a1a19">config/*.yaml</text>
+    <text x="302" y="648" fill="#5f5e5a">territoire · zones et poids · classes</text>
+  </g>
+
+  <!-- data/ -->
+  <g>
+    <rect x="588" y="100" width="230" height="470" rx="8" fill="#eaf3e9" stroke="#2e7d32"/>
+    <g font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="600" fill="#1f5a23">
+      <text x="602" y="130">referentiels/</text>
+      <text x="602" y="230">raw/</text>
+      <text x="602" y="330">normales/</text>
+      <text x="602" y="430">indices/</text>
+      <text x="602" y="530">validation/</text>
+    </g>
+    <g fill="#2e7d32">
+      <text x="602" y="148">zones, mailles, stations</text>
+      <text x="602" y="248">mesures, un fichier par année</text>
+      <text x="602" y="348">références figées</text>
+      <text x="602" y="448">stations, zones, composite</text>
+      <text x="602" y="548">arrêtés, niveaux, bulletins</text>
+    </g>
+    <rect x="588" y="604" width="230" height="56" rx="6" fill="#eaf3e9" stroke="#2e7d32"/>
+    <text x="600" y="627" font-size="13" font-weight="600" fill="#1f5a23">DVC → DagsHub</text>
+    <text x="600" y="646" fill="#2e7d32">données versionnées</text>
+    <rect x="588" y="686" width="230" height="56" rx="6" fill="#eaf3e9" stroke="#2e7d32"/>
+    <text x="600" y="709" font-size="13" font-weight="600" fill="#1f5a23">Git → GitHub</text>
+    <text x="600" y="728" fill="#2e7d32">code · fichiers .dvc · étiquettes</text>
+  </g>
+
+  <!-- Service -->
+  <g>
+    <rect x="866" y="96" width="240" height="76" rx="6" fill="#fbf1e1" stroke="#b26b00"/>
+    <text x="878" y="119" font-size="13" font-weight="600" fill="#6b4000">PostGIS (port 5433)</text>
+    <text x="878" y="139" fill="#854f0b">rechargé : make db-rebuild</text>
+    <text x="878" y="157" fill="#854f0b">schémas ref · obs · idx · carto</text>
+    <rect x="866" y="254" width="240" height="60" rx="6" fill="#fbf1e1" stroke="#b26b00"/>
+    <text x="878" y="278" font-size="13" font-weight="600" fill="#6b4000">API FastAPI (port 8010)</text>
+    <text x="878" y="298" fill="#854f0b">lecture seule · documentation /docs</text>
+    <rect x="866" y="404" width="240" height="60" rx="6" fill="#fbf1e1" stroke="#b26b00"/>
+    <text x="878" y="428" font-size="13" font-weight="600" fill="#6b4000">make site · make pages</text>
+    <text x="878" y="448" fill="#854f0b">export statique → branche gh-pages</text>
+  </g>
+
+  <!-- Usages -->
+  <g>
+    <rect x="1154" y="104" width="222" height="60" rx="6" fill="#fbece7" stroke="#c4572f"/>
+    <text x="1166" y="128" font-size="13" font-weight="600" fill="#712b13">QGIS sur le portable</text>
+    <text x="1166" y="148" fill="#993c1d">tunnel SSH · projet make qgis</text>
+    <rect x="1154" y="254" width="222" height="60" rx="6" fill="#fbece7" stroke="#c4572f"/>
+    <text x="1166" y="278" font-size="13" font-weight="600" fill="#712b13">Dashboard local</text>
+    <text x="1166" y="298" fill="#993c1d">localhost:8010/dashboard</text>
+    <rect x="1154" y="404" width="222" height="60" rx="6" fill="#fbece7" stroke="#c4572f"/>
+    <text x="1166" y="428" font-size="13" font-weight="600" fill="#712b13">Site public</text>
+    <text x="1166" y="448" fill="#993c1d">GitHub Pages · bandeau prototype</text>
+  </g>
+
+  <!-- Légende -->
+  <g font-size="12" fill="#1a1a19">
+    <rect x="866" y="612" width="12" height="12" rx="2" fill="#f4f4f1" stroke="#b5b4ae"/><text x="884" y="622">Sources et paramètres</text>
+    <rect x="866" y="634" width="12" height="12" rx="2" fill="#e8f1fb" stroke="#2a78d6"/><text x="884" y="644">Étapes du pipeline (idempotentes)</text>
+    <rect x="866" y="656" width="12" height="12" rx="2" fill="#eaf3e9" stroke="#2e7d32"/><text x="884" y="666">Données versionnées</text>
+    <rect x="866" y="678" width="12" height="12" rx="2" fill="#fbf1e1" stroke="#b26b00"/><text x="884" y="688">Service, reconstructible depuis data/</text>
+    <rect x="866" y="700" width="12" height="12" rx="2" fill="#fbece7" stroke="#c4572f"/><text x="884" y="710">Usages</text>
+  </g>
+
+  <!-- Job hebdomadaire -->
+  <rect x="24" y="770" width="1352" height="170" rx="8" fill="#f7f7f4" stroke="#b5b4ae"/>
+  <text x="40" y="796" font-size="13.5" font-weight="600" fill="#1a1a19">make hebdo : chaque semaine, après la publication des données météo (lancé à la main)</text>
+  <g fill="none" stroke="#8f8e88" stroke-width="1.5">
+    <path d="M250 849H260" marker-end="url(#fleche)"/><path d="M472 849H482" marker-end="url(#fleche)"/><path d="M694 849H704" marker-end="url(#fleche)"/><path d="M916 849H926" marker-end="url(#fleche)"/><path d="M1138 849H1148" marker-end="url(#fleche)"/>
+  </g>
+  <g>
+    <rect x="40" y="812" width="210" height="74" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="52" y="834" font-size="13" font-weight="600" fill="#0c447c">1 · Ingestion</text>
+    <text x="52" y="853" fill="#185fa5">90 derniers jours ; nappes depuis</text>
+    <text x="52" y="869" fill="#185fa5">leur dernière mesure en stock</text>
+    <rect x="262" y="812" width="210" height="74" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="274" y="834" font-size="13" font-weight="600" fill="#0c447c">2 · Indices</text>
+    <text x="274" y="853" fill="#185fa5">tout l'historique recalculé,</text>
+    <text x="274" y="869" fill="#185fa5">jusqu'à la semaine écoulée</text>
+    <rect x="484" y="812" width="210" height="74" rx="6" fill="#e8f1fb" stroke="#2a78d6"/>
+    <text x="496" y="834" font-size="13" font-weight="600" fill="#0c447c">3 · Contrôles</text>
+    <text x="496" y="853" fill="#185fa5">valeurs invraisemblables,</text>
+    <text x="496" y="869" fill="#185fa5">stations en échec</text>
+    <rect x="706" y="812" width="210" height="74" rx="6" fill="#eaf3e9" stroke="#2e7d32"/>
+    <text x="718" y="834" font-size="13" font-weight="600" fill="#1f5a23">4 · Publication</text>
+    <text x="718" y="853" fill="#2e7d32">dvc push · commit des .dvc ·</text>
+    <text x="718" y="869" fill="#2e7d32">étiquette data-AAAA-Www · push</text>
+    <rect x="928" y="812" width="210" height="74" rx="6" fill="#fbf1e1" stroke="#b26b00"/>
+    <text x="940" y="834" font-size="13" font-weight="600" fill="#6b4000">5 · PostGIS</text>
+    <text x="940" y="853" fill="#854f0b">rechargé depuis data/,</text>
+    <text x="940" y="869" fill="#854f0b">en une transaction</text>
+    <rect x="1150" y="812" width="210" height="74" rx="6" fill="#f4f4f1" stroke="#b5b4ae"/>
+    <text x="1162" y="834" font-size="13" font-weight="600" fill="#1a1a19">6 · Rapport</text>
+    <text x="1162" y="853" fill="#5f5e5a">logs/hebdo/AAAA-Www.md</text>
+    <text x="1162" y="869" fill="#5f5e5a">(non versionné)</text>
+  </g>
+  <text x="40" y="918" font-size="12" fill="#5f5e5a">Puis make pages, à la main, pour mettre le site public à jour. Une semaine recalculée après correction déplace son étiquette.</text>
+</svg>

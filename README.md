@@ -64,6 +64,10 @@ Quelques règles utiles pour lire les résultats :
 
 ## 2. Architecture
 
+![Workflow de l'observatoire : sources publiques, pipeline make, données versionnées (DVC, Git), PostGIS, API, QGIS, dashboard et site public ; job hebdomadaire en six étapes](docs/workflow.svg)
+
+Le même enchaînement, en texte :
+
 ```
   SOURCES (API ouvertes)
   Hub'Eau piézométrie · hydrométrie · écoulement ONDE
@@ -396,6 +400,7 @@ logs/        rapports du job hebdomadaire, non versionnés
 | [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D13 et contrôles chiffrés (elles priment sur la spec) |
 | [`docs/validation.md`](docs/validation.md) | indices confrontés aux arrêtés sécheresse, généré par `make validation` |
 | [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS, dashboard et API depuis un poste Windows par tunnel SSH |
+| [`docs/workflow.svg`](docs/workflow.svg) | schéma du workflow complet (section 2) |
 | [`docs/roadmap.svg`](docs/roadmap.svg) | schéma de la feuille de route (section 10) |
 | [`LICENSE`](LICENSE), [`LICENCE-DONNEES.md`](LICENCE-DONNEES.md) | licences du code et des données (section 11) |
 | [`docs/spikes/`](docs/spikes/) | validations techniques de la V0 (SIM, Hub'Eau, Sentinel-2, DVC, retenues) |

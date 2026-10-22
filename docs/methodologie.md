@@ -180,7 +180,7 @@ Contrôles (Vendée, 1991–2020, 1 566 semaines) :
 | Marais breton : 05341X0104/SF7, 05342X0034/F4, 05348X0255/P3 ; 05342X0078/FORAGE | 2011–2026 ; 2016–2026 | 2011–2025 ; 2016–2025 |
 | Île d'Yeu 05596X0058/SF2 ; Vie-Jaunay 05604X0162/SF1, 05612X0007/F | 2011–2026, 2010–2026 | 2011–2025, 2010–2025 |
 | Logne-Boulogne M811261020, M812401010 | 2009–2026, 1995–2026 | 2009–2025, 1995–2025 |
-| Noirmoutier (rupture en 2021) | — | 2021–2028 : IPS à partir de 2029 |
+| Noirmoutier (rupture en 2021) | — | 2021–2028 : IPS à partir de 2028, mois par mois (chaque mois a alors ses 8 années) |
 
 **2. Restandardisation des indices de zone et du composite.** Une moyenne d'indices varie moins que chacun d'eux (D9, contrôles) : le composite n'était en classe 1 que 5,4 % à 11,8 % du temps selon la zone, l'IPS de zone du Sud-Vendée 4,4 %. L'IPS et le débit de zone, puis le composite (calculé avec les indices de zone restandardisés), sont reclassés parmi leurs propres valeurs hebdomadaires de référence de la zone, par le rang de Gringorten comme les stations (D9). Référence d'une zone : même règle que les stations (1991–2020, sinon figée par le point 1), une année comptant si la zone a une valeur au moins `rang_zone.semaines_min_annee` (26) semaines. Les échantillons sont calculés par `make reference` (`data/normales/rang_zone.parquet`) ; `detail` garde la valeur brute (`valeur_brute`), la période de référence (`reference`) et l'avertissement (`hors_reference`). Toutes les zones ont 1991–2020, sauf l'IPS de zone de Vie-Jaunay (2009–2025) et de l'île d'Yeu (2011–2025). Les valeurs restent bornées par le rang, vers ±3,2 (1 566 semaines de référence).
 

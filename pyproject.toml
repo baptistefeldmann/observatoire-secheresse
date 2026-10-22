@@ -6,24 +6,15 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12,<3.13"
+# Dépendances du service web seul (API et dashboard) : c'est ce qu'installe l'image Docker de
+# l'API. Les bibliothèques du pipeline de calcul sont dans le groupe `pipeline` (plus bas).
 dependencies = [
-    "geopandas>=1.0",
-    "pandas>=2.2",
-    "pyarrow>=17",
-    "shapely>=2.0",
-    "pyproj>=3.6",
-    "numpy>=2.0",
-    "scipy>=1.13",
-    "httpx>=0.27",
-    "tenacity>=9.0",
     "pyyaml>=6.0",
     "pydantic>=2.8",
     "pydantic-settings>=2.4",
+    "pyproj>=3.6",
     "sqlalchemy>=2.0",
-    "geoalchemy2>=0.15",
     "psycopg[binary]>=3.2",
-    "alembic>=1.13",
-    "dvc>=3.50",
     "fastapi>=0.115",
     "uvicorn>=0.30",
 ]
@@ -42,6 +33,21 @@ raster = [
 ]
 
 [dependency-groups]
+# Pipeline de calcul (ingestion, normales, indices, job hebdomadaire) : installé par défaut
+# (`default-groups`), exclu de l'image de l'API par `--no-group pipeline`.
+pipeline = [
+    "geopandas>=1.0",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "shapely>=2.0",
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "httpx>=0.27",
+    "tenacity>=9.0",
+    "geoalchemy2>=0.15",
+    "alembic>=1.13",
+    "dvc>=3.50",
+]
 dev = [
     "pytest>=8.3",
     "ruff>=0.6",
@@ -49,6 +55,9 @@ dev = [
     "pandas-stubs",
     "types-pyyaml",
 ]
+
+[tool.uv]
+default-groups = ["dev", "pipeline"]
 
 [build-system]
 requires = ["hatchling"]

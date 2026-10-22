@@ -130,7 +130,7 @@ Prérequis : [uv](https://docs.astral.sh/uv/), Docker, make. Sur une machine Lin
 git clone https://github.com/baptistefeldmann/observatoire-secheresse.git
 cd observatoire-secheresse
 cp .env.example .env      # renseigner au minimum POSTGRES_PASSWORD et POSTGRES_LECTEUR_PASSWORD
-make install              # environnement Python (uv sync)
+make install              # environnement Python (uv sync : service web, pipeline de calcul et outils de développement)
 make config               # vérifie la configuration du territoire
 make up                   # démarre PostGIS (port 5433) et l'API (port 8010), limités à la machine
 ```
@@ -429,7 +429,7 @@ La V1 tourne chaque semaine et l'indice a été confronté aux sécheresses conn
 
 **Phases suivantes** (spécification, §2) : V2 ajoute la végétation par satellite (Sentinel-2, occupation du sol), V3 l'axe pression et la carte de tension, V4 la prévision. Le schéma de données et l'arborescence sont déjà prévus pour elles.
 
-**Exploitation**, en parallèle : planifier le job hebdomadaire (ligne cron dans la section 4), image de l'API allégée. L'intégration continue (GitHub Actions : lint et tests à chaque poussée sur `main` et chaque demande de fusion, `.github/workflows/ci.yml`) et le redémarrage automatique des conteneurs sont en place. La liste complète des points ouverts est dans [`passation.md`](passation.md).
+**Exploitation**, en parallèle : planifier le job hebdomadaire (ligne cron dans la section 4). L'image de l'API est allégée (228 Mo, contre 982 Mo : seules les dépendances du service web, voir `pyproject.toml`). L'intégration continue (GitHub Actions : lint et tests à chaque poussée sur `main` et chaque demande de fusion, `.github/workflows/ci.yml`) et le redémarrage automatique des conteneurs sont en place. La liste complète des points ouverts est dans [`passation.md`](passation.md).
 
 ## 11. Licence
 

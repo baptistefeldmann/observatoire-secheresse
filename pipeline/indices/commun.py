@@ -4,34 +4,20 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
-from datetime import date, timedelta
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from scipy import stats
 
+from pipeline.calendrier import derniere_semaine_complete as derniere_semaine_complete
+from pipeline.calendrier import dimanche as dimanche
+from pipeline.calendrier import libelle_semaine as libelle_semaine
 from pipeline.config import Classes
 
 # Bornes de la valeur standardisée : un cumul nul sans précédent dans la référence (q0 = 0)
 # donnerait −∞ (D9).
 Z_MAX = 3.0
-
-
-def libelle_semaine(dimanche: date) -> str:
-    annee, semaine, _ = dimanche.isocalendar()
-    return f"{annee}-W{semaine:02d}"
-
-
-def dimanche(semaine: str) -> date:
-    """Dimanche (fin) de la semaine ISO « AAAA-Www »."""
-    annee, numero = semaine.split("-W")
-    return date.fromisocalendar(int(annee), int(numero), 7)
-
-
-def derniere_semaine_complete(aujourd_hui: date) -> str:
-    """Semaine ISO dont le dimanche est passé (le dimanche même, la journée n'est pas finie)."""
-    return libelle_semaine(aujourd_hui - timedelta(days=aujourd_hui.isoweekday()))
 
 
 def dimanches(debut: str, fin: str) -> pd.DatetimeIndex:

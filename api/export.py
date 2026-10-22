@@ -23,7 +23,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from api.app import DASHBOARD, app
-from pipeline.indices.commun import dimanche
+from pipeline.calendrier import dimanche
 
 INDICES_ZONE = ("composite", "spi_3", "ips", "debit", "onde")  # ceux qu'affiche le dashboard
 PROPRIETES_ZONE = ("zone_id", "libelle", "type_zone", "ponderations")

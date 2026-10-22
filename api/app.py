@@ -18,8 +18,8 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Connection, Engine, create_engine, text
 
 from api import requetes
+from pipeline.calendrier import dimanche
 from pipeline.config import Config, Environnement, charger_config
-from pipeline.indices.commun import dimanche
 
 MOTIF_SEMAINE = r"^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$"
 Semaine = Annotated[str, Query(pattern=MOTIF_SEMAINE, description="Semaine ISO, ex. 2026-W39")]

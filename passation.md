@@ -31,7 +31,7 @@ Préférences constantes, à respecter dès la première réponse :
 | Machine | Linux, `/home/bfeldmann/projects/hydrolyse_dashboard`, 8 cœurs, 31 Go de RAM, fuseau Europe/Paris |
 | Python | 3.12 via `uv`. **Toujours `uv sync --extra raster`** : un `uv sync` simple désinstalle les paquets Sentinel-2 (xarray, odc-stac…) |
 | Conteneurs | `make up` démarre `secheresse_vendee-postgis-1` (PostGIS 16-3.4, port **5433**) et `secheresse_vendee-api-1` (port **8010**), tous deux limités à `127.0.0.1`. Redémarrage automatique avec Docker (`restart: unless-stopped`, ajouté le 2026-10-22 ; effectif au prochain `make up`, qui recrée les conteneurs) : `make up` seulement après un `make down`. Le volume nommé `secheresse_vendee_pgdata` (`docker-compose.yml`, lignes `pgdata:`) conserve la base (1,45 Go) : `make down` le garde, seuls `down -v` ou `volume rm` le suppriment. `config/` est **monté** en lecture seule dans l'API (lu au démarrage : `docker compose restart api` après un changement) ; le code et le dashboard sont dans l'image |
-| Images Docker | `secheresse_vendee-api` (982 Mo, construite par `make up`) ; `qgis/qgis:3.44.8` (2,2 Go, pour `make qgis`) |
+| Images Docker | `secheresse_vendee-api` (228 Mo depuis le 2026-10-22, construite par `make up` ; l'ancienne de 982 Mo reste sous le même nom tant que `make up` n'a pas reconstruit) ; `qgis/qgis:3.44.8` (2,2 Go, pour `make qgis`) |
 | Ports déjà pris sur la machine | 5432 (`pg_container`), 8000 (`mlops_meteo_australie-nginx-1`) |
 | Secrets | `.env` (non versionné) : `POSTGRES_PASSWORD`, `POSTGRES_LECTEUR_PASSWORD`, `DAGSHUB_USER`, `DAGSHUB_TOKEN` ; `make dvc-auth` copie DagsHub dans `.dvc/config.local`. Clé SSH GitHub sans phrase de passe (utilisée par `make hebdo` et `make pages`) |
 | Accès distant | portable Windows → tunnel `ssh -N secheresse-tunnel` (ports 5433 et 8010), service PostgreSQL `secheresse_vendee`, rôle `lecteur`, `PGSERVICEFILE` et `pgpass.conf` en place. Procédure : [`docs/acces_distant.md`](docs/acces_distant.md) |
@@ -53,7 +53,7 @@ make hebdo         # job hebdomadaire complet, publication comprise (~3 min) ; r
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS (~20 s)
 make site          # dashboard statique -> build/pages (~80 s, ~100 Mo ; PostGIS démarré)
 make pages         # make site puis remplace la branche gh-pages (pousse sur GitHub)
-make test          # 122 tests (8 ignorés sans base) sans réseau ni service (à lancer aussi PostGIS arrêté)
+make test          # 123 tests (8 ignorés sans base) sans réseau ni service (à lancer aussi PostGIS arrêté)
 make test-db       # 20 tests d'intégration sur une base PostGIS jetable (Docker, port 55433)
 make lint          # ruff + mypy strict (pipeline, api, tests)
 ```
@@ -155,7 +155,7 @@ Pondérations du composite (`config/zones.yaml`, SPI 3 mois / IPS / débits) : S
 1. ~~Mettre à jour le document de méthodologie~~ : fait le 2026-10-22 (D13), en ligne, schéma et PDF compris.
 2. **Employeur de l'utilisateur** (voir 7.3) : à régler avant toute communication sur le projet.
 3. **Présentation aux acteurs** (DDTM 85, Vendée Eau, syndicats de bassin) avec la note de synthèse ; décider du bandeau du site (« prototype en cours de validation ») ; poser les questions ouvertes aux gestionnaires.
-4. **Exploitation** (7.2) : cron (refusé), image allégée. Intégration continue et redémarrage automatique faits le 2026-10-22.
+4. **Exploitation** (7.2) : cron (refusé). Intégration continue, redémarrage automatique et image allégée faits le 2026-10-22.
 5. **V2 à V4** (7.4) : seulement sur demande explicite.
 
 ### 7.1 Validation de l'indice (terminée le 2026-10-15)
@@ -174,7 +174,7 @@ Protocole accepté par l'utilisateur le 2026-10-10 (détail dans `docs/methodolo
 - Planifier le job (cron le lundi 11 h, après la publication du SIM) — refusé pour l'instant par l'utilisateur.
 - Intégration continue GitHub Actions (lint + tests) : **faite le 2026-10-22**, `.github/workflows/ci.yml` (`uv sync --locked`, `make lint`, `make test` sur Ubuntu 24.04, à chaque poussée sur `main` et chaque demande de fusion). Testée sur un clone propre du dépôt (sans `data/` ni `.env`) : lint sans erreur, 122 tests réussis, 8 ignorés (PostGIS). Premier vrai passage à vérifier sur l'onglet Actions de GitHub après la première poussée.
 - `restart: unless-stopped` pour PostGIS et l'API : **appliqué le 2026-10-22** dans `docker-compose.yml` ; les conteneurs en cours ne le prennent qu'au prochain `make up`.
-- Alléger l'image de l'API (982 Mo, toutes les dépendances du pipeline).
+- Image de l'API allégée : **faite le 2026-10-22**, 982 Mo → 228 Mo (mémoire de l'API 134 → 70 Mo). Cause : `api/app.py` importait `pipeline.indices.commun`, dont le paquet charge pandas, scipy, geopandas et pyarrow. Corrections : fonctions de dates dans `pipeline/calendrier.py` (sans dépendance, réexportées par `commun`) ; dépendances du service web seules dans `[project] dependencies`, celles du pipeline dans le groupe `pipeline` de `pyproject.toml` (installé par défaut via `[tool.uv] default-groups`, exclu de l'image par `--no-group pipeline`) ; Dockerfile en deux étapes sur `python:3.12-slim-bookworm` (sans uv, projet non installé : l'API tourne depuis `/app`). Garde-fou : `tests/test_api_legere.py` (import de `api.app` avec pandas, scipy, geopandas… bloqués). Vérifié : lint, 123 tests, 20 tests d'intégration, `make site`, et réponses de l'API identiques à l'ancienne image sur 6 points d'accès face à la vraie base. **Règle** : tout nouvel import dans `api/` ne doit venir que de `[project] dependencies` ; une dépendance utilisée par l'API va dans ce bloc, pas dans le groupe `pipeline`.
 - `make hebdo` : son `git push` envoie aussi les commits locaux non poussés de `main` ; une semaine recalculée après correction déplace son étiquette (`push --force` de l'étiquette seule).
 
 ### 7.3 Données et sources

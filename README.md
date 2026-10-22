@@ -4,9 +4,9 @@ Suivi hebdomadaire de la sécheresse à l'échelle d'un département, **par zone
 
 Les résultats sont des **indices standardisés** classés sur 7 niveaux (de « très bas » à « très haut »), calculés chaque semaine ISO, par station et par zone, ainsi qu'un **indice composite** par zone. Ils sont consultables dans un **dashboard web**, dans **QGIS** et par une **API**.
 
-**Voir le dashboard public : <https://baptistefeldmann.github.io/observatoire-secheresse/>** (prototype : l'indice est en cours de validation).
+**Voir le dashboard public : <https://baptistefeldmann.github.io/observatoire-secheresse/>** (prototype : l'indice a été confronté aux arrêtés sécheresse de 2012 à 2026 et aux bulletins de situation hydrologique ; la vérification se poursuit).
 
-> État : V1 terminée et en service depuis octobre 2026 (indices hebdomadaires de 1991 à aujourd'hui, job hebdomadaire, base PostGIS, projet QGIS, API, dashboard et sa version publique). Prochaine étape : valider l'indice sur les sécheresses passées. Voir la [feuille de route](#10-feuille-de-route) ; détail dans [`passation.md`](passation.md).
+> État : V1 terminée et en service depuis octobre 2026 (indices hebdomadaires de 1991 à aujourd'hui, job hebdomadaire, base PostGIS, projet QGIS, API, dashboard et sa version publique). L'indice a été validé en octobre 2026 (arrêtés, bulletins hydrologiques ; décisions D10 à D13) ; la prochaine étape est de le présenter aux acteurs du territoire. Voir la [feuille de route](#10-feuille-de-route) ; détail dans [`passation.md`](passation.md).
 
 ## Sommaire
 
@@ -39,7 +39,7 @@ Chaque variable est comparée **à sa propre normale** (même station ou même z
 | `spi_1`, `spi_3`, `spi_6` | pluie sur 1, 3 et 6 mois | zone | Indice de précipitations standardisé (loi gamma) |
 | `ips` | niveau des nappes | piézomètre, puis zone | Niveau moyen du mois comparé aux mêmes mois de la référence (méthode BRGM) |
 | `debit` | débit des cours d'eau | station, puis zone | Débit moyen sur 7 jours comparé aux mêmes dates de la référence |
-| composite | les trois ci-dessus | zone | Moyenne pondérée de `spi_3`, `ips` et `debit`, poids propres à chaque zone |
+| composite | les trois ci-dessus | zone | Moyenne pondérée de `spi_3`, `ips` et `debit`, poids propres à chaque zone, puis reclassée parmi les semaines de référence de la zone (D10) |
 | `onde` | écoulement observé | zone | Part des stations ONDE en assec ou sans écoulement visible, par campagne (non standardisée, hors composite) |
 | retenues | remplissage des retenues d'eau potable | retenue | Volume / capacité, chaque semaine (affiché à part, hors composite) |
 
@@ -59,7 +59,9 @@ Quelques règles utiles pour lire les résultats :
 
 - **Fraîcheur des nappes** (D1) : un piézomètre dont la dernière mesure a plus de 45 jours reste affiché, mais n'entre pas dans le composite de la semaine. En Vendée, les piézomètres sont publiés par lots : l'IPS manque souvent au composite du marais breton.
 - **Composante absente** : ses poids sont répartis sur les autres. Le composite indique combien de composantes il utilise (`n_composantes`) et s'il est partiel (`partiel`).
-- **Stations à fonctionnement modifié** (D8) : certains piézomètres ont changé de régime (travaux, prélèvements). Leur normale ne porte que sur le nouveau régime, ou ils n'ont pas d'IPS (Noirmoutier, jusqu'en 2028).
+- **Échelle fixe dans le temps** (D10) : la référence reste 1991-2020, sans jamais glisser, et les références hors période sont figées à 2025. La part des semaines en classe 1 (10 % attendus sur la référence) sert à suivre la multiplication des sécheresses : l'API (`/recurrence`) et le dashboard la donnent. L'IPS et le débit d'une zone (moyennes de stations) et le composite sont reclassés par le rang parmi les semaines de référence de leur zone, pour que la classe 1 garde ses 10 % ; les valeurs restent bornées.
+- **Stations à fonctionnement modifié** (D8, D12, D13) : certains piézomètres ont changé de régime (travaux, prélèvements, gestion). Leur normale ne porte que sur le nouveau régime, ou ils n'ont pas d'IPS (Noirmoutier, progressivement à partir de 2028). Au Sud-Vendée et dans le marais poitevin, le niveau d'été monte depuis 1990 (baisse probable des pompages d'irrigation) : leurs nappes sont comparées au régime 2011-2025, sans IPS avant 2011, et pèsent davantage dans le composite.
+- **Validation** : l'indice est confronté aux arrêtés de restriction (`make validation`, [`docs/validation.md`](docs/validation.md)) et aux bulletins de situation hydrologique ; les écarts attendus (seuils fixes des arrêtés, hydraulicité rapportée à la moyenne) sont expliqués dans [`docs/methodologie.md`](docs/methodologie.md).
 - **Historique** : les semaines passées sont recalculées avec les données publiées depuis, plus complètes que ce qui était disponible sur le moment.
 
 ## 2. Architecture
@@ -73,14 +75,15 @@ Le même enchaînement, en texte :
   Hub'Eau piézométrie · hydrométrie · écoulement ONDE
   Météo-France SIM (data.gouv.fr) · retenues (ArcGIS du Département)
   SANDRE (masses d'eau, zones d'alerte) · geo.api.gouv.fr (communes)
+  VigiEau (arrêtés sécheresse, pour la validation seulement)
                  │
                  ▼
   PIPELINE PYTHON  (python -m pipeline <commande>, appelé par make)
-  référentiels → ingestion → normales → indices de la semaine
+  référentiels → ingestion → normales → indices de la semaine → validation
                  │
                  ▼
   data/  GeoParquet, SOURCE DE VÉRITÉ          versionné par DVC → DagsHub
-  referentiels/ · raw/ · normales/ · indices/
+  referentiels/ · raw/ · normales/ · indices/ · validation/
                  │  make db-rebuild (une transaction, reconstruction complète)
                  ▼
   PostGIS (Docker)  COUCHE DE SERVICE          reconstructible à tout moment
@@ -162,7 +165,10 @@ make config               # affiche territoire, période de référence, zones e
 make test                 # tests sans réseau ni service externe
 make test-db              # test d'intégration sur une base PostGIS jetable (Docker)
 make lint                 # ruff + mypy strict
+make validation           # indices confrontés aux arrêtés sécheresse (VigiEau)
 ```
+
+**Après avoir modifié `config/`** : `config/` est monté en lecture seule dans le conteneur de l'API, qui le lit une seule fois au démarrage. Redémarrer l'API (`docker compose restart api`). Si les poids de `zones.yaml` changent, mettre aussi à jour `data/referentiels/zones.parquet` (`make referentiels`), puis `make reference`, `make indices` et `make db-rebuild`. Le code et le dashboard, eux, sont copiés dans l'image : `make up` la reconstruit.
 
 ### Le job hebdomadaire
 
@@ -235,7 +241,7 @@ La base `secheresse_<slug>` (ici `secheresse_vendee`) comporte quatre schémas d
 | `carto.v_indice_station` | IPS et débit par station, `anciennete_jours` de la mesure | point |
 | `carto.v_retenue` | relevés des retenues, `remplissage_pct`, `derniere` (dernier relevé) | point |
 
-Toutes les tables d'indices ont une colonne `semaine` au format `AAAA-Www` (ex. `2026-W39`) et une colonne `version_methodo` (identifiant de la dernière décision de méthode, ex. `D9`). Les tables d'indices n'ont pas de géométrie : les vues `carto` les joignent à leur zone ou à leur station. Leur colonne `derniere` repère la semaine la plus récente, et `debut` sert au contrôleur temporel de QGIS. Chaque vue a une clé unique `cle`.
+Toutes les tables d'indices ont une colonne `semaine` au format `AAAA-Www` (ex. `2026-W39`) et une colonne `version_methodo` (identifiant de la dernière décision de méthode, ex. `D13`). Les tables d'indices n'ont pas de géométrie : les vues `carto` les joignent à leur zone ou à leur station. Leur colonne `derniere` repère la semaine la plus récente, et `debut` sert au contrôleur temporel de QGIS. Chaque vue a une clé unique `cle`.
 
 ## 6. Utiliser l'observatoire dans QGIS
 
@@ -315,7 +321,7 @@ Les tables `idx.indice_zone`, `idx.composite_zone` et `obs.*` se chargent comme 
 
 ## 7. L'API et le dashboard
 
-L'API sert les indices au dashboard (étape 9) et à tout autre client, en lecture seule (rôle `lecteur`). Elle tourne dans le service `api` de `docker-compose.yml` : `make up` démarre PostGIS et l'API, et reconstruit l'image si le code a changé ; `make down` arrête les deux. Elle écoute sur le port **8010**, limité à la machine. Depuis le portable, elle est accessible par le tunnel SSH, déjà configuré pour ce port : <http://localhost:8010/docs> donne la documentation interactive, où l'on peut essayer chaque requête.
+L'API sert les indices au dashboard (étape 9) et à tout autre client, en lecture seule (rôle `lecteur`). Elle tourne dans le service `api` de `docker-compose.yml` : `make up` démarre PostGIS et l'API, et reconstruit l'image si le code a changé (`config/` est monté : après l'avoir modifié, `docker compose restart api`) ; `make down` arrête les deux. Elle écoute sur le port **8010**, limité à la machine. Depuis le portable, elle est accessible par le tunnel SSH, déjà configuré pour ce port : <http://localhost:8010/docs> donne la documentation interactive, où l'on peut essayer chaque requête.
 
 | Requête | Réponse |
 |---|---|
@@ -373,7 +379,8 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 6. Adapter `qgis/pg_service.conf.example` (nom du service `secheresse_<slug>`, base, port).
 7. Dans `config/projet.yaml`, bloc `publication` : texte de l'avertissement et sources citées par la version publique du dashboard.
 8. `make config` pour valider, puis `make ingest`, `make reference`, `make indices`, `make db-rebuild` et `make qgis`.
-9. Examiner les ruptures signalées par `make reference` (journal et `data/normales/ruptures.parquet`) et inscrire celles qui sont confirmées dans `config/stations.yaml` (D8).
+9. Examiner les ruptures signalées par `make reference` (journal et `data/normales/ruptures.parquet`) et inscrire celles qui sont confirmées dans `config/stations.yaml` (D8). Examiner aussi les tendances des minima d'été des nappes : une hausse à contre-sens de la pluie (gestion des prélèvements) se déclare par zone (`regime_nappes` dans `zones.yaml`, D12) ou par station (D13).
+10. Facultatif, pour valider l'indice : lister dans `zones.yaml` les zones d'alerte des arrêtés de chaque zone (`zones_alerte_arretes`), puis `make validation`.
 
 `classes.yaml` (échelle à 7 classes) et `sources.yaml` (points d'accès des API) sont communs à tous les départements.
 
@@ -381,7 +388,7 @@ Le code ne contient aucune référence au territoire : tout passe par `config/`.
 
 ```
 config/      paramètres : territoire, zones et pondérations, classes, sources, stations
-pipeline/    sources/ (une par API), reference/ (normales), indices/, db/ (PostGIS, Alembic)
+pipeline/    sources/ (une par API), reference/ (normales), indices/, validation/ (arrêtés), db/ (PostGIS, Alembic)
 tests/       tests pytest sur réponses API enregistrées (fixtures/), sans réseau
 data/        GeoParquet, source de vérité (DVC) : referentiels/, raw/, normales/, indices/, validation/
 qgis/        script de génération du projet, projet .qgz, styles QML, service PostgreSQL d'exemple
@@ -389,7 +396,7 @@ api/         API FastAPI (app.py, requêtes SQL, Dockerfile)
 dashboard/   dashboard web (index.html, app.js, style.css), servi par l'API
 rasters/     COG Sentinel-2 (V2), locaux et non versionnés
 docker/      initialisation de PostGIS (rôle lecteur)
-docs/        spécification, méthodologie, accès distant, feuille de route, comptes rendus de spikes
+docs/        spécification, méthodologie, validation, accès distant, schémas (workflow, feuille de route), comptes rendus de spikes
 build/       site statique du dashboard (make site), régénérable, non versionné
 logs/        rapports du job hebdomadaire, non versionnés
 ```
@@ -408,16 +415,17 @@ logs/        rapports du job hebdomadaire, non versionnés
 
 ## 10. Feuille de route
 
-![Feuille de route : V0 et V1 terminées, validation de l'indice en prochaine étape, puis V2 (satellite), V3 (pression et tension) et V4 (prévision)](docs/roadmap.svg)
+![Feuille de route : V0, V1 et validation de l'indice terminées, présentation aux acteurs en prochaine étape, puis V2 (satellite), V3 (pression et tension) et V4 (prévision)](docs/roadmap.svg)
 
-La V1 tourne chaque semaine. Avant d'aller plus loin, l'indice doit être confronté aux sécheresses connues : c'est la condition pour le présenter aux acteurs du territoire (DDTM 85, Vendée Eau, syndicats de bassin).
+La V1 tourne chaque semaine et l'indice a été confronté aux sécheresses connues (octobre 2026). La prochaine étape est de le présenter aux acteurs du territoire (DDTM 85, Vendée Eau, syndicats de bassin), avec une note de synthèse : méthode, validation, limites.
 
-**Validation de l'indice (prochaine étape)**
+**Validation de l'indice (terminée)**
 
 - Fait : confrontation aux arrêtés de restriction de 2012 à 2026 (`make validation`, [`docs/validation.md`](docs/validation.md)) ; échelle fixe dans le temps, avec références figées et indices de zone restandardisés (décision D10).
 - Fait : pondérations vérifiées par les arrêtés (D11) ; nappes du Sud-Vendée et du marais poitevin comparées à leur régime actuel (2011-2025) et prioritaires dans le composite (D12) ; hausses des minima d'été ailleurs traitées comme des ruptures (D13).
 - Fait : comparaison au bulletin de situation hydrologique régional (2011, 2017, 2019, 2022), qui confirme les données et l'ordre des classes ; écarts expliqués (hydraulicité rapportée à la moyenne, nappes du Sud-Vendée comparées aux années pompées).
-- Documenter l'origine des ruptures de Noirmoutier, du marais breton, du Sud-Vendée et du marais poitevin (réserves de substitution ou baisse des volumes autorisés), et celle du piézomètre 05634X0013/SF3, auprès du BRGM ou des gestionnaires.
+- Fait : indicateur de récurrence des sécheresses (part des semaines en classe 1 par année et par zone) dans l'API et le dashboard.
+- À confirmer avec les gestionnaires : origine des changements de niveau de Noirmoutier, du marais breton, du Sud-Vendée et du marais poitevin (réserves de substitution ou baisse des volumes autorisés), et du piézomètre 05634X0013/SF3 (BRGM, établissement public du Marais poitevin).
 
 **Phases suivantes** (spécification, §2) : V2 ajoute la végétation par satellite (Sentinel-2, occupation du sol), V3 l'axe pression et la carte de tension, V4 la prévision. Le schéma de données et l'arborescence sont déjà prévus pour elles.
 

@@ -4,11 +4,13 @@ Pour reprendre le projet, lire d'abord `passation.md` (état d'avancement, erreu
 
 ## Règles du projet
 
-- **Phase en cours : V0 puis V1.** Ne pas implémenter de fonctionnalités des phases V2 à V4 sans demande explicite. Le schéma et l'arborescence doivent néanmoins rester compatibles avec elles.
+- **Phases : V0 et V1 terminées, indice validé (octobre 2026).** Ne pas implémenter de fonctionnalités des phases V2 à V4 sans demande explicite. Le schéma et l'arborescence doivent néanmoins rester compatibles avec elles.
 - **Les GeoParquet de `data/` sont la source de vérité.** PostGIS est une couche de service, toujours reconstructible avec `make db-rebuild`. Ne jamais écrire de donnée uniquement dans PostGIS.
 - **CRS : EPSG:2154** pour le stockage et les calculs. Reprojeter à l'ingestion.
 - **Semaine ISO** (`AAAA-Www`) comme unité de temps du suivi.
 - **Jamais de valeurs brutes agrégées entre variables** : toujours passer par un indice standardisé (§6 de la spec).
+- **Échelle fixe dans le temps (D10)** : la référence reste 1991-2020 (références hors période figées à 2025), jamais glissante ; les valeurs restent bornées. L'indicateur du changement climatique est la part des semaines en classe 1, pas l'intensité des records.
+- **Toute modification de la méthode** = une nouvelle décision numérotée dans `docs/methodologie.md` (options chiffrées sur les vraies données, validée par l'utilisateur), `indices.version_methodo` mis à jour dans `config/projet.yaml`, indices recalculés, validation relancée, documents à jour. Décisions actuelles : D1 à D13.
 - `rasters/` n'est ni versionné par Git ni par DVC.
 - Les secrets (Météo-France, Copernicus, DagsHub) sont lus depuis `.env`. Ne jamais les écrire dans le code, la configuration versionnée ou les projets QGIS. Maintenir `.env.example` à jour.
 - Toute étape du pipeline est idempotente.
@@ -45,3 +47,11 @@ make lint
 ## Quand un choix n'est pas couvert par la spec
 
 Proposer les options et demander avant d'implémenter, en particulier pour : la pile du front, tout changement de schéma, toute nouvelle source de données, toute modification de la méthodologie des indices.
+
+## Façon de travailler (détail dans `passation.md`, section 2)
+
+- **Git et publication : l'utilisateur committe et pousse lui-même.** Claude prépare, indexe (`git add`) et donne les commandes (blocs `bash` séparés, message en français, ligne `Co-Authored-By`). Jamais de `git commit`, `git push`, `dvc push`, `make hebdo` ni `make pages` lancés par Claude.
+- **Décisions** : expliquer simplement les options, les chiffrer sur les vraies données, recommander, puis demander.
+- **Vérifier soi-même** avant de livrer : sorties confrontées aux vraies données, idempotence, captures d'écran des rendus (dashboard, schémas, PDF). Tout est généré et testé sur la machine Linux ; le portable ne sert qu'à consulter.
+- **Après un changement de `config/`** : `config/` est monté dans le conteneur de l'API et lu au démarrage, donc `docker compose restart api` ; le code et le dashboard sont dans l'image (`make up`).
+- **Routine hebdomadaire** (manuelle) : `make up`, `make hebdo`, puis `make pages` pour le site public.

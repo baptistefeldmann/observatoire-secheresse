@@ -342,7 +342,7 @@ Exemples : `/zones/SUD_VENDEE/series?indice=spi_3&debut=2022-W01&fin=2022-W52`, 
 - **Mise en page** : le bouton « Masquer la légende » (en haut à gauche de la carte) libère la carte ; la poignée entre la carte et le panneau se glisse pour agrandir ou réduire le panneau de droite (de 300 px à presque toute la largeur, la carte gardant 320 px), au clavier avec les flèches gauche et droite (Majuscule pour aller plus vite, Entrée ou double-clic pour revenir à la taille initiale). Les deux réglages sont gardés dans le navigateur ; la poignée n'existe pas en dessous de 1 000 px de large, où le panneau passe sous la carte.
 - **Lien partageable** : l'adresse de la page contient la semaine et la zone ou la station choisie, par exemple `/dashboard/#semaine=2022-W33&zone=SUD_VENDEE`.
 
-Fichiers : `dashboard/index.html`, `app.js`, `style.css`. Sans framework ni compilation : modifier un fichier, puis `make up` pour reconstruire l'image de l'API. MapLibre 6 et ECharts 6 sont chargés depuis jsDelivr (versions figées), les tuiles depuis la Géoplateforme de l'IGN : le poste qui affiche le dashboard doit avoir accès à Internet.
+Fichiers : `dashboard/index.html`, `app.js`, `style.css`. Sans framework ni compilation : modifier un fichier, puis `make up` pour reconstruire l'image de l'API (le dashboard y est copié ; `config/`, lui, est monté depuis le dépôt : après l'avoir modifié, `docker compose restart api`). MapLibre 6 et ECharts 6 sont chargés depuis jsDelivr (versions figées), les tuiles depuis la Géoplateforme de l'IGN : le poste qui affiche le dashboard doit avoir accès à Internet.
 
 ### Version publique (GitHub Pages)
 

@@ -30,7 +30,7 @@ Préférences constantes, à respecter dès la première réponse :
 |---|---|
 | Machine | Linux, `/home/bfeldmann/projects/hydrolyse_dashboard`, 8 cœurs, 31 Go de RAM, fuseau Europe/Paris |
 | Python | 3.12 via `uv`. **Toujours `uv sync --extra raster`** : un `uv sync` simple désinstalle les paquets Sentinel-2 (xarray, odc-stac…) |
-| Conteneurs | `make up` démarre `secheresse_vendee-postgis-1` (PostGIS 16-3.4, port **5433**) et `secheresse_vendee-api-1` (port **8010**), tous deux limités à `127.0.0.1`. Pas de redémarrage automatique : `make up` après un redémarrage de la machine ou un `make down`. Le volume nommé `secheresse_vendee_pgdata` (`docker-compose.yml`, lignes `pgdata:`) conserve la base (1,45 Go) : `make down` le garde, seuls `down -v` ou `volume rm` le suppriment. `config/` est **monté** en lecture seule dans l'API (lu au démarrage : `docker compose restart api` après un changement) ; le code et le dashboard sont dans l'image |
+| Conteneurs | `make up` démarre `secheresse_vendee-postgis-1` (PostGIS 16-3.4, port **5433**) et `secheresse_vendee-api-1` (port **8010**), tous deux limités à `127.0.0.1`. Redémarrage automatique avec Docker (`restart: unless-stopped`, ajouté le 2026-10-22 ; effectif au prochain `make up`, qui recrée les conteneurs) : `make up` seulement après un `make down`. Le volume nommé `secheresse_vendee_pgdata` (`docker-compose.yml`, lignes `pgdata:`) conserve la base (1,45 Go) : `make down` le garde, seuls `down -v` ou `volume rm` le suppriment. `config/` est **monté** en lecture seule dans l'API (lu au démarrage : `docker compose restart api` après un changement) ; le code et le dashboard sont dans l'image |
 | Images Docker | `secheresse_vendee-api` (982 Mo, construite par `make up`) ; `qgis/qgis:3.44.8` (2,2 Go, pour `make qgis`) |
 | Ports déjà pris sur la machine | 5432 (`pg_container`), 8000 (`mlops_meteo_australie-nginx-1`) |
 | Secrets | `.env` (non versionné) : `POSTGRES_PASSWORD`, `POSTGRES_LECTEUR_PASSWORD`, `DAGSHUB_USER`, `DAGSHUB_TOKEN` ; `make dvc-auth` copie DagsHub dans `.dvc/config.local`. Clé SSH GitHub sans phrase de passe (utilisée par `make hebdo` et `make pages`) |
@@ -155,7 +155,7 @@ Pondérations du composite (`config/zones.yaml`, SPI 3 mois / IPS / débits) : S
 1. ~~Mettre à jour le document de méthodologie~~ : fait le 2026-10-22 (D13), en ligne, schéma et PDF compris.
 2. **Employeur de l'utilisateur** (voir 7.3) : à régler avant toute communication sur le projet.
 3. **Présentation aux acteurs** (DDTM 85, Vendée Eau, syndicats de bassin) avec la note de synthèse ; décider du bandeau du site (« prototype en cours de validation ») ; poser les questions ouvertes aux gestionnaires.
-4. **Exploitation** (7.2) : cron, intégration continue, redémarrage automatique, image allégée.
+4. **Exploitation** (7.2) : cron (refusé), image allégée. Intégration continue et redémarrage automatique faits le 2026-10-22.
 5. **V2 à V4** (7.4) : seulement sur demande explicite.
 
 ### 7.1 Validation de l'indice (terminée le 2026-10-15)
@@ -172,8 +172,8 @@ Protocole accepté par l'utilisateur le 2026-10-10 (détail dans `docs/methodolo
 ### 7.2 Exploitation
 
 - Planifier le job (cron le lundi 11 h, après la publication du SIM) — refusé pour l'instant par l'utilisateur.
-- Intégration continue GitHub Actions (lint + tests) : proposée, non faite.
-- `restart: unless-stopped` pour PostGIS et l'API : proposé, non appliqué.
+- Intégration continue GitHub Actions (lint + tests) : **faite le 2026-10-22**, `.github/workflows/ci.yml` (`uv sync --locked`, `make lint`, `make test` sur Ubuntu 24.04, à chaque poussée sur `main` et chaque demande de fusion). Testée sur un clone propre du dépôt (sans `data/` ni `.env`) : lint sans erreur, 122 tests réussis, 8 ignorés (PostGIS). Premier vrai passage à vérifier sur l'onglet Actions de GitHub après la première poussée.
+- `restart: unless-stopped` pour PostGIS et l'API : **appliqué le 2026-10-22** dans `docker-compose.yml` ; les conteneurs en cours ne le prennent qu'au prochain `make up`.
 - Alléger l'image de l'API (982 Mo, toutes les dépendances du pipeline).
 - `make hebdo` : son `git push` envoie aussi les commits locaux non poussés de `main` ; une semaine recalculée après correction déplace son étiquette (`push --force` de l'étiquette seule).
 

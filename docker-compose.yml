@@ -6,6 +6,8 @@ name: ${COMPOSE_PROJECT_NAME:-secheresse}
 services:
   postgis:
     image: postgis/postgis:16-3.4
+    # Redémarre avec Docker après un redémarrage de la machine ; `make down` les laisse arrêtés.
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-secheresse}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?à définir dans .env}
@@ -33,6 +35,7 @@ services:
     build:
       context: .
       dockerfile: api/Dockerfile
+    restart: unless-stopped
     environment:
       POSTGRES_HOST: postgis
       POSTGRES_PORT: 5432

@@ -1,0 +1,28 @@
+# Intégration continue : qualité du code et tests, sans réseau ni service externe
+# (équivalent de `make lint` et `make test`). Les données (`data/`, suivies par DVC)
+# ne sont pas récupérées : les tests s'appuient sur `tests/fixtures/`.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Environnement Python
+        run: uv sync --locked
+      - name: Lint (ruff, mypy)
+        run: make lint
+      - name: Tests
+        run: make test

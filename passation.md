@@ -53,12 +53,12 @@ make hebdo         # job hebdomadaire complet, publication comprise (~3 min) ; r
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS (~20 s)
 make site          # dashboard statique -> build/pages (~80 s, ~100 Mo ; PostGIS démarré)
 make pages         # make site puis remplace la branche gh-pages (pousse sur GitHub)
-make test          # 126 tests (8 ignorés sans base) sans réseau ni service (à lancer aussi PostGIS arrêté)
+make test          # 128 tests (8 ignorés sans base) sans réseau ni service (à lancer aussi PostGIS arrêté)
 make test-db       # 22 tests d'intégration sur une base PostGIS jetable (Docker, port 55433)
 make lint          # ruff + mypy strict (pipeline, api, tests)
 ```
 
-Variantes : `uv run python -m pipeline hebdo --sans-publication` (ni DVC ni Git) ; `uv run python -m pipeline indices --debut AAAA-Www --fin AAAA-Www`. **Routine hebdomadaire actuelle** (manuelle, pas de cron) : `make up`, `make hebdo` (une fois les données de la semaine publiées ; la semaine ISO finit le dimanche), puis `make pages` pour mettre à jour le site public (`make hebdo` ne le publie pas). Après un changement de `config/` : `docker compose restart api`.
+Variantes : `uv run python -m pipeline hebdo --sans-publication` (ni DVC ni Git) ; `uv run python -m pipeline indices --debut AAAA-Www --fin AAAA-Www`. **Routine hebdomadaire actuelle** (manuelle, pas de cron) : pousser ses commits locaux, `make up`, `make hebdo` (une fois les données de la semaine publiées ; la semaine ISO finit le dimanche), puis `make pages` pour mettre à jour le site public (`make hebdo` ne le publie pas). Après un changement de `config/` : `docker compose restart api`.
 
 ## 5. Ce qui a été fait
 
@@ -177,7 +177,7 @@ Protocole accepté par l'utilisateur le 2026-10-10 (détail dans `docs/methodolo
 - `restart: unless-stopped` pour PostGIS et l'API : **appliqué le 2026-10-22** dans `docker-compose.yml` ; les conteneurs en cours ne le prennent qu'au prochain `make up`.
 - Image de l'API allégée : **faite le 2026-10-22**, 982 Mo → 228 Mo (mémoire de l'API 134 → 70 Mo). Cause : `api/app.py` importait `pipeline.indices.commun`, dont le paquet charge pandas, scipy, geopandas et pyarrow. Corrections : fonctions de dates dans `pipeline/calendrier.py` (sans dépendance, réexportées par `commun`) ; dépendances du service web seules dans `[project] dependencies`, celles du pipeline dans le groupe `pipeline` de `pyproject.toml` (installé par défaut via `[tool.uv] default-groups`, exclu de l'image par `--no-group pipeline`) ; Dockerfile en deux étapes sur `python:3.12-slim-bookworm` (sans uv, projet non installé : l'API tourne depuis `/app`). Garde-fou : `tests/test_api_legere.py` (import de `api.app` avec pandas, scipy, geopandas… bloqués). Vérifié : lint, 123 tests, 20 tests d'intégration, `make site`, et réponses de l'API identiques à l'ancienne image sur 6 points d'accès face à la vraie base. **Règle** : tout nouvel import dans `api/` ne doit venir que de `[project] dependencies` ; une dépendance utilisée par l'API va dans ce bloc, pas dans le groupe `pipeline`.
 - Poids du composite : **lus dans la configuration au chargement de PostGIS (2026-10-23)** ; plus de piège d'anciens poids dans l'API après un changement de `zones.yaml`. La colonne `ponderations` de `zones.parquet` reste (compatibilité du schéma) mais n'est plus utilisée ; tests `test_ponderations_*` dans `tests/test_db.py`.
-- `make hebdo` : son `git push` envoie aussi les commits locaux non poussés de `main` ; une semaine recalculée après correction déplace son étiquette (`push --force` de l'étiquette seule).
+- `make hebdo` : **protégé le 2026-10-23** (`envoi_autorise` dans `pipeline/publication.py`). Avant son commit de données, le job fait un `git fetch` (lecture seule) et compte les commits locaux non poussés de `main` ; s'il y en a, ou si le remote est injoignable, il commit et étiquette en local mais **ne pousse ni la branche ni l'étiquette** (une étiquette emporte ses commits parents), et le rapport donne les commandes `git push origin main` puis `git push --force origin refs/tags/data-AAAA-Www`. Conséquence pratique : **pousser ses commits avant de lancer `make hebdo`**. Tests : `test_publication_ne_pousse_pas_les_commits_de_l_utilisateur` et `test_publication_remote_injoignable_ne_pousse_pas` dans `tests/test_hebdo.py`. Une semaine recalculée après correction déplace son étiquette (`push --force` de l'étiquette seule, inchangé).
 
 ### 7.3 Données et sources
 

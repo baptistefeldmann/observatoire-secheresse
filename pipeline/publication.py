@@ -4,7 +4,10 @@ des seuls fichiers `data/*.dvc`, étiquette `data-AAAA-Www`, envoi sur le remote
 Idempotent : sans changement de données, pas de commit, et l'étiquette déjà posée sur le
 commit courant n'est pas modifiée. Garde-fous : pas de commit hors de la branche configurée
 (ni pendant un rebase, où HEAD est détachée) ; le travail en cours de l'utilisateur, indexé
-ou non, n'entre jamais dans le commit."""
+ou non, n'entre jamais dans le commit ; **rien n'est poussé** si la branche a des commits locaux
+que l'utilisateur n'a pas encore poussés (un push les enverrait aussi, ainsi qu'une étiquette,
+qui emporte ses commits parents) ou si l'état du remote est inconnu : le commit de données et
+l'étiquette restent locaux, et le rapport donne les commandes à lancer."""
 
 from __future__ import annotations
 
@@ -44,6 +47,28 @@ def etiquette(semaine: str) -> str:
     return f"data-{semaine}"
 
 
+def envoi_autorise(config: Config, racine: Path, lancer: Executer) -> str | None:
+    """None si on peut pousser ; sinon la raison de s'en abstenir.
+
+    Compare la branche locale à celle du remote (après un `git fetch`, qui ne modifie rien
+    d'autre que la copie locale du remote) : un commit local non poussé est du travail de
+    l'utilisateur, que le job ne doit pas publier à sa place."""
+    hebdo = config.projet.hebdo
+    suivie = f"{hebdo.remote_git}/{hebdo.branche}"
+    try:
+        lancer(["git", "fetch", "--quiet", hebdo.remote_git, hebdo.branche], racine)
+        avance = lancer(["git", "log", "--format=%h %s", f"{suivie}..{hebdo.branche}"], racine)
+    except RuntimeError as exc:
+        return f"état de {suivie} non vérifiable ({exc})"
+    commits = avance.splitlines()
+    if commits:
+        return (
+            f"{len(commits)} commit(s) local(aux) non poussé(s) sur {suivie} "
+            f"(dernier : {commits[0]})"
+        )
+    return None
+
+
 def publier(
     config: Config,
     semaine: str,
@@ -74,6 +99,7 @@ def publier(
                 f"Git : branche « {branche} » et non « {hebdo.branche} », pas de commit"
             )
             return resultat
+        raison_de_ne_pas_pousser = envoi_autorise(config, racine, lancer)  # avant notre commit
         fichiers = [f"{d}.dvc" for d in dossiers]
         if lancer([*git, "status", "--porcelain", "--", *fichiers], racine):
             lancer([*git, "add", "--", *fichiers], racine)
@@ -94,6 +120,13 @@ def publier(
         resultat.etiquette = nom
 
         remote = hebdo.remote_git
+        if raison_de_ne_pas_pousser:
+            resultat.erreurs.append(
+                f"Git : {raison_de_ne_pas_pousser}. Rien n'est poussé (le commit de données et "
+                f"l'étiquette restent locaux). Après avoir poussé vos commits : "
+                f"git push {remote} {hebdo.branche} && git push --force {remote} refs/tags/{nom}"
+            )
+            return resultat
         lancer([*git, "push", "--quiet", remote, hebdo.branche], racine)
         lancer([*git, "push", "--quiet", "--force", remote, f"refs/tags/{nom}"], racine)
         resultat.messages.append(f"poussé sur {remote}")

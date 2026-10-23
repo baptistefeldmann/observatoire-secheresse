@@ -189,7 +189,7 @@ Relancer le job sur la même semaine ne change rien si les sources n'ont pas cha
 Points à connaître avant de le lancer :
 
 - Le dépôt doit être sur `main` (`hebdo.branche` dans `config/projet.yaml`). Sinon, les données sont envoyées sur DagsHub, mais il n'y a ni commit ni étiquette, et le rapport le signale.
-- Votre travail en cours, indexé ou non, n'entre jamais dans le commit de données. En revanche, `git push` envoie aussi vos commits locaux de `main` qui ne sont pas encore poussés.
+- Votre travail en cours, indexé ou non, n'entre jamais dans le commit de données. Vos commits locaux de `main` non poussés ne sont pas envoyés non plus : s'il y en a, le job fait le commit de données et pose l'étiquette en local, **ne pousse rien** (ni la branche ni l'étiquette, qui emporterait vos commits), et le rapport donne les deux commandes à lancer vous-même (`git push origin main` puis `git push --force origin refs/tags/data-AAAA-Www`). Même réaction si l'état du remote ne peut pas être vérifié (hors ligne). Poussez donc vos commits avant de lancer `make hebdo`, pour que la publication soit complète.
 - `make hebdo` attend la clé SSH GitHub et les identifiants DagsHub (`make dvc-auth`) de la machine. Pour tester sans rien versionner : `uv run python -m pipeline hebdo --sans-publication`.
 
 **Exécution automatique** (non installée pour l'instant). Le SIM de la veille est publié vers 10 h, heure de Paris, et la machine doit être allumée au moment du lancement. Ligne à ajouter avec `crontab -e`, en remplaçant le chemin du dépôt :

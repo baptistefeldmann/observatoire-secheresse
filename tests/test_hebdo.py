@@ -145,6 +145,41 @@ def test_publication_hors_de_la_branche(config_depot: Config, depot: Path) -> No
     assert _git(depot, "log", "-1", "--format=%s") == "initial"
 
 
+def test_publication_ne_pousse_pas_les_commits_de_l_utilisateur(
+    config_depot: Config, depot: Path
+) -> None:
+    """Un commit local non poussé est du travail de l'utilisateur : le job commit et étiquette
+    en local, mais ne pousse ni la branche ni l'étiquette (qui emporterait le commit)."""
+    distant = depot.parent / "distant.git"
+    avant = _git(distant, "rev-parse", "main")
+    (depot / "README.md").write_text("version 2\n")
+    _git(depot, "commit", "--quiet", "-am", "travail en cours")
+    travail = _git(depot, "rev-parse", "HEAD")
+
+    resultat = publication.publier(config_depot, SEMAINE, "résumé", depot, _lanceur(depot, "1"))
+
+    assert resultat.commit and resultat.etiquette == "data-2026-W39"
+    assert len(resultat.erreurs) == 1
+    erreur = resultat.erreurs[0]
+    assert "1 commit(s) local(aux) non poussé(s) sur origin/main" in erreur
+    assert "travail en cours" in erreur
+    assert "git push origin main && git push --force origin refs/tags/data-2026-W39" in erreur
+    assert _git(depot, "log", "-1", "--format=%s") == "Données 2026-W39"  # commit local fait
+    assert _git(depot, "tag", "--list") == "data-2026-W39"  # étiquette locale posée
+    assert _git(distant, "rev-parse", "main") == avant  # rien n'est parti
+    assert _git(distant, "tag", "--list") == ""
+    with pytest.raises(RuntimeError):  # le commit de l'utilisateur n'est pas sur le remote
+        _git(distant, "cat-file", "-e", travail)
+
+
+def test_publication_remote_injoignable_ne_pousse_pas(config_depot: Config, depot: Path) -> None:
+    _git(depot, "remote", "set-url", "origin", str(depot.parent / "absent.git"))
+    resultat = publication.publier(config_depot, SEMAINE, "résumé", depot, _lanceur(depot, "1"))
+    assert resultat.commit  # le commit de données est fait en local
+    assert len(resultat.erreurs) == 1 and "non vérifiable" in resultat.erreurs[0]
+    assert "Rien n'est poussé" in resultat.erreurs[0]
+
+
 def test_publication_sans_dvc_pas_de_commit(config_depot: Config, depot: Path) -> None:
     lancer = _lanceur(depot, "1", echec_dvc=True)
     resultat = publication.publier(config_depot, SEMAINE, "résumé", depot, lancer)

@@ -18,6 +18,7 @@ from sqlalchemy import Connection, Engine, text
 
 from pipeline.config import Config
 from pipeline.db import migrations
+from pipeline.zonage import ponderations_json
 
 log = logging.getLogger(__name__)
 
@@ -89,6 +90,38 @@ def _lire(dossier: Path, table: Table) -> pd.DataFrame:
     return resultat
 
 
+def ponderations_de_la_configuration(zones: pd.DataFrame, config: Config) -> pd.DataFrame:
+    """Zones du référentiel avec les pondérations de `config/zones.yaml`.
+
+    `zones.parquet` garde une copie des pondérations au moment de `make referentiels` : elle
+    devient périmée dès qu'un poids change (D11, D12). La configuration est la seule source
+    des poids ; la copie du fichier est ignorée, avec un avertissement si elle diffère. Les
+    zones du fichier et de la configuration doivent être les mêmes (sinon `make referentiels`
+    est à relancer : la géométrie des zones en dépend)."""
+    voulues = {z.zone_id: ponderations_json(z) for z in config.zonage.zones}
+    presentes = set(zones["zone_id"])
+    if presentes != set(voulues):
+        raise ValueError(
+            "zones de referentiels/zones.parquet et de config/zones.yaml différentes "
+            f"(en trop : {sorted(presentes - set(voulues))}, "
+            f"manquantes : {sorted(set(voulues) - presentes)}) : relancer make referentiels"
+        )
+    resultat = zones.copy()
+    resultat["ponderations"] = resultat["zone_id"].map(voulues)
+    perimees = sorted(
+        zones.loc[
+            zones["ponderations"].map(json.loads) != resultat["ponderations"].map(json.loads),
+            "zone_id",
+        ]
+    )
+    if perimees:
+        log.warning(
+            "poids de zones.parquet périmés pour %s : ceux de config/zones.yaml sont chargés",
+            ", ".join(perimees),
+        )
+    return resultat
+
+
 def _charger(connexion: Connection, table: Table, donnees: pd.DataFrame, srid: int) -> None:
     if donnees.empty:
         return
@@ -151,6 +184,8 @@ def reconstruire(config: Config, moteur: Engine) -> dict[str, int]:
         migrations.appliquer(connexion)
         for table in TABLES:
             donnees = _lire(dossier, table)
+            if table.nom == "ref.zone" and not donnees.empty:
+                donnees = ponderations_de_la_configuration(donnees, config)
             _charger(connexion, table, donnees, srid)
             en_base: int = connexion.execute(text(f"SELECT count(*) FROM {table.nom}")).scalar_one()
             if en_base != len(donnees):

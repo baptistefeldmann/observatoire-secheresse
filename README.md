@@ -168,7 +168,7 @@ make lint                 # ruff + mypy strict
 make validation           # indices confrontés aux arrêtés sécheresse (VigiEau)
 ```
 
-**Après avoir modifié `config/`** : `config/` est monté en lecture seule dans le conteneur de l'API, qui le lit une seule fois au démarrage. Redémarrer l'API (`docker compose restart api`). Si les poids de `zones.yaml` changent, mettre aussi à jour `data/referentiels/zones.parquet` (`make referentiels`), puis `make reference`, `make indices` et `make db-rebuild`. Le code et le dashboard, eux, sont copiés dans l'image : `make up` la reconstruit.
+**Après avoir modifié `config/`** : `config/` est monté en lecture seule dans le conteneur de l'API, qui le lit une seule fois au démarrage. Redémarrer l'API (`docker compose restart api`). Si les poids de `zones.yaml` changent, lancer `make reference`, `make indices` et `make db-rebuild` : PostGIS, l'API et le dashboard lisent les poids dans la configuration au chargement (la copie de `zones.parquet` est ignorée), `make referentiels` n'est plus nécessaire. Le code et le dashboard, eux, sont copiés dans l'image : `make up` la reconstruit.
 
 ### Le job hebdomadaire
 

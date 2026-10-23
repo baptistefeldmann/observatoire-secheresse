@@ -26,6 +26,11 @@ TOLERANCE_M = 1.0  # contact entre morceaux voisins (bruit numérique des réfé
 COUVERTURE_MIN = 0.9999
 
 
+def ponderations_json(zone: Zone) -> str:
+    """Pondérations d'une zone telles que stockées dans `ref.zone` (JSON à clés triées)."""
+    return json.dumps(zone.ponderations, sort_keys=True)
+
+
 def _polygones(geom: BaseGeometry) -> list[Polygon]:
     if geom.is_empty:
         return []
@@ -133,7 +138,7 @@ def construire_zones(
             "zone_id": [z.zone_id for z in zones],
             "libelle": [z.libelle for z in zones],
             "type_zone": [z.type_zone for z in zones],
-            "ponderations": [json.dumps(z.ponderations, sort_keys=True) for z in zones],
+            "ponderations": [ponderations_json(z) for z in zones],
         },
         geometry=[en_multipolygone(geometries[z.zone_id]) for z in zones],
         crs=config.projet.crs,

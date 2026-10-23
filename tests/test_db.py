@@ -41,6 +41,42 @@ def test_csv_sans_geometrie() -> None:
     assert chargement.vers_csv(table, ("station_id", "date", "v"), None) == "x,2026-09-01,\\N\n"
 
 
+def _zones_du_fichier(config: Config, ponderations: str) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "zone_id": [z.zone_id for z in config.zonage.zones],
+            "ponderations": [ponderations] * len(config.zonage.zones),
+        }
+    )
+
+
+def test_ponderations_lues_dans_la_configuration(
+    config: Config, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Les poids de zones.parquet, copiés au moment de `make referentiels`, sont ignorés au
+    chargement : seuls ceux de config/zones.yaml comptent (D11, D12)."""
+    perimes = '{"ips": 0.5, "spi_3": 0.5}'
+    attendu = '{"ips": 0.6, "spi_3": 0.4}'
+    with caplog.at_level("WARNING"):
+        zones = chargement.ponderations_de_la_configuration(
+            _zones_du_fichier(config, perimes), config
+        )
+    assert list(zones["ponderations"]) == [attendu]
+    assert "périmés pour ILE_NOIRMOUTIER" in caplog.text
+
+    caplog.clear()
+    with caplog.at_level("WARNING"):
+        chargement.ponderations_de_la_configuration(_zones_du_fichier(config, attendu), config)
+    assert caplog.text == ""  # poids à jour : aucun avertissement
+
+
+def test_ponderations_zones_differentes(config: Config) -> None:
+    zones = _zones_du_fichier(config, "{}")
+    zones["zone_id"] = "AUTRE_ZONE"
+    with pytest.raises(ValueError, match=r"relancer make referentiels"):
+        chargement.ponderations_de_la_configuration(zones, config)
+
+
 @pytest.mark.skipif(URL_TEST is None, reason="SECHERESSE_TEST_POSTGRES_URL non définie")
 def test_reconstruction_depuis_data(config: Config, client: ClientHttp) -> None:
     referentiels.construire(config, client, date(2026, 9, 30))
@@ -53,6 +89,11 @@ def test_reconstruction_depuis_data(config: Config, client: ClientHttp) -> None:
     effectifs = chargement.reconstruire(config, base)
     assert effectifs[chargement.PROJETS_QGIS] == 1
     assert effectifs["ref.zone"] == 1
+    with base.connect() as connexion:  # poids de la configuration, non ceux du fichier
+        poids: dict[str, float] = connexion.execute(
+            text("SELECT ponderations FROM ref.zone WHERE zone_id = 'ILE_NOIRMOUTIER'")
+        ).scalar_one()
+        assert poids == {"spi_3": 0.4, "ips": 0.6}
     assert effectifs["obs.piezo_jour"] == 9
     assert effectifs["obs.meteo_jour"] > 0
     premiere = chargement.empreinte(base)

@@ -404,7 +404,7 @@ logs/        rapports du job hebdomadaire, non versionnés
 | Document | Contenu |
 |---|---|
 | [`docs/SPEC.md`](docs/SPEC.md) | spécification de référence : architecture, sources, schéma, méthode, phases V1 à V4 |
-| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D13 et contrôles chiffrés (elles priment sur la spec) |
+| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D14 et contrôles chiffrés (elles priment sur la spec) |
 | [`docs/validation.md`](docs/validation.md) | indices confrontés aux arrêtés sécheresse, généré par `make validation` |
 | [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS, dashboard et API depuis un poste Windows par tunnel SSH |
 | [`docs/workflow.svg`](docs/workflow.svg) | schéma du workflow complet (section 2) |

@@ -269,6 +269,25 @@ Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semai
 **Référence incomplète de SF3.** Avec 6 ans, l'IPS de SF3 reste borné à environ ±1,4 (classes 1 et 7 accessibles de justesse) et ne décrit que 2020–2025 ; il reste haut en été 2022 (+0,86) et suit mal les arrêtés (AUC de l'IPS de zone 0,53). Son poids est faible (0,15) : le composite de la zone n'en dépend presque pas. La zone n'ayant que 6 ans d'IPS, l'IPS de zone ne peut pas être reclassé (D10, 15 ans requis) : il garde la valeur de la station, signalée hors référence (`reference` vide dans `detail`). Règle générale : sans référence de zone, l'indice de zone garde la moyenne brute des stations ; avec une seule station, c'est son indice même.
 
 
+## D14 — Relevé des retenues décalé d'une semaine : ramené à la semaine vide
+
+*2026-10-23*
+
+**Principe.** La semaine reste la semaine ISO (lundi à dimanche), déduite de la **date** du relevé. Les relevés des retenues sont datés du dimanche ; une date écrite à la main peut tomber dans la mauvaise semaine. Cette décision ne corrige que ces cas, détectés par leur effet, et ne change rien d'autre.
+
+**Constat** (analyse « Qualité des relevés des retenues », plus bas). 26 relevés sur 5 265 sont datés hors dimanche, pour les 13 retenues : le vendredi 2024-06-21, et le mardi 2025-02-25, que la source note « Semaine 08 (au 25/02/2025) ». Le vendredi tombe dans la bonne semaine (25). Le mardi tombe en semaine ISO 09, avec le relevé du dimanche 2025-03-02 : la semaine 2025-W08 restait vide et la W09 comptait deux relevés (son total en faisait la moyenne, `n_retenues` y valait 26).
+
+**Décision (choix de l'utilisateur).** Un relevé daté hors dimanche est ramené au dimanche précédent **seulement si** sa semaine ISO contient déjà un autre relevé de la même retenue **et** que la semaine précédente n'en a aucun (`_semaines_decalees` dans `pipeline/sources/retenues.py`). Il prend alors la date de ce dimanche. Tout autre relevé reste tel quel, hors dimanche compris. Une semaine qui garde plusieurs relevés est signalée dans le journal (« à examiner »). La règle s'applique à chaque ingestion, aux deux sources : si la source corrige un jour sa date, la clé reste la même. Les fichiers de `data/raw/retenues/` ont été corrigés une fois : 2025, 13 relevés du 2025-02-25 passés au 2025-02-23. Le fichier 2024 est inchangé (le relevé du vendredi 2024-06-21 reste daté du vendredi).
+
+| | Avant | Après |
+|---|---|---|
+| Relevés déplacés | 0 | 13 (mardi 2025-02-25, dimanche 2025-02-23) |
+| Semaine ISO 2025-W08 (13 retenues) | vide | 1 relevé par retenue |
+| Semaine ISO 2025-W09 | 2 relevés par retenue | 1 relevé par retenue |
+| Semaine 2024-W25 | relevé du vendredi 2024-06-21 | inchangé |
+
+Les retenues restent hors du composite (D3, D6) : aucun indice ne change de valeur. `version_methodo` passe à « D14 » comme la règle du projet l'exige, les indices sont recalculés à l'identique (seule la colonne de version change). **Écarté** : ramener tout relevé hors dimanche au dimanche le plus proche (la notion de semaine ne doit pas dépendre d'une convention de jour) ; écarter les valeurs isolées aberrantes de l'enveloppe et du total (17 valeurs, liées aux épisodes pluvieux ; cause à confirmer par le producteur) ; ne rien changer.
+
 ## Validation par les arrêtés sécheresse
 
 *2026-10-10. Protocole en cours, pas encore une décision.*
@@ -306,6 +325,17 @@ Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semai
 - *Décalage voulu au Sud-Vendée et dans le marais poitevin* : quand le bulletin lit un niveau « proche de la moyenne », notre IPS y vaut en moyenne −0,55 (13 cas), contre +0,24 ailleurs. C'est l'effet de D12 : les courbes du Département comparent à toutes les années depuis 1985, étés pompés des années 1990 compris ; notre IPS compare au régime actuel (2011–2025). Le bulletin et notre ancien IPS (D11) se rejoignent ; l'écart est à expliquer aux acteurs.
 
 **Bilan.** Le bulletin confirme nos données et l'ordre de nos classes, pour les débits comme pour les nappes. Ses deux différences de lecture sont expliquées : l'hydraulicité, rapport à la moyenne, alarme à tort en fin d'été ; les courbes de nappes du Sud-Vendée comparent à une période qui inclut les pompages d'avant 2011.
+
+## Qualité des relevés des retenues (analyse du 2026-10-23)
+
+*Analyse seule, sans décision : aucun traitement n'est appliqué. Source : 13 retenues, 5 265 relevés hebdomadaires du 2019-01-06 au 2026-10-11 (`data/raw/retenues/`), pluie SIM (`data/raw/meteo/`).*
+
+- **Complétude.** Moulin-Papon commence le 2019-03-31 (12 semaines de moins), Mervent n'a pas de relevé le 2020-10-11. Les 13 retenues n'ont aucun relevé le dimanche 2024-06-23 ni le dimanche 2025-02-23 : leurs relevés sont datés du vendredi 2024-06-21 (semaine 25, sans conséquence) et du mardi 2025-02-25. Ce mardi tombe en semaine ISO 09, avec le relevé du dimanche 2025-03-02 : **la semaine 2025-W08 est vide et la W09 compte deux relevés** par retenue (le total de la W09 en fait la moyenne, `n_retenues` y vaut 26).
+- **Valeurs.** Volumes arrondis aux 10 000 m³ (99,9 %), soit 0,2 à 0,7 point de capacité. 211 relevés dépassent la capacité déclarée : Vouraie (195, jusqu'à 102,7 %, plein à 5 470 000 m³ pour 5 400 000 déclarés) et Jaunay (16, 100,8 %). À l'inverse, Albert et Pierre-Brune ne dépassent jamais 93 %. 10,7 % des relevés répètent la semaine précédente : ce sont des plateaux de retenue pleine (Vouraie 44 %, jusqu'à 36 semaines de suite ; Angle-Guignard 19 %), pas des relevés bloqués.
+- **Variations.** Variation hebdomadaire médiane de 2,0 points de capacité ; 376 semaines sur 5 239 (7,2 %) varient de plus de 10 points, dont 87 sont annulées la semaine suivante ; 42 variations atteignent 30 points. Au moins 3 sauts sur 4 tombent de novembre à avril, pour chaque retenue. Albert et Pierre-Brune en comptent le plus (67 chacune).
+- **Valeurs isolées aberrantes.** 17 relevés s'écartent de plus de 20 points de leurs deux voisins, qui s'accordent à 10 points près : Albert 7, Pierre-Brune 4, Mervent 3, Moulin-Papon, Rochereau et Jaunay 1. Plusieurs tombent à la même date sur plusieurs retenues (2019-11-03, 2020-02-02, 2023-01-15, 2025-01-12) et **13 sur 17 (76 %) tombent une semaine de pluie supérieure au 90ᵉ centile (41 mm, moyenne du département) contre 10 % attendus** : les anomalies suivent les épisodes pluvieux d'hiver. La cause (lecture pendant une crue, manœuvre d'ouvrage, transfert) reste à confirmer par le producteur. Le cas le plus net est Jaunay le vendredi 2024-06-21 : 3 690 000 m³, puis 690 000 (-81 points), puis 3 640 000 : une erreur de saisie.
+- **Effet sur le total.** Remplacer ces 17 valeurs par la moyenne de leurs voisines change 9 semaines du total hebdomadaire, de 10,3 points au plus, en novembre-mars sauf la semaine 2024-W25. Cela touche l'enveloppe (minimum et maximum des mêmes semaines des années précédentes) de ces semaines-là, pas la médiane. **Le constat de sécheresse de 2026 est robuste** : semaine 41, 32,9 % brut et 33,6 % avec une médiane glissante sur 3 semaines, contre un minimum des 7 années précédentes de 35,6 % et 35,4 % (2022). 2026 est la plus basse des 8 années aux semaines 38 à 41.
+- **Pistes** (l'utilisateur a retenu la 2 sous une forme restreinte, voir D14) : (1) ne rien changer et documenter ; (2) corriger les relevés dont la date tombe dans la mauvaise semaine (le mardi 2025-02-25 repasse à la W08 ; seuls les cas détectés, pas tout relevé hors dimanche) ; (3) écarter les valeurs isolées aberrantes de l'enveloppe et du total, par une règle automatique, en gardant les valeurs brutes.
 
 ## Règles issues des données
 

@@ -10,7 +10,7 @@ Pour reprendre le projet, lire d'abord `passation.md` (état d'avancement, erreu
 - **Semaine ISO** (`AAAA-Www`) comme unité de temps du suivi.
 - **Jamais de valeurs brutes agrégées entre variables** : toujours passer par un indice standardisé (§6 de la spec).
 - **Échelle fixe dans le temps (D10)** : la référence reste 1991-2020 (références hors période figées à 2025), jamais glissante ; les valeurs restent bornées. L'indicateur du changement climatique est la part des semaines en classe 1, pas l'intensité des records.
-- **Toute modification de la méthode** = une nouvelle décision numérotée dans `docs/methodologie.md` (options chiffrées sur les vraies données, validée par l'utilisateur), `indices.version_methodo` mis à jour dans `config/projet.yaml`, indices recalculés, validation relancée, documents à jour. Décisions actuelles : D1 à D13.
+- **Toute modification de la méthode** = une nouvelle décision numérotée dans `docs/methodologie.md` (options chiffrées sur les vraies données, validée par l'utilisateur), `indices.version_methodo` mis à jour dans `config/projet.yaml`, indices recalculés, validation relancée, documents à jour. Décisions actuelles : D1 à D14.
 - `rasters/` n'est ni versionné par Git ni par DVC.
 - Les secrets (Météo-France, Copernicus, DagsHub) sont lus depuis `.env`. Ne jamais les écrire dans le code, la configuration versionnée ou les projets QGIS. Maintenir `.env.example` à jour.
 - Toute étape du pipeline est idempotente.

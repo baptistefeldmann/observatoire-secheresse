@@ -14,8 +14,9 @@ from __future__ import annotations
 import logging
 import re
 import unicodedata
-from datetime import date, datetime
-from typing import Any
+from collections import Counter
+from datetime import date, datetime, timedelta
+from typing import Any, cast
 
 import geopandas as gpd
 import httpx
@@ -128,6 +129,45 @@ def _releves_national(config: Config, client: ClientHttp, alias: dict[str, str])
     return pd.DataFrame(lignes, columns=COLONNES_RELEVE)
 
 
+def _cle_semaine(jour: date) -> int:
+    annee, semaine, _ = jour.isocalendar()
+    return annee * 100 + semaine
+
+
+def _semaines_decalees(brut: pd.DataFrame) -> pd.DataFrame:
+    """Corrige les relevés dont la date tombe une semaine trop tard (D14).
+
+    La semaine ISO se déduit de la date. Un relevé daté hors dimanche peut tomber dans la semaine
+    suivante (ex. « Semaine 08 (au mardi 25/02/2025) » : semaine ISO 09). Il n'est déplacé que
+    dans ce cas précis : sa semaine ISO contient déjà un autre relevé de la même retenue et la
+    semaine précédente n'en a aucun. Il prend alors la date du dimanche de la semaine vide. Tout
+    autre relevé hors dimanche est laissé tel quel ; une semaine qui garde plusieurs relevés est
+    signalée dans le journal."""
+    brut = brut.reset_index(drop=True)
+    for code, groupe in brut.groupby("code"):
+        compte = Counter(groupe["date"].map(_cle_semaine))
+        for indice in groupe.index[groupe["date"].map(lambda jour: jour.weekday() != 6)]:
+            jour = cast(date, brut.at[indice, "date"])
+            dimanche_precedent = jour - timedelta(days=jour.weekday() + 1)
+            if compte[_cle_semaine(jour)] > 1 and compte[_cle_semaine(dimanche_precedent)] == 0:
+                log.info(
+                    "%s : relevé du %s ramené au %s (semaine vide)", code, jour, dimanche_precedent
+                )
+                compte[_cle_semaine(jour)] -= 1
+                compte[_cle_semaine(dimanche_precedent)] += 1
+                brut.at[indice, "date"] = dimanche_precedent
+    par_semaine = brut.assign(semaine_iso=brut["date"].map(_cle_semaine))
+    tailles = par_semaine.groupby(["code", "semaine_iso"], as_index=False).size()
+    for ligne in tailles[tailles["size"] > 1].itertuples():
+        log.warning(
+            "%s : %d relevés dans la semaine ISO %d, à examiner",
+            ligne.code,
+            ligne.size,
+            ligne.semaine_iso,
+        )
+    return brut
+
+
 def releves(
     config: Config, client: ClientHttp, emprise: BaseGeometry
 ) -> tuple[gpd.GeoDataFrame, str]:
@@ -141,7 +181,7 @@ def releves(
             brut, origine = _releves_national(config, client, local.alias_repli), "national"
     else:
         brut, origine = _releves_national(config, client, {}), "national"
-    brut = brut.dropna(subset=["date", "volume_m3"])
+    brut = _semaines_decalees(brut.dropna(subset=["date", "volume_m3"]))
     gdf = gpd.GeoDataFrame(
         brut, geometry=gpd.points_from_xy(brut["longitude"], brut["latitude"]), crs=4326
     ).to_crs(config.projet.crs)

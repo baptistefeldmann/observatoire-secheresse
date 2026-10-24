@@ -1,6 +1,6 @@
 # V2 — Architecture de la brique satellite : végétation (Sentinel-2) et eau des marais (Sentinel-1)
 
-*Révisée le 2026-10-24 (deuxième version), après les choix de l'utilisateur. **Rien n'est codé.** Les points ouverts (section 11) deviennent des décisions numérotées dans [`methodologie.md`](methodologie.md) une fois validés, sur des chiffres tirés des vraies données. Références : [`SPEC.md`](SPEC.md) §4.6, §6, §7.3 ; [spike n°4](spikes/04_sentinel2.md) ; décisions D7, D8, D10.*
+*Révisée le 2026-10-24 (deuxième version), puis complétée par les résultats de V2.0 ([spike n°7](spikes/07_v2_chiffrage.md)). **Rien n'est codé dans le pipeline.** Les points ouverts (section 11) deviennent des décisions numérotées dans [`methodologie.md`](methodologie.md) une fois validés, sur des chiffres tirés des vraies données. Références : [`SPEC.md`](SPEC.md) §4.6, §6, §7.3 ; [spike n°4](spikes/04_sentinel2.md) ; décisions D7, D8, D10.*
 
 ## 1. Ce que la brique doit faire
 
@@ -25,9 +25,9 @@ Hors périmètre : pression sur la ressource (V3), prévision (V4), carte d'occu
 | Regroupement des classes | Sur les surfaces réelles du territoire (V2.0) |
 | **Crues** | **Sentinel-1 seulement** ; **période 2015-2026** pour déterminer une tendance ; **seule la surface de crue est publiée, en hectares** (ni la surface en eau totale, ni sa part permanente, ni un pourcentage) ; **domaine des marais indépendant des zones hydrogéologiques** |
 | **Domaine des marais** | **Natura 2000 ZPS « Marais poitevin » et « Marais breton… »** (environ 76 000 ha), **sans aucune zone soumise à la marée** : une surface qui varie avec la marée fausserait le calcul (7.2) |
-| **NDMI** | Calculé **en plus du NDVI** (bande B11 en plus) ; V2.0 mesure ce qu'il apporte face au NDVI (2022, année sèche, contre 2023) |
+| **NDMI** | Calculé **en plus du NDVI** (bande B11 en plus) ; V2.0 le confirme : sur 2022 (sec) contre 2023, il marque deux fois plus que le NDVI sur les prairies et voit le maïs que le NDVI ne voit pas |
 | Anomalie du NDVI | Écart à la médiane de la classe (Q3) |
-| Détection de l'eau | Seuil par orbite relative sur VV, calé sur l'histogramme hiver contre été (Q9) |
+| Détection de l'eau | **Reprise après V2.0** : un seuil fixe sur VV ne sépare pas la crue de la prairie rase ; détection **par changement** (VV d'hiver sous la médiane d'été du même pixel et de la même orbite : Δ ≤ −3 dB et VV ≤ −16 dB), **validée en continu par Sentinel-2** sur les dates claires (Q9, [spike n°7](spikes/07_v2_chiffrage.md)) |
 | Contrôle de dérive radiométrique | Cibles stables et seuil proposés sur les données (Q13) |
 | Fenêtre de référence | **Élargie** : Sentinel-2 de 2018 à 2026 (référence 2018-2025, 8 ans) ; Sentinel-1 de 2015 à 2026 |
 
@@ -234,7 +234,9 @@ idx.satellite_mois (emprise,          -- NDVI : zone_id d'une zone du projet ; c
 
 **Décidés** : Q3 (NDVI : écart à la médiane de la classe, puis rang) ; Q4 (domaine : Natura 2000 ZPS des deux grands marais, sans zone soumise à la marée, marais salants exclus) ; Q6 (NDMI calculé en plus du NDVI) ; Q9 (eau : seuil par orbite relative sur VV, calé hiver contre été) ; Q12 (seule la surface de crue est publiée, en hectares) ; Q13 (cibles stables et seuil de dérive proposés sur les données en V2.0).
 
-**Plus aucun point de conception ouvert.** Restent des réglages à mesurer sur les données en V2.0 (section 12) : seuil d'eau par orbite relative, cibles stables et seuil de dérive, marge du réseau maritime, regroupement des classes.
+**Résultats de V2.0** ([spike n°7](spikes/07_v2_chiffrage.md)) : classes chiffrées (7 de forêt, 9 de culture) ; médiane et NDMI confirmés ; offset BOA indispensable, aucune dérive détectable au-delà de 0,03 de NDVI ; **détection de l'eau par seuil fixe invalidée**, détection par changement à valider davantage (surfaces à 20 % de Sentinel-2 sur 3 comparaisons, bruit d'été de plusieurs centaines d'hectares, orbite 132 inutilisable).
+
+**Restent ouverts** : méthode de détection des crues (Q9, à valider sur plus de dates claires de Sentinel-2) ; réseau maritime et contrôle de marée ; marge du réseau maritime ; millésime de la BD Forêt V2.
 
 
 ## 12. Étapes proposées

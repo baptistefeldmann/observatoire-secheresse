@@ -221,7 +221,7 @@ Un mois = un graphe de calcul distinct (jetons d'une heure). Une reprise saute c
 
 Table proposée (migration 0006, à valider) :
 ```
-idx.satellite_mois (emprise,          -- NDVI : zone_id d'une zone du projet ; crue : identifiant du marais (config)
+idx.satellite_mois (emprise,          -- NDVI : zone_id d'une zone du projet ; crue : identifiant du marais (config), une ligne « total » par marais et, pour le Marais poitevin, une ligne par régime (mouillé, intermédiaire, desséché ; Q14)
                     mois, indice ('ndvi' | 'ndmi' | 'crue'),
                     classe_ocs,       -- NDVI : classe de forêt ou de culture ; crue : NULL
                     valeur_brute,     -- NDVI et NDMI : anomalie ; crue : surface de crue en ha
@@ -234,7 +234,7 @@ idx.satellite_mois (emprise,          -- NDVI : zone_id d'une zone du projet ; c
 
 ## 11. Points ouverts
 
-**Décidés** : Q3 (NDVI : écart à la médiane de la classe, puis rang) ; Q4 (domaine : Natura 2000 ZPS des deux grands marais, sans zone soumise à la marée, marais salants exclus) ; Q6 (NDMI calculé en plus du NDVI) ; Q9 (eau : détection par changement avec filtre spatial, voir 9.2) ; Q12 (seule la surface de crue est publiée, en hectares) ; Q13 (cibles stables et seuil de dérive proposés sur les données en V2.0).
+**Décidés** : Q3 (NDVI : écart à la médiane de la classe, puis rang) ; Q4 (domaine : Natura 2000 ZPS des deux grands marais, sans zone soumise à la marée, marais salants exclus) ; Q6 (NDMI calculé en plus du NDVI) ; Q9 (eau : détection par changement avec filtre spatial, voir 9.2) ; Q12 (seule la surface de crue est publiée, en hectares) ; Q13 (cibles stables et seuil de dérive proposés sur les données en V2.0) ; **Q14 (2026-10-28) : la crue est calculée et stockée par régime, publiée avec le total en tête et le détail dessous ; le déversoir du Lay n'a pas de ligne à part, il est compté dans le marais mouillé** (chaque pixel garde la classe des grandes entités de l'EPMP : 1 561 des 1 941 ha du déversoir sont du marais mouillé) ; **Q15 (2026-10-28) : le Marais breton reste en un seul bloc** tant qu'aucun découpage n'est obtenu.
 
 **Résultats de V2.0** ([spike n°7](spikes/07_v2_chiffrage.md)) : 7 classes de forêt et 9 de culture chiffrées ; médiane et NDMI confirmés ; offset BOA indispensable, aucune dérive détectable au-delà de 0,03 de NDVI ; **seuil fixe sur VV invalidé** ; **détection par changement avec filtre** : eau libre du déversoir du Lay à F1 de 0,81 et précision de 0,92, bruit d'été de 15 à 204 ha, orbites 8, 30 et 81 cohérentes à ±13 %, 132 inutilisable ; **Sentinel-2 ne voit pas l'eau sous l'herbe**, donc pas de vérité optique pour les prairies inondées ; **l'utilisateur confirme sur les trois vues de contrôle que le radar y détecte bien de l'eau** (les mesures face à Sentinel-2 sont des bornes basses).
 
@@ -242,8 +242,6 @@ idx.satellite_mois (emprise,          -- NDVI : zone_id d'une zone du projet ; c
 
 | # | Question | Proposition |
 |---|---|---|
-| Q14 | **Publier un seul nombre ou une série par régime** (mouillé, intermédiaire, desséché, déversoir du Lay) ? | Par régime : une crue en marais mouillé et en marais desséché ne dit pas la même chose |
-| Q15 | **Marais breton** : quel découpage, faute de couche officielle ? | Demander à l'ADBVBB ou à la DREAL ; à défaut, la couche « Marais » de la BD TOPO ou un tracé de l'utilisateur |
 | Q16 | **Vérité de terrain des prairies inondées** | **Partiellement levée (2026-10-28)** : l'utilisateur confirme l'eau détectée sur les trois vues de `rasters/v2_0/`. Reste, pour chiffrer une précision : niveaux d'eau des échelles limnimétriques de l'EPMP (à demander) |
 | Q17 | **Licence des couches de l'EPMP** | À demander à l'EPMP |
 | Q18 | **Orbites 103 et 154** : calage par orbite ou exclusion ? | Exclure tant qu'un calage n'est pas établi sur plus de dates |

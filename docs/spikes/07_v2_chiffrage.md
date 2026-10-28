@@ -75,6 +75,30 @@ L'établissement public du Marais poitevin (EPMP) publie sur [son portail SIG](h
 - **Licence : aucune n'est indiquée sur le portail.** Les fichiers ont servi à cette analyse. Avant de les republier ou de les intégrer à `data/`, il faut l'accord de l'EPMP (contact indiqué sur la page : Marion Dulieu, 02 51 56 56 23).
 - **Marais breton : aucun équivalent trouvé.** Le SAGE de la baie de Bourgneuf (association porteuse ADBVBB) a un inventaire des zones humides par commune, sans couche téléchargeable repérée ; l'atlas des paysages décrit deux logiques hydrauliques (polders qui évacuent l'eau, marais alimentés en eau par les étiers) sans couche SIG. La Géoplateforme n'a pas de couche de zones inondables pour ce secteur.
 
+### 2.2 Les autres couches du portail de l'EPMP (2026-10-28)
+
+Le portail propose **19 jeux de données** (GeoPackage, aucune licence indiquée, mises à jour de mai 2019 à septembre 2026). J'ai téléchargé et ouvert les 15 qui touchent à l'eau et à la gestion, et chiffré chacun sur le domaine Poitevin net (41 326 ha).
+
+| Couche | Contenu | Dans le domaine | Intérêt pour V2 |
+|---|---|---|---|
+| **Sondes limnimétriques** | 140 points de mesure du niveau d'eau : producteur (EPMP 61, IIBSN 36, Département 85 13, syndicats), télétransmission (102 oui), fréquence (une mesure par heure pour 58), « point nodal » (24), année de mise en service (renseignée pour 62 ; 36 en 2021, 7 en 2014, 7 en 2017) | 88 sondes | **Fort** : ce sont les mesures qui permettraient de valider les crues. **Les séries ne sont pas dans le fichier** |
+| **Échelles limnimétriques** | 314 points (297 de niveau d'eau), cote du repère en NGF, lien avec la sonde (156) et l'unité hydraulique | 187 échelles | Même remarque : points seuls |
+| **Règlements d'eau** | 43 unités hydrauliques : règlement d'eau approuvé (33 ; 14 725 ha), expérimentation (3 ; 583 ha), à poursuivre (14 ha) | 15 322 ha | Moyen : les **niveaux d'eau voulus** par saison sont dans les règlements (documents), pas dans le fichier. Ils séparent l'eau d'hiver voulue de l'eau subie |
+| **Contrats de marais et protocoles** | 43 zones : contrat avec protocole définitif (14 ; 21 169 ha), expérimentation (5 ; 4 837 ha), engagé (12 ; 3 953 ha) ; année de signature connue pour 19 (2014 à 2023) | environ 31 000 ha | Moyen : un changement de gestion de l'eau (protocole appliqué à partir d'une année) peut **faire varier la crue sans lien avec le climat** ; à garder en note pour lire la tendance |
+| **Unités hydrauliques cohérentes (UHC)** | 267 compartiments, type MM / MI / MD, gestionnaires, groupe territorial | 144 unités, 36 937 ha (89 %) | Faible : confirme les grandes entités (voir ci-dessous) |
+| **Groupes territoriaux de gestion (GTG)** | Lay, Vendée, Sèvre niortaise, Nord Aunis | Lay 15 153 ha, Vendée 16 205 ha, Sèvre niortaise 6 257 ha, Nord Aunis 0 | Possible découpage géographique des séries, sans lien avec le régime |
+| **Associations syndicales** | 36 gestionnaires de marais | 14 couvrent 34 006 ha | Faible |
+| **Ouvrages hydrauliques** | 1 854 ouvrages (vantelles, buses, antolles, clapets, 35 stations de pompage) avec fonction, état et gestionnaire | 930 | Faible : aucune série d'ouvertures, explication seulement |
+| **Réseau hydraulique** | 72 053 tronçons, hiérarchie : principal 3 212, primaire 2 331, secondaire 8 015, tertiaire 5 529, 52 945 non classés (BD TOPO) | tout le marais | Faible : les canaux font moins de 10 m, sous la taille d'un pixel radar |
+| **Unités de gestion de l'OUGC** | 17 unités de gestion de l'irrigation (eau superficielle et nappes) | dont des unités de nappe (Lay 11 642 ha, Vendée 7 757 ha, Autizes 6 661 ha) | **Écarté** : zones hydrogéologiques, exclues par votre décision sur le domaine |
+| **Zone humide (1999)** | Périmètre validé le 22 décembre 1999 | 37 336 ha, soit 90 % du domaine | Aucun : cohérent avec la ZPS retenue, mais plus ancien |
+| Masses d'eau superficielles, SAGE, périmètres du bassin, PAEC, Natura 2000 | Découpages administratifs | — | Aucun |
+
+- **Les UHC confirment les grandes entités** : sur le domaine, 97 % du marais mouillé des grandes entités (15 064 sur 15 519 ha) tombent dans des UHC de type MM, 95 % du desséché (10 880 sur 11 402 ha) dans des UHC de type MD, mais seulement **67 % de l'intermédiaire** (6 299 sur 9 367 ha) : la frontière du marais intermédiaire est floue. Les grandes entités couvrent 94 % du domaine contre 89 % pour les UHC : **on garde les grandes entités**.
+- **Rien d'équivalent n'existe pour le Marais breton** dans ce portail.
+- **Les séries de niveaux d'eau sont le manque principal.** Les producteurs (EPMP, IIBSN, Département 85, syndicats) sont multiples. Un avis de marché de l'EPMP (mai 2026, lot 2, référence AOO_2026-02, trouvé par recherche web, non lu en entier) prévoit la refonte de son site de visualisation des niveaux d'eau, ce qui laisse penser que les séries existent mais ne sont pas en téléchargement libre. Rien trouvé par recherche web sur data.gouv.fr ; Hub'Eau et ADES non vérifiés. À demander à l'EPMP, avec la **licence**, dans le même courrier.
+- **Intérêt des séries** : les sondes de 2021 (36 de l'IIBSN) ne permettent pas de couvrir la période 2015-2026 ; celles de 2014, 2017 et 2019 (une quinzaine à l'année connue) le feraient en partie. Une validation pixel par pixel n'est pas possible, mais **un test de corrélation entre le niveau d'eau mesuré et la surface de crue du mois** l'est.
+
 ## 3. Sentinel-1 : détecter l'eau et les crues
 
 **Lecture** : 33 passages sur les deux fenêtres des marais lus en 68 secondes (environ 2 secondes par passage et par marais), VV seul. Extrapolation à environ 5 800 scènes de 2015 à 2026 : **de l'ordre de 3 heures** de lecture.

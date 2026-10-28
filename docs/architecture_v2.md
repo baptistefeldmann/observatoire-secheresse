@@ -27,7 +27,7 @@ Hors périmètre : pression sur la ressource (V3), prévision (V4), carte d'occu
 | **Domaine des marais** | **Natura 2000 ZPS « Marais poitevin » et « Marais breton… »** (environ 76 000 ha), **sans aucune zone soumise à la marée** : une surface qui varie avec la marée fausserait le calcul (7.2) |
 | **NDMI** | Calculé **en plus du NDVI** (bande B11 en plus) ; V2.0 le confirme : sur 2022 (sec) contre 2023, il marque deux fois plus que le NDVI sur les prairies et voit le maïs que le NDVI ne voit pas |
 | Anomalie du NDVI | Écart à la médiane de la classe (Q3) |
-| Détection de l'eau | **Reprise après V2.0** : un seuil fixe sur VV ne sépare pas la crue de la prairie rase ; détection **par changement** (VV d'hiver sous la médiane d'été du même pixel et de la même orbite : Δ ≤ −3 dB et VV ≤ −16 dB), **validée en continu par Sentinel-2** sur les dates claires (Q9, [spike n°7](spikes/07_v2_chiffrage.md)) |
+| Détection de l'eau | **Après V2.0** : pas de seuil fixe sur VV. **Détection par changement** (VV d'hiver inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite, et VV ≤ −16 dB) avec **filtre spatial** (médiane 3 × 3, taches de moins de 10 pixels supprimées) ; validée par Sentinel-2 sur l'eau libre (F1 de 0,81 au déversoir du Lay), pas sur les prairies inondées (Q9, [spike n°7](spikes/07_v2_chiffrage.md)) |
 | Contrôle de dérive radiométrique | Cibles stables et seuil proposés sur les données (Q13) |
 | Fenêtre de référence | **Élargie** : Sentinel-2 de 2018 à 2026 (référence 2018-2025, 8 ans) ; Sentinel-1 de 2015 à 2026 |
 
@@ -145,6 +145,8 @@ Le masque d'eau permanente est fixe, pour que la série soit comparable dans le 
 
 Le périmètre est lu dans `config/projet.yaml` (un bloc `marais`), pas codé en dur. Il donne une **surface brute en hectares**, sans notion de taux. Retenu : les deux grands marais ; les petits marais du littoral ne sont pas retenus (dunes et marais d'Olonne, Talmont, Jaunay, île d'Yeu : proches de la mer, donc les plus exposés à la marée).
 
+**Régimes du marais (Marais poitevin).** L'établissement public du Marais poitevin (EPMP) publie une couche **« Grandes entités »** qui sépare le **marais mouillé**, le **marais intermédiaire**, le **marais desséché** et, pour la marée, la **slikke** et le **schorre** ([spike n°7, section 2.1](spikes/07_v2_chiffrage.md)). Dans le domaine Poitevin net (41 326 ha, 94 % classés) : mouillé 15 519 ha, intermédiaire 9 367 ha, desséché 11 402 ha, cordons dunaires 1 347 ha, fonds de vallée humide 1 061 ha, terres hautes 226 ha, **slikke 127 ha et schorre 20 ha (zones de marée, à exclure)**. Le marais desséché est drainé pour l'agriculture : les crues y sont évitées, et ce qu'on y voit n'a pas le sens d'une crue naturelle. Le **déversoir du Lay** (La Bretonnière-la-Claye, Lairoux, Curzon, La Couture ; 1 941 ha) est classé marais mouillé pour 1 561 ha. **Licence non indiquée par l'EPMP : à demander avant usage publié.** Pour le **Marais breton, aucune couche équivalente n'a été trouvée.**
+
 **Exclusion de la marée.** Une surface en eau qui monte et descend avec la marée, à l'heure du passage du satellite, n'est pas une crue : elle fausserait le calcul. Les **marais salants sont exclus** (eau de mer gérée). Pour le reste, le domaine final est le périmètre Natura 2000 **moins toute zone soumise à la marée**, par trois couches complémentaires.
 
 **Couche 1 — limites officielles (BD TOPO `limite_terre_mer`).** La couche ne contient pas que le trait de côte. Sur votre territoire (WFS, 2026-10-24) :
@@ -199,8 +201,8 @@ La période de chaque série est un paramètre de `config/projet.yaml`. Une éta
 ### 9.2 Sentinel-1 par passage, agrégé au mois
 1. Recherche STAC `sentinel-1-rtc` sur les fenêtres des marais.
 2. Lecture fenêtrée de **VV seul** (VH n'est pas nécessaire à l'eau), reprojection sur la grille, conversion en dB (10·log10), nodata −32768 exclu.
-3. Filtrage du chatoiement (filtre spatial léger).
-4. Seuil **par orbite relative**, masque d'eau du passage, domaine des marais (frange côtière exclue).
+3. Filtrage du chatoiement : médiane 3 × 3 sur le VV en dB et sur la référence d'été.
+4. **Détection par changement** : VV inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite relative (référence : juillet à septembre de l'année précédente) **et** VV ≤ −16 dB ; pixels déjà sombres en été (référence < −16 dB) écartés ; taches de moins de 10 pixels supprimées ; domaine des marais (zones de marée exclues). Orbites 8, 30 et 81 directement utilisables ; 103 et 154 après calage ; 132 écartée.
 5. Retrait de l'eau permanente, **surface de crue du passage (ha)** (les scènes d'un même passage sont fusionnées), conservée dans un tableau passage × marais.
 6. Médiane mensuelle ; tendance et anomalie.
 7. Contrôle d'intégrité (fraction de nodata de la fenêtre comparée à l'emprise du passage).
@@ -232,12 +234,21 @@ idx.satellite_mois (emprise,          -- NDVI : zone_id d'une zone du projet ; c
 
 ## 11. Points ouverts
 
-**Décidés** : Q3 (NDVI : écart à la médiane de la classe, puis rang) ; Q4 (domaine : Natura 2000 ZPS des deux grands marais, sans zone soumise à la marée, marais salants exclus) ; Q6 (NDMI calculé en plus du NDVI) ; Q9 (eau : seuil par orbite relative sur VV, calé hiver contre été) ; Q12 (seule la surface de crue est publiée, en hectares) ; Q13 (cibles stables et seuil de dérive proposés sur les données en V2.0).
+**Décidés** : Q3 (NDVI : écart à la médiane de la classe, puis rang) ; Q4 (domaine : Natura 2000 ZPS des deux grands marais, sans zone soumise à la marée, marais salants exclus) ; Q6 (NDMI calculé en plus du NDVI) ; Q9 (eau : détection par changement avec filtre spatial, voir 9.2) ; Q12 (seule la surface de crue est publiée, en hectares) ; Q13 (cibles stables et seuil de dérive proposés sur les données en V2.0).
 
-**Résultats de V2.0** ([spike n°7](spikes/07_v2_chiffrage.md)) : classes chiffrées (7 de forêt, 9 de culture) ; médiane et NDMI confirmés ; offset BOA indispensable, aucune dérive détectable au-delà de 0,03 de NDVI ; **détection de l'eau par seuil fixe invalidée**, détection par changement à valider davantage (surfaces à 20 % de Sentinel-2 sur 3 comparaisons, bruit d'été de plusieurs centaines d'hectares, orbite 132 inutilisable).
+**Résultats de V2.0** ([spike n°7](spikes/07_v2_chiffrage.md)) : 7 classes de forêt et 9 de culture chiffrées ; médiane et NDMI confirmés ; offset BOA indispensable, aucune dérive détectable au-delà de 0,03 de NDVI ; **seuil fixe sur VV invalidé** ; **détection par changement avec filtre** : eau libre du déversoir du Lay à F1 de 0,81 et précision de 0,92, bruit d'été de 15 à 204 ha, orbites 8, 30 et 81 cohérentes à ±13 %, 132 inutilisable ; **Sentinel-2 ne voit pas l'eau sous l'herbe**, donc pas de vérité optique pour les prairies inondées ; **l'utilisateur confirme sur les trois vues de contrôle que le radar y détecte bien de l'eau** (les mesures face à Sentinel-2 sont des bornes basses).
 
-**Restent ouverts** : méthode de détection des crues (Q9, à valider sur plus de dates claires de Sentinel-2) ; réseau maritime et contrôle de marée ; marge du réseau maritime ; millésime de la BD Forêt V2.
+**Restent ouverts**
 
+| # | Question | Proposition |
+|---|---|---|
+| Q14 | **Publier un seul nombre ou une série par régime** (mouillé, intermédiaire, desséché, déversoir du Lay) ? | Par régime : une crue en marais mouillé et en marais desséché ne dit pas la même chose |
+| Q15 | **Marais breton** : quel découpage, faute de couche officielle ? | Demander à l'ADBVBB ou à la DREAL ; à défaut, la couche « Marais » de la BD TOPO ou un tracé de l'utilisateur |
+| Q16 | **Vérité de terrain des prairies inondées** | **Partiellement levée (2026-10-28)** : l'utilisateur confirme l'eau détectée sur les trois vues de `rasters/v2_0/`. Reste, pour chiffrer une précision : niveaux d'eau des échelles limnimétriques de l'EPMP (à demander) |
+| Q17 | **Licence des couches de l'EPMP** | À demander à l'EPMP |
+| Q18 | **Orbites 103 et 154** : calage par orbite ou exclusion ? | Exclure tant qu'un calage n'est pas établi sur plus de dates |
+
+Restent aussi à faire : réseau maritime et contrôle de marée ; millésime de la BD Forêt V2.
 
 ## 12. Étapes proposées
 

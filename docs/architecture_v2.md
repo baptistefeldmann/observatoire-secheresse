@@ -20,7 +20,7 @@ Hors périmètre : pression sur la ressource (V3), prévision (V4), carte d'occu
 | Statut | Deux indices **à part du composite** |
 | Végétation | NDVI Sentinel-2 L2A, mensuel (exception à la semaine ISO, à noter en D15), Planetary Computer, `pystac-client` + `xarray` + `odc-stac`, méthode d'`eo_factory` (lue, non copiée) |
 | **Radiométrie** | **Identique entre toutes les images** : condition primordiale pour comparer les valeurs de NDVI (section 6.4) |
-| Classes de forêt | BD Forêt V2 (prises de vues de 2006), tenue à jour par une carte récente d'arbres ; aucune source récente ne donne mieux pour les essences et les peupleraies ([spike n°7, section 1.2](spikes/07_v2_chiffrage.md)) ; OSO et FORMSpoT possibles avec un compte Dinamis-Theia |
+| Classes de forêt | BD Forêt V2 (prises de vues de 2006), tenue à jour par une carte récente d'arbres (le RPG prime ; pixel gardé s'il est encore un arbre et de NDVI d'été ≥ 0,4, sauf peupleraie ; écart été-hiver pour le feuillage), **sur tout le département** (le suivi NDVI et NDMI ne se limite pas aux marais) ; aucune source récente ne donne mieux pour les essences et les peupleraies ([spike n°7, section 1.2](spikes/07_v2_chiffrage.md)) ; OSO et FORMSpoT possibles avec un compte Dinamis-Theia |
 | Classes agricoles | RPG 2025 ; rotation traitée par classe et par année (RPG de chaque année) ; RPG 2025 pour l'année en cours, bruit signalé |
 | Regroupement des classes | Sur les surfaces réelles du territoire (V2.0) |
 | **Crues** | **Sentinel-1 seulement** ; **période 2015-2026** pour déterminer une tendance ; **seule la surface de crue est publiée, en hectares** (ni la surface en eau totale, ni sa part permanente, ni un pourcentage) ; **domaine des marais indépendant des zones hydrogéologiques** |

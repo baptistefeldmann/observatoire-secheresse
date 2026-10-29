@@ -99,6 +99,75 @@ Le portail propose **19 jeux de données** (GeoPackage, aucune licence indiquée
 - **Les séries de niveaux d'eau sont le manque principal.** Les producteurs (EPMP, IIBSN, Département 85, syndicats) sont multiples. Un avis de marché de l'EPMP (mai 2026, lot 2, référence AOO_2026-02, trouvé par recherche web, non lu en entier) prévoit la refonte de son site de visualisation des niveaux d'eau, ce qui laisse penser que les séries existent mais ne sont pas en téléchargement libre. Rien trouvé par recherche web sur data.gouv.fr ; Hub'Eau et ADES non vérifiés. À demander à l'EPMP, avec la **licence**, dans le même courrier.
 - **Intérêt des séries** : les sondes de 2021 (36 de l'IIBSN) ne permettent pas de couvrir la période 2015-2026 ; celles de 2014, 2017 et 2019 (une quinzaine à l'année connue) le feraient en partie. Une validation pixel par pixel n'est pas possible, mais **un test de corrélation entre le niveau d'eau mesuré et la surface de crue du mois** l'est.
 
+### 2.3 Exclusion de la marée : mesures (2026-10-28)
+
+Scripts : `docs/spikes/v2_0/m0` à `m7` (jetables). Cartes de contrôle : `rasters/v2_0/maree_domaine_poitevin.png` et `maree_domaine_breton.png` (non versionnées).
+
+**Réseau maritime (couche 1).** Tronçons hydrographiques de la BD TOPO autour du domaine (marge de 8 km) : 154 530, dont 105 439 dans le domaine (11 102 km). L'attribut `salinite` est vrai pour 9 311 tronçons, dont 1 665 dans le domaine (184 km : 38,5 km dans le Marais poitevin, 145,3 km dans le Marais breton), tous à moins de 1 766 m de la côte (135 km à moins de 500 m).
+
+La méthode prévue, **suivre le réseau depuis la mer jusqu'à la première limite, ne tient pas telle quelle** : le réseau des marais est maillé, donc le parcours « fuit » dans les canaux. Cinq variantes, réseau atteint depuis la mer sans franchir une limite (80 tronçons bloqués par les limites) :
+
+| Variante | Dans le domaine | Marais poitevin | Marais breton |
+|---|---|---|---|
+| A : tous les tronçons | 8 632 km (80 606 tronçons) | 4 334 km sur 4 590 | 4 298 km sur 6 511 |
+| B : sans tronçons fictifs | 1 853 km | 198 km | 1 655 km |
+| C : salé, estuaire ou large (plus de 5 m), sans fictifs | 121 km | 33 km | 88 km |
+| **D : salé ou estuaire, sans fictifs** | **113 km** | **25 km** | **88 km** |
+| E : large (plus de 5 m) ou estuaire, sans fictifs | 18 km | 17 km | 0 km |
+
+Les variantes A et B sont inutilisables (le sens d'écoulement est « double sens » pour 81 413 tronçons sur 154 530). **La variante D est retenue** (2026-10-29, voir le paragraphe suivant ; C avait d'abord été retenue). Les limites de salure et transversales (49 sur la zone, 38 à moins de 2 km du domaine, 35 d'entre elles à moins de 100 m d'un tronçon non fictif) ne coïncident que rarement avec la fin des tronçons marqués salés (5 sur 49 à moins de 20 m) ; je n'ai pas isolé leur apport dans les variantes.
+
+**Pourquoi D plutôt que C (2026-10-29).** L'utilisateur indique que, dans le Marais poitevin, le domaine maritime s'arrête au **barrage du Lay** (46,347 ; −1,336). Dans la variante C, les tronçons salés du Lay s'arrêtent bien au barrage (au plus 160 m au-delà), mais les **canaux larges non salés** (8 km de canaux de 15 à 50 m dans le Marais poitevin, 0 km dans le Marais breton) sont atteints par le maillage, y compris un tronçon isolé à 3,5 km du barrage (46,371 ; −1,366), dont la marge de 250 m retirait environ 20 ha sans raison. **Couper le graphe au barrage n'y change presque rien** (de 33,0 à 32,6 km pour des rayons de 30 à 600 m) : ces canaux restent joignables par d'autres routes. La variante D, qui ne garde que les tronçons salés ou d'estuaire, s'arrête d'elle-même au barrage (le tronçon le plus à l'amont est à 46,349 ; −1,336) et n'exige aucun point saisi à la main. Dans le Marais breton, D et C sont identiques à 2 tronçons près (0,01 km, soit 29 ha de domaine rendus). Le masque des pixels corrélés à la marée (couche 2) retire de toute façon ce qui suit la marée dans les canaux, et les contrôles ci-dessous sont refaits avec D : mêmes résultats.
+
+**Corrélation avec la marée (couches 2 et 3).** Au lieu de l'intermittence d'été prévue, un critère direct : pour chaque pixel de 30 m, corrélation entre le radar VV (dB, étés de juin à octobre 2022-2025, 60 à 63 jours de passage par orbite) et la **hauteur de marée à l'heure du passage**. Orbites 8 et 30 pour le Marais poitevin, 81 et 30 pour le Marais breton. Marée du SHOM (REFMAR, mesures toutes les 10 minutes, brutes, pointes retirées par une médiane glissante) : La Pallice pour le Marais poitevin, Les Sables-d'Olonne pour le Marais breton. Hauteurs de 1,7 à 6,7 m, écart-type de 1,0 à 1,3 m.
+
+- **Peu de pixels suivent la marée** : r < −0,5 pour **0,105 %** du Marais poitevin (38 ha avec l'orbite 8, 43 ha avec la 30) et **0,22 %** du Marais breton (72 et 74 ha). Avec des hauteurs mélangées au hasard : 0,001 à 0,002 %, soit 50 à 200 fois moins. Aucun pixel ne varie dans le sens inverse (r > +0,5 : 0,000 à 0,002 %).
+- **Ils sont tous près du réseau maritime** (part des pixels corrélés, selon la distance au réseau D) :
+
+| Distance | Marais poitevin (orbite 8) | Marais breton (orbite 81) |
+|---|---|---|
+| 0 à 30 m | 8,6 % | 7,3 % |
+| 30 à 100 m | 7,4 % | 6,0 % |
+| 100 à 250 m | 3,1 % | 2,9 % |
+| 250 à 500 m | 0,1 % | 0,4 % |
+| 500 à 1 000 m | 0,0 % | 0,6 % |
+| 1 à 2 km | 0,0 % | 0,3 % |
+| plus de 2 km | 0,0 % | 0,0 % |
+
+- **Choix de la marge autour du réseau maritime** (surface retirée du domaine, surface suivant la marée qui reste) :
+
+| Marge | Poitevin : retiré | reste | Breton : retiré | reste |
+|---|---|---|---|---|
+| 0 m | 71 ha | 34 ha | 236 ha | 58 ha |
+| 100 m | 341 ha | 11 ha | 561 ha | 33 ha |
+| **250 m** | **657 ha** | **1 ha** | **921 ha** | **23 ha** |
+| 500 m | 1 048 ha | 1 ha | 1 519 ha | 21 ha |
+| 1 000 m | 1 697 ha | 1 ha | 2 752 ha | 14 ha |
+| *bande côtière de 500 m* | *1 770 ha* | *1 ha* | *5 941 ha* | *1 ha* |
+| *bande côtière de 2 km* | *3 775 ha* | *1 ha* | *16 122 ha* | *0 ha* |
+
+La bande côtière supprime la marée aussi bien, mais **retire beaucoup plus de domaine pour un gain minime** : dans le Marais breton, la bande de 500 m retire 5 000 ha de plus que la marge de 250 m pour 22 ha de marée en moins, et celle de 2 km 15 200 ha de plus (la moitié du domaine) pour 23 ha. La marge de 250 m autour du réseau suffit dans le Marais poitevin ; il reste dans le Marais breton 23 ha, des étiers absents du réseau, que le masque des pixels corrélés retire.
+
+- **Test par passage** (couche 3 de l'architecture) : corrélation entre la surface détectée de chaque passage (Δ ≤ −3 dB et VV ≤ −16 dB) et la hauteur de marée. Elle est **nulle dès le domaine de départ, avant toute exclusion** : r = +0,03 (p = 0,81) dans le Marais poitevin, +0,04 (p = 0,73) dans le Marais breton (orbites 8 et 81 ; l'orbite 30 du Marais breton donne +0,06, p = 0,64). Les surfaces par passage sont de 200 à 230 ha en moyenne, de 0 à 1 480 ha (Marais poitevin) et de 0 à 1 950 ha (Marais breton).
+
+**Domaine final (marge de 250 m validée par l'utilisateur le 2026-10-29)** : domaine net (marais salants, estran, zones intertidales, plages et dunes déjà retirés : 0 ha de plus par ces couches) **moins** le réseau maritime D avec 250 m de marge **moins** les pixels corrélés (r < −0,5 sur l'une des deux orbites, élargis de 30 m).
+
+| | Domaine net | Retiré | Domaine final |
+|---|---|---|---|
+| Marais poitevin | 41 322 ha | 675 ha (1,6 %) | **40 647 ha** |
+| Marais breton | 32 653 ha | 997 ha (3,1 %) | **31 656 ha** |
+
+Dans le domaine final : 0 pixel corrélé à la marée, et corrélation par passage de +0,00 à +0,05 (p ≥ 0,71). Sur les cartes, le réseau suit le Lay jusqu'au barrage et la baie de l'Aiguillon ; **dans le Marais breton, un étier du centre du marais ressort par les données sans figurer dans le réseau** (la BD TOPO ne le marque pas salé) : la couche des données est donc nécessaire en plus du réseau.
+
+**La forêt sort du domaine de la crue (2026-10-29).** Le périmètre Natura 2000 englobe la forêt dunaire de Longeville, la pointe d'Arçay et des boisements du marais ; ce ne sont pas des marais. La BD Forêt couvre **3 441 ha du domaine final du Marais poitevin (8,5 %)** et **2 386 ha de celui du Marais breton (7,5 %)**. Marais poitevin : feuillus 1 765 ha, conifères 739 ha, peupleraies 486 ha, mixte 197 ha, le reste en forêt ouverte, lande et formation herbacée. Marais breton : conifères 1 627 ha. Le radar y voit à peine d'eau : en hiver, 0,08 % des pixels de forêt sont détectés dans le Marais poitevin et 0,29 % dans le Marais breton (médiane des dates, Δ ≤ −3 dB), contre 2,1 % et 1,3 % pour les prairies. **Décision de l'utilisateur : la forêt reste dans le suivi NDVI et NDMI (classes de forêt) mais est retirée du domaine de la surface de crue** : **Marais poitevin 37 206 ha, Marais breton 29 270 ha**. Les « cordons dunaires » de l'EPMP (1 347 ha dans le Marais poitevin) n'ont pas été retirés, faute de demande.
+
+**Limites de ces mesures** :
+1. **Étés seulement** : en hiver la crue et la marée se mêlent ; une marée de tempête dans les estuaires n'est pas couverte.
+2. Résolution de 30 m (moyenne de pixels de 10 m).
+3. **Marégraphes à 40 à 100 km** des marais, décalage de phase ignoré ; données brutes non validées ; l'API publique du SHOM n'est pas documentée (la licence Etalab 2.0 est indiquée par le site de REFMAR).
+4. L'orbite 8 couvre 87 % du domaine du Marais poitevin (la 30 le couvre en entier).
+5. Les orbites 103 et 154, sous-détectrices (Q18), ne sont pas utilisées.
+
 ## 3. Sentinel-1 : détecter l'eau et les crues
 
 **Lecture** : 33 passages sur les deux fenêtres des marais lus en 68 secondes (environ 2 secondes par passage et par marais), VV seul. Extrapolation à environ 5 800 scènes de 2015 à 2026 : **de l'ordre de 3 heures** de lecture.
@@ -285,7 +354,7 @@ Observations valides par pixel : médiane de 5 (1 pour 0,1 % des pixels, 3 pour 
 
 ## 6. Ce qui reste à faire
 
-- **Réseau maritime** (tronçons hydrographiques aval des limites de salure des eaux et transversales de la mer) et **contrôle de marée** par la hauteur d'eau du SHOM : non faits. La méthode de détection est maintenant fixée (3.7) : ils peuvent être faits. Pour le Marais poitevin, slikke et schorre de l'EPMP donnent déjà l'essentiel (section 2.1).
+- **Réseau maritime et contrôle de marée** : faits (section 2.3). Marge de 250 m validée, variante D retenue, forêt retirée du domaine de la crue (2026-10-29). Reste à valider le masque de pixels corrélés (Q19), puis à refaire le test avec les crues d'hiver quand la série sera calculée.
 - **Masque d'eau permanente de Sentinel-1** sur 2015-2025 : non fait ; en 2024, Sentinel-2 en voit 251 ha dans le Marais poitevin.
 - **Millésime de la BD Forêt V2** pour la Vendée.
 - **Vérité de terrain pour les prairies inondées** (marais mouillé, Marais breton) : l'utilisateur a confirmé l'eau sur les trois fenêtres de `rasters/v2_0/` (2026-10-28). Reste à trancher les pixels éparpillés du Marais breton (2021) et, si l'on veut un chiffre de précision, des niveaux d'eau des échelles limnimétriques de l'EPMP (à demander, séries absentes du fichier).

@@ -28,3 +28,6 @@ build/
 
 # Divers
 .DS_Store
+
+# Couches SIG de l'EPMP déposées dans docs/ : licence non indiquée, ne pas versionner avant accord de l'EPMP
+/docs/*.gpkg

@@ -10,7 +10,7 @@ Tout est en lecture : rien n'est écrit dans `data/` ni dans la base. Les images
 
 ## 1. Classes de forêt et de culture
 
-**BD Forêt V2** : 15 370 polygones, **54 676 ha** dans le territoire, 28 postes (3 postes ne sont pas des forêts : landes, formations herbacées, forêt sans couvert). Aucun champ de millésime dans la couche (la couche porte « 2006-2019 ») : le millésime de la Vendée reste à lire dans la fiche IGN. Regroupement proposé (« purs » : pixels entièrement dans le polygone, après érosion d'un pixel de 10 m) :
+**BD Forêt V2** : 15 370 polygones, **54 676 ha** dans le territoire, 28 postes (3 postes ne sont pas des forêts : landes, formations herbacées, forêt sans couvert). Aucun champ de millésime dans la couche (la couche porte « 2006-2019 ») ; **le millésime de la Vendée est lu dans l'archive IGN du département (section 1.1) : prises de vues de 2006, carte diffusée en 2009**. Regroupement proposé (« purs » : pixels entièrement dans le polygone, après érosion d'un pixel de 10 m) :
 
 | Classe | ha | ha purs | Remarque |
 |---|---|---|---|
@@ -40,6 +40,72 @@ Tout est en lecture : rien n'est écrit dans `data/` ni dans la base. Les images
 | Colza | 1 839 | 10 247 | 8 442 |
 
 Reste, hors classes : protéagineux (7 519 ha), légumineuses à grains, oléagineux divers, gel, légumes, fibres, vignes (environ 23 000 ha en tout). Toutes les classes retenues ont plus de 1 500 ha purs, soit plus de 150 000 pixels : assez pour une statistique stable.
+
+### 1.1 Millésime de la BD Forêt V2 pour la Vendée (2026-10-29)
+
+Lu dans l'archive officielle du département (`BDFORET_2-0__SHP_LAMB93_D085_2014-04-01`, service de téléchargement de la Géoplateforme, métadonnées et fiche de synthèse de l'Inventaire forestier national) :
+
+| | Vendée |
+|---|---|
+| Année de référence (photographies aériennes BD ORTHO® infrarouge) | **2006** |
+| Cartographie du département | du 2008-03-14 au 2008-11-10 |
+| Diffusion | 2009 |
+| Date d'édition de l'archive (re-livraison IGN) | 2014-04-01 |
+| Surface cartographiée | 54 711 ha (taux de boisement 7,6 %) |
+| Seuil de cartographie | 50 ares (5 000 m²) ; type fin renseigné au-dessus de 2 ha |
+
+La carte de la Vendée est donc **ancienne de vingt ans** en 2026 : coupes, tempêtes, plantations et défrichements depuis 2006 n'y sont pas. La couche WFS que j'utilise donne presque la même chose que l'archive de 2014 sur le domaine des deux marais (1 296 polygones et 5 925 ha, contre 1 258 polygones et 5 891 ha) mais **pas les mêmes géométries** : je n'ai pas élucidé la différence (redécoupage ou mise à jour partielle), le millésime de la WFS pour la Vendée n'est donc établi qu'à la précision de l'archive.
+
+**Ce que Sentinel-2 d'été 2025 en reste** (script `docs/spikes/v2_0/n1_millesime_bdforet.py` : NDVI médian de juillet-août 2025, 17 scènes sur le Marais poitevin et 31 sur le Marais breton, 30 m, cœur des polygones à 30 m des bords, domaine net) :
+
+| Classe (BD Forêt 2006) | Marais poitevin : cœur | NDVI médian | part sous 0,4 | part dans le RPG 2025 | Marais breton : cœur | NDVI médian | part sous 0,4 | part dans le RPG 2025 |
+|---|---|---|---|---|---|---|---|---|
+| Forêt fermée de conifères | 531 ha | 0,80 | 0,1 % | 0,0 % | 1 266 ha | 0,72 | 1,1 % | 0,0 % |
+| Forêt fermée de feuillus | 637 ha | 0,88 | 0,1 % | 1,6 % | 20 ha | 0,83 | 0,9 % | 3,6 % |
+| Forêt fermée mixte | 100 ha | 0,87 | 0,0 % | 0,1 % | 82 ha | 0,78 | 1,0 % | 0,0 % |
+| Peupleraie | 135 ha | 0,84 | 0,3 % | **29,8 %** | 2 ha | 0,89 | 0,0 % | 0,0 % |
+| Forêt fermée sans couvert arboré | 17 ha | 0,88 | 0,0 % | **19,7 %** | 3 ha | 0,74 | 0,0 % | 0,0 % |
+| Forêt ouverte (feuillus, conifères, mixte) | 20 ha | 0,83 à 0,85 | 0 à 5 % | 0 à 20 % | 16 ha | 0,64 | 7,0 % | 0,0 % |
+| Landes | 12 ha | 0,76 | 37 % | 34 % | 7 ha | 0,62 | 15 % | 5 % |
+| Formation herbacée | 43 ha | 0,40 | 50 % | 0 % | 206 ha | 0,41 | 45 % | 0 % |
+
+- **Les forêts fermées sont toujours vertes à cœur** : de 0,1 à 1,1 % des pixels de cœur sous un NDVI de 0,4 en été 2025, donc très peu de coupes récentes ou de défrichements qui seraient restés classés « forêt ».
+- **Les peupleraies sont la classe fragile** : près de 30 % de leur cœur dans le Marais poitevin est aujourd'hui une parcelle déclarée au RPG (la peupleraie a été remplacée ou est déclarée en prairie ou en culture). Il en va de même pour 20 % de la « forêt sans couvert arboré ».
+- Les landes et les formations herbacées ne sont pas des forêts (NDVI médian de 0,4 à 0,76, étalé) : à garder en classe à part ou à écarter.
+- **Limites** : cœur des polygones seulement (l'érosion de 30 m écarte environ 30 % des conifères et plus de 60 % des feuillus du Marais poitevin, boisements étroits le long des canaux) ; un seul été ; un NDVI élevé ne prouve pas que la classe d'essence de 2006 soit encore la bonne ; **les forêts apparues depuis 2006 ne sont pas mesurées** (plantations, friches embroussaillées : elles sont absentes de la carte).
+
+### 1.2 Sources de forêt plus récentes que la BD Forêt (2026-10-29)
+
+Demande de l'utilisateur avant de retenir les règles de D15 : y a-t-il mieux que la BD Forêt de 2006 ?
+
+| Source | Millésime | Résolution | Contenu | Licence | Accès |
+|---|---|---|---|---|---|
+| **OSO** (Theia, CESBIO) | 2016 à **2024** (le fichier 2024 date du 2026-10-06) | 10 m | 24 classes dont forêts de feuillus et de conifères ; **pas de classe peupleraie** | Etalab 2.0 | **Compte Dinamis-Theia nécessaire** : les fichiers répondent 403 sans signature, la signature demande une connexion OAuth2 ou une clé d'API. Non testé |
+| **FORMSpoT** et **FORMS-T** (INRAE, Dinamis-Theia) | hauteur de canopée de 2014 à 2024 (1,5 m), **polygones de perturbation 2014-2024**, hauteur, biomasse et volume de bois de 2018 à 2024 (10 à 30 m) | 1,5 m à 30 m | hauteur et pertes de forêt, pas d'essence | non vérifiée | même signature : 403 sans compte. Non testé |
+| **Copernicus HRL Dominant Leaf Type** | **2018** (seule version trouvée sur le serveur public de l'AEE) | 10 m | 3 classes : hors arbre, feuillus, conifères | libre d'accès (conditions non vérifiées) | public, sans compte |
+| **ESA WorldCover** | 2020 et **2021** | 10 m | classe « arbres » | CC-BY-4.0 | Planetary Computer, sans compte |
+| **Impact Observatory** (annuel) | 2017 à **2023** | 10 m | classe « arbres » | CC-BY-4.0 | Planetary Computer, sans compte |
+| **Meta, hauteur de canopée** (v1) | images de 2009 à 2020 (80 % de 2018 à 2020, d'après des sources secondaires) | 1,2 m | hauteur, pas d'essence | non confirmée pour la v1 | AWS public, sans compte |
+| OCS GE Vendée | 2019 (version simplifiée trouvée sur data.gouv.fr) | | | non précisée | non testé |
+
+**Mesure** (`n2_sources_foret.py` et `n2b_hauteur_canopee_meta.py`, domaine net sur la grille de 30 m ; « cœur » = cœur des polygones de forêt fermée de la BD Forêt à plus de 30 m des bords : environ 1 410 ha dans le Marais poitevin, 1 390 ha dans le Marais breton) :
+
+| Source | Marais poitevin : arbres | cœur BD Forêt encore vu comme arbre | arbres hors BD Forêt (dont dans le RPG 2025) | Marais breton : arbres | cœur encore vu | hors BD Forêt (RPG) |
+|---|---|---|---|---|---|---|
+| BD Forêt 2006 (forêt fermée et ouverte, peupleraie) | 3 347 ha | | | 1 990 ha | | |
+| Impact Observatory 2023 | 3 109 ha | **90 %** | 653 ha (48 %) | 2 005 ha | **98 %** | 163 ha (17 %) |
+| WorldCover 2021 | 5 810 ha | 96 % | 2 678 ha (51 %) | 2 215 ha | 90 % | 474 ha (17 %) |
+| HRL Dominant Leaf Type 2018 | 5 254 ha | 92 % | 2 343 ha (56 %) | 2 324 ha | 87 % | 673 ha (27 %) |
+| Meta, hauteur moyenne ≥ 5 m | 3 060 ha | 82 % | 590 ha (38 %) | 1 516 ha | 77 % | 89 ha (11 %) |
+
+- **La BD Forêt de 2006 est restée cohérente avec les cartes récentes** : la plus proche en surface (Impact Observatory 2023) voit encore 90 % de ses cœurs dans le Marais poitevin et 98 % dans le Marais breton ; 143 ha et 22 ha de cœur ne sont plus des arbres. Meta voit moins d'arbres (82 % et 77 %) : hauteur moyenne de 30 m sous 5 m pour 251 ha et 325 ha de cœur, sans qu'on sache s'il s'agit de coupes, de jeunes peuplements ou d'un biais de la carte (pins des dunes du Marais breton).
+- **WorldCover et HRL ajoutent 2 300 à 2 700 ha d'arbres dans le Marais poitevin** hors de la BD Forêt, dont la moitié sur des parcelles du RPG : des haies, des arbres isolés et des peupleraies du bocage, trop petits pour la BD Forêt (seuil de 50 ares). Ce ne sont pas des peuplements pour un suivi par classe de forêt.
+- **Type de feuillage** : le HRL de 2018 classe en conifères 78 % (Marais poitevin) et 85 % (Marais breton) du cœur des conifères de la BD Forêt, et en feuillus 96 % du cœur des feuillus du Marais poitevin (75 % dans le Marais breton, sur 21 ha seulement). Il classe la peupleraie en feuillus (69 %, 30 % hors arbre) ; le mélange est partagé (67 % feuillus dans le Marais poitevin, 70 % conifères dans le Marais breton).
+- **Sentinel-2 donne le type de feuillage sans source externe** : écart de NDVI entre l'été et l'hiver 2025 (médiane sur le cœur) : conifères −0,05 (Marais poitevin) et −0,12 (Marais breton) ; feuillus +0,27 (Marais poitevin) ; **peupleraie +0,50** (NDVI d'hiver de 0,34 : arbres nus) ; mélange +0,08 et −0,09. L'écart sépare nettement conifères, feuillus et peupleraies, et se recalcule chaque année.
+
+**Conséquence** : aucune source ne donne mieux que la BD Forêt pour des classes de peuplement (essence, peupleraie) ; les cartes récentes servent à la **tenir à jour**. Règles proposées pour D15 : le RPG prime sur la BD Forêt quand une parcelle est déclarée ; un pixel de forêt ne reste dans sa classe que s'il est encore un arbre sur une carte récente (Impact Observatory, annuelle, sans compte, ou à défaut WorldCover) et si son NDVI d'été n'est pas sous 0,4 ; l'écart de NDVI entre l'été et l'hiver contrôle le type de feuillage (conifères près de 0, peupleraie et feuillus nettement positifs). **OSO et FORMSpoT** (pertes de forêt depuis 2014) demandent un compte Dinamis-Theia gratuit, donc un nouveau secret dans `.env` : intéressants pour une mise à jour annuelle, non testés ici faute d'accès.
+
+**Limites** : une seule année par source, ramenée au pas de 30 m (vote majoritaire pour WorldCover et Impact Observatory, plus proche voisin pour le HRL, moyenne pour Meta) ; la BD Forêt sert de référence faute de vérité de terrain, donc un « arbre hors BD Forêt » n'est pas forcément une erreur (forêt apparue depuis 2006, ou trop petite) ; mesures sur le domaine net.
 
 ## 2. Domaine des marais
 
@@ -159,7 +225,7 @@ La bande côtière supprime la marée aussi bien, mais **retire beaucoup plus de
 
 Dans le domaine final : 0 pixel corrélé à la marée, et corrélation par passage de +0,00 à +0,05 (p ≥ 0,71). Sur les cartes, le réseau suit le Lay jusqu'au barrage et la baie de l'Aiguillon ; **dans le Marais breton, un étier du centre du marais ressort par les données sans figurer dans le réseau** (la BD TOPO ne le marque pas salé) : la couche des données est donc nécessaire en plus du réseau.
 
-**La forêt sort du domaine de la crue (2026-10-29).** Le périmètre Natura 2000 englobe la forêt dunaire de Longeville, la pointe d'Arçay et des boisements du marais ; ce ne sont pas des marais. La BD Forêt couvre **3 441 ha du domaine final du Marais poitevin (8,5 %)** et **2 386 ha de celui du Marais breton (7,5 %)**. Marais poitevin : feuillus 1 765 ha, conifères 739 ha, peupleraies 486 ha, mixte 197 ha, le reste en forêt ouverte, lande et formation herbacée. Marais breton : conifères 1 627 ha. Le radar y voit à peine d'eau : en hiver, 0,08 % des pixels de forêt sont détectés dans le Marais poitevin et 0,29 % dans le Marais breton (médiane des dates, Δ ≤ −3 dB), contre 2,1 % et 1,3 % pour les prairies. **Décision de l'utilisateur : la forêt reste dans le suivi NDVI et NDMI (classes de forêt) mais est retirée du domaine de la surface de crue** : **Marais poitevin 37 206 ha, Marais breton 29 270 ha**. Les « cordons dunaires » de l'EPMP (1 347 ha dans le Marais poitevin) n'ont pas été retirés, faute de demande.
+**La forêt sort du domaine de la crue (2026-10-29).** Le périmètre Natura 2000 englobe la forêt dunaire de Longeville, la pointe d'Arçay et des boisements du marais ; ce ne sont pas des marais. La BD Forêt couvre **3 441 ha du domaine final du Marais poitevin (8,5 %)** et **2 386 ha de celui du Marais breton (7,5 %)**. Marais poitevin : feuillus 1 765 ha, conifères 739 ha, peupleraies 486 ha, mixte 197 ha, le reste en forêt ouverte, lande et formation herbacée. Marais breton : conifères 1 627 ha. Le radar y voit à peine d'eau : en hiver, 0,08 % des pixels de forêt sont détectés dans le Marais poitevin et 0,29 % dans le Marais breton (médiane des dates, Δ ≤ −3 dB), contre 2,1 % et 1,3 % pour les prairies. **Décision de l'utilisateur : la forêt reste dans le suivi NDVI et NDMI (classes de forêt) mais est retirée du domaine de la surface de crue** : **Marais poitevin 37 206 ha, Marais breton 29 270 ha**. **Les « cordons dunaires » de l'EPMP sont aussi retirés du domaine de la crue (décision de l'utilisateur, 2026-10-29)** : ils couvrent 1 274 ha du domaine final du Marais poitevin, dont 1 174 ha de forêt déjà retirée ; **100 ha de plus (0,3 %)**, d'où **37 107 ha pour le Marais poitevin** (29 270 ha pour le Marais breton, qui n'a pas de couche équivalente). La licence de l'EPMP reste à obtenir (Q17).
 
 **Limites de ces mesures** :
 1. **Étés seulement** : en hiver la crue et la marée se mêlent ; une marée de tempête dans les estuaires n'est pas couverte.
@@ -354,9 +420,9 @@ Observations valides par pixel : médiane de 5 (1 pour 0,1 % des pixels, 3 pour 
 
 ## 6. Ce qui reste à faire
 
-- **Réseau maritime et contrôle de marée** : faits (section 2.3). Marge de 250 m validée, variante D retenue, forêt retirée du domaine de la crue (2026-10-29). Reste à valider le masque de pixels corrélés (Q19), puis à refaire le test avec les crues d'hiver quand la série sera calculée.
+- **Réseau maritime et contrôle de marée** : faits (section 2.3). Marge de 250 m validée, variante D retenue, forêt retirée du domaine de la crue (2026-10-29). Masque des pixels corrélés validé (Q19 décidée le 2026-10-29). Reste à refaire le test avec les crues d'hiver quand la série sera calculée.
 - **Masque d'eau permanente de Sentinel-1** sur 2015-2025 : non fait ; en 2024, Sentinel-2 en voit 251 ha dans le Marais poitevin.
-- **Millésime de la BD Forêt V2** pour la Vendée.
+- **Millésime de la BD Forêt V2** pour la Vendée : **fait** (section 1.1) : prises de vues de 2006, carte diffusée en 2009 ; les forêts fermées sont encore vertes à cœur, les peupleraies sont fragiles (30 % dans le RPG 2025).
 - **Vérité de terrain pour les prairies inondées** (marais mouillé, Marais breton) : l'utilisateur a confirmé l'eau sur les trois fenêtres de `rasters/v2_0/` (2026-10-28). Reste à trancher les pixels éparpillés du Marais breton (2021) et, si l'on veut un chiffre de précision, des niveaux d'eau des échelles limnimétriques de l'EPMP (à demander, séries absentes du fichier).
 - **Licence des couches de l'EPMP** : à demander avant tout usage publié.
 - **Contour du marais mouillé et desséché pour le Marais breton** : aucun trouvé (ADBVBB, DREAL, syndicats de marais à interroger).

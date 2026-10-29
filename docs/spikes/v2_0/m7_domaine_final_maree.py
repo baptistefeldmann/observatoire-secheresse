@@ -19,6 +19,11 @@ SEUIL = -0.5
 dom = gpd.read_parquet(f"{S}/domaine.parquet").set_index("marais")
 net = gpd.read_parquet(f"{S}/maree/atteint_{RESEAU}.parquet").geometry
 foret = gpd.read_parquet(f"{S}/bdforet.parquet")
+# cordons dunaires de l'EPMP (Marais poitevin seulement ; licence de l'EPMP à obtenir avant tout usage publié)
+epmp = f"{S}/epmp_grandes_entites.gpkg"
+dunes = gpd.read_file(epmp).to_crs(2154) if os.path.exists(epmp) else None
+if dunes is not None:
+    dunes = dunes[dunes.libelle.str.contains("dunaire", case=False)]
 ORB = {"poitevin": (8, 30), "breton": (81, 30)}
 
 
@@ -100,11 +105,15 @@ for marais, orbs in ORB.items():
     print(
         f"   DOMAINE FINAL : {final.sum() * ha:.0f} ha ({final.sum() / dans.sum():.1%} du domaine, retiré {(dans & deja).sum() * ha:.0f} ha)"
     )
-    final_crue = (
-        final & ~m_foret
-    )  # domaine de la surface de crue : sans la BD Forêt (reste dans le NDVI et le NDMI)
+    m_dunes = (
+        ras(dunes[dunes.intersects(geom)])
+        if dunes is not None and marais == "poitevin"
+        else np.zeros(shp, bool)
+    )
+    # domaine de la surface de crue : sans la BD Forêt (reste dans le NDVI et le NDMI) ni les cordons dunaires
+    final_crue = final & ~m_foret & ~m_dunes
     print(
-        f"   forêt (BD Forêt) dans le domaine final : {(final & m_foret).sum() * ha:.0f} ha ; DOMAINE DE CRUE (sans forêt) : {final_crue.sum() * ha:.0f} ha"
+        f"   forêt (BD Forêt) dans le domaine final : {(final & m_foret).sum() * ha:.0f} ha ; cordons dunaires hors forêt : {(final & ~m_foret & m_dunes).sum() * ha:.0f} ha ; DOMAINE DE CRUE (sans forêt ni cordons) : {final_crue.sum() * ha:.0f} ha"
     )
     np.savez_compressed(
         f"{S}/maree/final_{marais}.npz",

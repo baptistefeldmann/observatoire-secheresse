@@ -368,7 +368,46 @@ Même mesure qu'en 3.2 (surface détectée, les deux marais, médiane des passag
 
 - **Avec le filtre et Δ ≤ −3 dB, le bruit d'été est de 15 à 204 ha**, contre 304 à 2 104 ha sans filtre. Le rapport entre la surface d'hiver et celle d'été passe de 0,8 à 1,9 (sans filtre) à 4 à 25.
 - **Δ ≤ −4 dB** est encore plus silencieux en été (3 à 34 ha), mais il manque davantage de crue en hiver (−27 % au déversoir contre −20 % pour Δ ≤ −3 dB). **Δ ≤ −2 dB** laisse remonter du bruit en été (jusqu'à 758 ha, orbite 81). **Δ ≤ −3 dB avec filtre est le meilleur compromis** de cette mesure.
-- **Les orbites ne mesurent pas la même chose** : en hiver, les orbites 8, 30 et 81 donnent 811 à 1 053 ha (à ±13 % de leur moyenne), l'orbite 103 environ la moitié (422 ha) et l'orbite 154 presque rien (68 ha). Seules 8, 30 et 81 sont directement utilisables ; 103 et 154 sous-détectent (angle d'incidence) et ne doivent entrer qu'après un calage par orbite ; 132 ne voit pas l'eau.
+- **Les orbites ne mesurent pas la même chose** : les chiffres de ce tableau additionnent les deux marais et comparent des orbites qui ne couvrent pas la même surface ; la section 3.8 les reprend marais par marais, sur l'emprise commune, et corrige les conclusions de cette première lecture (103 et 154 ne « sous-détectent » pas : leur emprise est différente).
+
+### 3.8 Orbites : couverture et accord entre orbites (2026-10-30, Q18)
+
+Mesure par `docs/spikes/v2_0/n4_orbites_couverture.py` (détection par changement avec filtre, Δ ≤ −3 dB, hivers 2023-2024 et 2024-2025, référence : été précédent), plus les emprises des scènes du STAC (2023 et 2024).
+
+**Couverture du domaine net par orbite** (part de la surface du marais vue par un passage) :
+
+| Orbite | Marais poitevin | Marais breton |
+|---|---|---|
+| 8 | 87 % | pas de passage |
+| 30 | 100 % | 98 % (de 83 à 100 %) |
+| **81** | **100 %** | **100 %** |
+| 103 | 9 % | 100 % |
+| 132 | 0,2 % | |
+| 154 | | 46 % |
+
+Un passage qui ne couvre qu'une partie du marais **sous-estime les hectares** : l'orbite 8 ne voit pas 13 % du Marais poitevin, la 154 la moitié du Marais breton.
+
+**Surface détectée sur l'emprise commune** (médiane des passages des deux hivers, de 7 à 10 passages par orbite et par hiver ; Δ ≤ −3 dB, VV ≤ −16 dB, filtre) :
+
+| Marais (emprise commune) | Orbite | Surface (ha) | Hiver 2023-2024 | Hiver 2024-2025 |
+|---|---|---|---|---|
+| Poitevin (35 981 ha, emprise de la 8) | 8 | **865** | 1 080 | 847 |
+| | 81 | 514 | 514 | 522 |
+| | 30 | 479 | 636 | 378 |
+| Breton (15 225 ha, emprise de la 154) | 81 | **168** | 168 | 158 |
+| | 103 | 138 | 119 | 222 |
+| | 154 | 75 | 88 | 67 |
+| | 30 | 59 | 58 | 72 |
+
+- **La « cohérence à ± 13 % » des orbites 8, 30 et 81 de la section 3.7 était un effet du cumul des deux marais.** Marais par marais, sur la même surface, les orbites diffèrent d'un facteur de **1,7** dans le Marais poitevin (8 contre 30 et 81) à **2,9** dans le Marais breton (81 contre 30). Le classement se retrouve les deux hivers (l'orbite 30 est la plus basse dans les deux marais).
+- **Les orbites 103 et 154 ne « sous-détectent » pas.** La 103 couvre tout le Marais breton et y détecte 138 ha (82 % de la 81) ; elle ne couvre que 9 % du Marais poitevin. La 154 ne couvre que 46 % du Marais breton et y détecte 75 ha, comme la 30 (59 ha) sur la même emprise. La lecture précédente (« 103 : la moitié, 154 : presque rien ») comparait des surfaces différentes.
+- **Un décalage de seuil n'aligne pas les orbites avec un seul paramètre.** Pour égaler la 30 à VV ≤ −16 dB, l'orbite 8 demande un seuil d'environ −2 dB plus bas, la 81 d'environ −0,2 dB dans le Marais poitevin mais **−1,6 dB dans le Marais breton**, la 103 d'environ −1,4 dB. Le niveau de VV médian des orbites (de −11,2 à −12,6 dB en référence d'été) ne diffère que de 0,1 à 0,9 dB : l'écart ne se ramène pas à un niveau radiométrique propre à chaque orbite.
+- **Face à Sentinel-2** (variante Δ ≤ −3 dB, VV ≤ −16 dB, filtre ; comparaisons de la section 3.5 avec une zone valide d'au moins 50 % et 150 ha de crue vus par Sentinel-2 ; peu de comparaisons par case, de 4 à 6) : écart de surface médian au **déversoir du Lay** (eau libre, la vérité la plus fiable) : **81 : 0 %** (F1 0,81, 5 comparaisons), 8 : −18 % (F1 0,84, 5), 30 : −36 % (F1 0,73, 4). Marais breton : 81 : −18 % (5), 103 : −34 % (5), 30 : −69 % (4). Reste du Marais poitevin : 81 : −46 % (6), 30 : −65 % (5), 8 : +28 % (1). **L'orbite 30 est la plus basse, la 81 la plus proche de Sentinel-2.**
+- **Cadence des passages** (nombre de dates par an, par orbite, sur le Marais poitevin) : environ 58 de 2017 à 2021 (Sentinel-1A et 1B, 6 jours), **environ 29 de 2022 à 2024** (1A seul, 12 jours), environ 50 en 2025 (arrivée de Sentinel-1C). La médiane mensuelle repose donc sur deux fois moins de passages en 2022-2024 qu'avant et après : à contrôler sur la tendance, quelle que soit l'orbite choisie.
+
+**Proposition (Q18, à décider)** : publier la surface de crue d'**une seule orbite couvrant 100 % des deux marais à chaque passage, la 81**, pour une série homogène en hectares ; les orbites 8, 30 et, dans le Marais breton, 103 servent de contrôle (alerte si l'une diverge fortement de la 81). Exclues : 132 (aveugle), 154 (46 %), 103 dans le Marais poitevin (9 %). Variante plus lourde, à construire en V2.1 : plusieurs orbites avec un **facteur d'échelle par orbite et par marais**, estimé sur des passages à moins de trois jours d'écart de 2015 à 2025.
+
+**Limites** : deux hivers seulement ; les passages d'orbites différentes ne tombent pas les mêmes jours, ce qui ajoute du bruit à la comparaison (mais le même classement se retrouve les deux hivers) ; Sentinel-2 est lui-même une borne basse pour les prairies inondées (section 3.6), le choix de la 81 repose surtout sur l'eau libre du déversoir ; la 81 est choisie sur son niveau de détection face à Sentinel-2, pas sur une mesure de la surface réellement inondée, qu'aucune source ne donne ici.
 
 ## 4. Sentinel-2
 
@@ -428,7 +467,7 @@ Observations valides par pixel : médiane de 5 (1 pour 0,1 % des pixels, 3 pour 
 ## 5. Conséquences pour l'architecture
 
 1. **Q9 est reprise** : pas de seuil fixe sur VV. Méthode retenue pour la suite : **détection par changement** (VV d'hiver inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite, **et** VV ≤ −16 dB ; pixels déjà sombres en été écartés), **filtre spatial** (médiane 3 × 3, taches de moins de 10 pixels supprimées). Mesures : eau libre du déversoir à F1 de 0,81 et précision de 0,92 ; bruit d'été de 15 à 204 ha (section 3.7). Sentinel-2 valide l'eau libre, **pas les prairies inondées** (section 3.6) : il faut une autre vérité de terrain pour le marais mouillé. **Sur les trois fenêtres de contrôle, l'utilisateur confirme que le radar détecte bien de l'eau** (section 3.6) : la méthode est retenue pour les prairies inondées, avec les mesures face à Sentinel-2 lues comme des bornes basses.
-2. **Orbites** : exclure la 132 (l'eau n'y est pas visible) ; les orbites 8, 30 et 81 sont cohérentes entre elles (à ±13 %) ; 103 (environ la moitié) et 154 (presque rien) sous-détectent et demandent un calage par orbite.
+2. **Orbites** : exclure la 132 (l'eau n'y est pas visible) ; **les orbites s'écartent d'un facteur de 1,7 à 2,9 sur la même surface, marais par marais, et ne s'alignent pas par un simple décalage de seuil** (section 3.8, Q18) ; une seule orbite couvrant 100 % des deux marais est proposée pour la série publiée (la 81).
 3. **Valider** (fait pour l'eau libre : 7 dates claires de 2020 à 2025, dont une crue nette du Lay) ; **à faire pour les prairies inondées** : une vérité de terrain (niveaux d'eau des échelles limnimétriques de l'EPMP, repérage de l'utilisateur sur les vues).
 3 bis. **Domaine par régime de marais** : le Marais poitevin se découpe en marais mouillé, intermédiaire et desséché avec les « grandes entités » de l'EPMP (section 2.1) ; slikke et schorre (147 ha dans le domaine) sont à exclure. Le Marais breton n'a pas d'équivalent trouvé.
 4. **Offset BOA** : confirmé indispensable ; **scènes à baseline inconnue écartées** ; seuil d'alerte de dérive proposé à 0,03 de NDVI.

@@ -1,5 +1,5 @@
 # ruff: noqa
-"""V2.0 masque d'eau permanente : effet sur la surface de crue (orbite 81, hivers 2023-2024 et 2024-2025) du masque de Sentinel-1 (n5), des surfaces d'eau de la BD TOPO, et des deux réunis. Jetable, hors dépôt de production (voir docs/spikes/07_v2_chiffrage.md, section 3.9)."""
+"""V2.0 masque d'eau permanente : effet sur la surface de crue (orbite 81, hivers 2023-2024 et 2024-2025) du masque de Sentinel-1 (n5), des surfaces d'eau permanentes de la BD TOPO, et des deux réunis. Jetable, hors dépôt de production (voir docs/spikes/07_v2_chiffrage.md, section 3.9)."""
 
 import warnings
 
@@ -23,12 +23,16 @@ os.environ.update(
 )
 S = os.environ.get("V20_SORTIE", "rasters/v2_0")
 ORBITE, HA = 81, 0.01
+MARGE_PX = int(os.environ.get("V20_MARGE_PX", "1"))
 HIVERS = [
     ("2023-12-01/2024-03-31", "2023-07-01/2023-09-30"),
     ("2024-12-01/2025-03-31", "2024-07-01/2024-09-30"),
 ]
 dom = gpd.read_parquet(f"{S}/domaine.parquet").set_index("marais")
 hydro = gpd.read_parquet(f"{S}/surface_hydro.parquet")
+hydro = hydro[
+    hydro.persistance == "Permanent"
+]  # les surfaces « intermittentes » (nature Marais) sont les prairies inondées elles-mêmes : à ne pas masquer
 cl = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
 
 
@@ -64,10 +68,13 @@ for marais, ligne in dom.iterrows():
         transform=gb.affine,
         fill=0,
     ).astype(bool)
-    m_h = ndi.binary_dilation(m_h, iterations=1)  # 10 m de marge : pixels de bord
+    if MARGE_PX:
+        m_h = ndi.binary_dilation(
+            m_h, iterations=MARGE_PX
+        )  # marge de pixels de 10 m autour des surfaces d'eau
     ha = lambda m: float((m & dans).sum() * HA)
     print(
-        f"{marais} : masque S1 {ha(m_s1):.0f} ha, BD TOPO (+10 m) {ha(m_h):.0f} ha, réunis {ha(m_s1 | m_h):.0f} ha",
+        f"{marais} : masque S1 {ha(m_s1):.0f} ha, BD TOPO (marge {MARGE_PX} pixel) {ha(m_h):.0f} ha, réunis {ha(m_s1 | m_h):.0f} ha",
         flush=True,
     )
     for hiver, ete in HIVERS:

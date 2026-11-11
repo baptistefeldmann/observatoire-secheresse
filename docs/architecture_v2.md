@@ -126,7 +126,7 @@ Une surface d'eau calme réfléchit le signal radar loin du capteur : elle est s
 | Élément | Définition |
 |---|---|
 | **Surface de crue (ha)** | Médiane mensuelle, sur les passages du mois, de la surface en eau hors eau permanente |
-| Eau permanente (interne, non publiée) | Masque fixe : pixels sombres (VV filtré ≤ −16 dB) dans plus de la moitié des passages de juillet à septembre sur 2015-2025, **orbite 81** (305 ha dans le Marais poitevin, 770 ha dans le Marais breton), **réuni aux surfaces d'eau de la BD TOPO** (mesuré en V2.0, [section 3.9](spikes/07_v2_chiffrage.md), à valider par un contrôle visuel) ; ne sert qu'à la soustraction |
+| Eau permanente (interne, non publiée) | Masque fixe : pixels sombres (VV filtré ≤ −16 dB) dans plus de la moitié des passages de juillet à septembre sur 2015-2025, **orbite 81** (305 ha dans le Marais poitevin, 770 ha dans le Marais breton), **réuni aux surfaces d'eau permanentes de la BD TOPO**, sans marge (mesuré en V2.0, [section 3.9](spikes/07_v2_chiffrage.md) ; les surfaces « intermittentes » de la BD TOPO, qui sont en grande partie les prairies inondées, ne sont pas masquées) ; ne sert qu'à la soustraction |
 | **Tendance** | Surface de crue d'hiver (décembre à mars) de 2015 à 2026 : pente de Theil-Sen, test de Kendall (même démarche que D12) |
 | Anomalie | Écart à la médiane du même mois sur 2015-2025 ; rang parmi 11 ans |
 

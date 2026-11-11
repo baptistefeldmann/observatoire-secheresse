@@ -288,6 +288,83 @@ Ensemble du département : semaines en crise classées 1-2 de 39 à 41 % ; semai
 
 Les retenues restent hors du composite (D3, D6) : aucun indice ne change de valeur. `version_methodo` passe à « D14 » comme la règle du projet l'exige, les indices sont recalculés à l'identique (seule la colonne de version change). **Écarté** : ramener tout relevé hors dimanche au dimanche le plus proche (la notion de semaine ne doit pas dépendre d'une convention de jour) ; écarter les valeurs isolées aberrantes de l'enveloppe et du total (17 valeurs, liées aux épisodes pluvieux ; cause à confirmer par le producteur) ; ne rien changer.
 
+## D15 — Brique satellite (V2) : unité de temps, classes, périodes, domaines et radiométrie
+
+*2026-11-11*
+
+**Principe.** La brique satellite est **à part du composite** et se compose de deux indices distincts : le **stress de la végétation** (NDVI et NDMI de Sentinel-2, par classe de forêt et de culture) et la **surface de crue des marais** (Sentinel-1, en hectares, valeur brute jamais ramenée à un taux). Aucun indice existant ne change de valeur : `version_methodo` reste « D14 » pour les indices du composite ; les indices satellitaires auront leur propre version à la mise en œuvre. Les mesures sont dans le [spike n°7](spikes/07_v2_chiffrage.md) (sections 1 à 4) ; le choix des points a été fait par l'utilisateur.
+
+**1. Unité de temps : le mois civil** (exception à la semaine ISO, qui reste l'unité des indices existants).
+
+| Mesure (2018-2025) | Mois | Semaine ISO |
+|---|---|---|
+| Sentinel-2 : part des périodes avec au moins 3 dates utilisables (une tuile) | **93 %** | 12 % |
+| Idem avec les quatre tuiles du département | 99 % | 22 % |
+| Part des périodes sans aucune date utilisable (une tuile) | 0 % (4 mois sur 96 avec une seule date) | **24 %** |
+| Sentinel-1, orbite 81 : passages | de 2,4 à 4,8 par mois selon l'année | 0 à 1 par semaine |
+
+Chaque mois : médiane des NDVI et des NDMI par date ; surface de crue = médiane des surfaces des passages de l'orbite 81. **Écartés** : la semaine ISO (un quart des semaines sans image optique) ; le mois glissant de 30 jours.
+
+**2. Classes** (`config/nomenclature_ocs.yaml`). Chaque pixel de 10 m reçoit une classe selon la **BD Forêt V2** (prises de vues de 2006 en Vendée, carte diffusée en 2009) et le **RPG** de l'année, avec trois règles :
+1. le **RPG prime** sur la BD Forêt quand une parcelle est déclarée ;
+2. un pixel de forêt ne reste dans sa classe que s'il est **encore un arbre** sur la carte d'Impact Observatory (annuelle, 2023 en l'état ; WorldCover à défaut) **et** si son **NDVI d'été n'est pas sous 0,4** ; **la classe peupleraie en est exemptée** (la carte d'arbres n'en reconnaît que 38 %) ;
+3. l'**écart de NDVI entre l'été et l'hiver** contrôle le type de feuillage (conifères près de 0, feuillus et peupleraie nettement positifs, seuils fixés sur les données).
+
+Forêt, **7 classes** (surfaces du département) : feuillus mélangés et autres (26 725 ha), chênes décidus purs (5 353), pin maritime pur (5 029), mélange feuillus-conifères (3 676), landes et formations herbacées (3 321), autres conifères (2 925), peupleraie (2 371) ; en réserve : châtaignier pur, forêt ouverte ; **exclue** : forêt sans couvert (coupes, 969 ha). Cultures, **9 classes** du RPG : prairies permanentes, maïs, blé tendre, prairies temporaires, fourrages, autres céréales, tournesol, orge, colza (toutes au-dessus de 8 400 ha purs). **Les forêts et les prairies permanentes sont des classes de confiance** (BD Forêt ancienne, RPG déclaratif).
+
+| Mesure sur le département (cœur des polygones de forêt fermée) | Feuillus | Conifères | Mélange | Peupleraie |
+|---|---|---|---|---|
+| Cœur | 12 624 ha | 4 459 ha | 1 341 ha | 455 ha |
+| NDVI d'été 2025 sous 0,4 | 0,4 % | 0,7 % | 0,8 % | 2,1 % |
+| Encore un arbre sur la carte de 2023 | 90 % | 97 % | 91 % | **38 %** |
+| Dans le RPG 2025 | 0,8 % | 0,1 % | 0,6 % | **14,7 %** |
+
+**Écartés** : une autre carte d'occupation du sol à la place de la BD Forêt (aucune ne donne les essences et les peupleraies ; OSO et FORMSpoT demandent un compte Dinamis-Theia et restent possibles) ; une classe unique « forêt » (le NDVI d'été varie d'une année à l'autre de 0,67 à 0,73 pour le pin et de 0,87 à 0,91 pour les chênes : une anomalie ne se lit pas pareil).
+
+**3. Périodes.**
+
+| Série | Période | Référence figée (D10) |
+|---|---|---|
+| NDVI et NDMI | 2018 à l'année en cours | **2018-2025** (8 ans), jamais glissante ; 2026 n'y entre pas |
+| Surface de crue | 2015 à l'année en cours | 2015-2025 (11 ans), seulement pour situer une année par son rang ; la tendance utilise toute la série, en hectares |
+
+| Fenêtre de référence de Sentinel-2 | Années | Plus bas écart standardisé accessible (seuil de la classe 1 : −1,28) |
+|---|---|---|
+| **2018-2025** | 8 | **−1,54** |
+| 2017-2025 | 9 | −1,59 |
+| 2020-2025 | 6 | −1,41 |
+| 2022-2025 | 4 | −1,23 : pas de classe 1 |
+
+2018 est la première année complète (143 à 145 dates, les deux satellites) ; 2017 n'a que 98 dates et, pour une tuile, 5 mois sur 12 sous 3 dates ; la référence de 8 ans atteint la classe 1 avec le niveau d'incertitude d'une référence courte (D7 exige 15 ans), signalé « hors référence ». **Écartés** : 2017-2025 (gain de 0,05 pour une année incomplète), 2020-2025 (classe 1 de justesse), 2022-2025 (pas de classe 1), 2018-2026 (2026, très sèche, ne doit jamais entrer dans une référence figée).
+
+**4. Domaines.**
+
+| Indice | Domaine |
+|---|---|
+| NDVI et NDMI | **tout le département**, par zone du projet (12 zones) et par classe |
+| Crue | les deux marais (périmètres Natura 2000), **le Marais breton en un seul bloc** (aucune couche de régimes n'existe pour lui), le Marais poitevin **par régime** (marais mouillé, intermédiaire, desséché, d'après l'EPMP), **orbite 81**, moins : le réseau maritime (tronçons salés ou d'estuaire de la BD TOPO, 250 m de marge), les pixels corrélés à la marée du SHOM, la forêt, les cordons dunaires de l'EPMP, les marais salants, l'estran, et le **masque d'eau permanente** (masque fixe de Sentinel-1, sombre dans plus de la moitié des passages de juillet à septembre 2015-2025, réuni aux surfaces d'eau **permanentes** de la BD TOPO ; les surfaces « intermittentes », qui sont en grande partie les prairies inondées, ne sont pas masquées) |
+
+| Domaine de crue | Domaine net | Domaine final (hors marée) | Domaine de crue (sans forêt ni cordons) |
+|---|---|---|---|
+| Marais poitevin | 41 322 ha | 40 647 ha | **37 107 ha** |
+| Marais breton | 32 653 ha | 31 656 ha | **29 270 ha** |
+
+**Orbite 81** : seule orbite couvrant 100 % des deux marais à chaque passage et la plus proche de Sentinel-2 sur l'eau libre du déversoir du Lay ; les orbites diffèrent d'un facteur de 1,7 à 2,9 sur la même surface et un décalage de seuil ne les aligne pas ; 8, 30 et, dans le Marais breton, 103 servent de contrôle ; 132, 154 (46 % du Marais breton) et 103 dans le Marais poitevin (9 %) sont exclues. **Détection** : VV inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite, **et** VV ≤ −16 dB, filtre spatial (médiane 3 × 3, taches de moins de 10 pixels supprimées) ; surface retirée par le masque d'eau permanente : de 2 à 8 % de la crue.
+
+**5. Radiométrie (condition primordiale pour comparer les valeurs).** Sentinel-2 **L2A uniquement**, **offset BOA lu par scène** selon sa baseline (−1000 sur B04, B08 et B11 depuis la baseline 04.00 du 2022-01-25) ; scène à baseline inconnue écartée et comptée au rapport ; **une seule scène par tuile et par jour, la baseline la plus récente** (le catalogue contient deux versions pour 50 % des couples tuile-jour en 2022 et 65 % en 2023).
+
+| Contrôle (cibles stables et scènes en double) | Résultat |
+|---|---|
+| NDVI sans correction d'offset, à partir de 2022 | −0,27 à −0,29 |
+| NDVI et NDMI avec correction (chênes, pin) | sauts de +0,02 à −0,01 (NDVI) et −0,009 à +0,033 (NDMI), au niveau de la variabilité naturelle |
+| Même acquisition, deux baselines (04.00 → 05.10 ; 05.09 → 05.10) | NDVI +0,004 et 0,000 ; NDMI −0,0005 et +0,0005 |
+| Sentinel-2A contre 2B | moins de 0,01 |
+| Seuil d'alerte de dérive | 0,03 |
+
+À surveiller : Sentinel-2C (+0,02 de NDVI et +0,04 de NDMI pour le pin, 9 scènes de 2025) et le NDMI des pins, qui monte de 0,20 à 0,28 de 2018 à 2025 sans saut à un changement de baseline (celui des chênes est plat) ; le contrôle de dérive suit le NDMI comme le NDVI.
+
+**Reste ouvert, hors D15** (D16, avec la première série) : seuils des trois règles de classes ; nombre minimal de dates valides par pixel et part de pixels valides par zone et par classe ; test de l'hypothèse « hiver sans crue, été sec » avec les nappes et les arrêtés ; mois publiés ; sensibilité du masque d'eau permanente (seuil de 50 %, année par année) ; contrôle de marée avec les crues d'hiver. **Conditions** : licence des couches de l'EPMP à confirmer avant toute communication externe et avant de publier la crue par régime (Q17, considérée comme utilisable pour le prototype) ; `LICENCE-DONNEES.md` à jour à la mise en œuvre.
+
 ## Validation par les arrêtés sécheresse
 
 *2026-10-10. Protocole en cours, pas encore une décision.*

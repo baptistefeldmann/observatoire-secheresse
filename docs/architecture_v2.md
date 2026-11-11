@@ -18,7 +18,7 @@ Hors périmètre : pression sur la ressource (V3), prévision (V4), carte d'occu
 | Sujet | Choix |
 |---|---|
 | Statut | Deux indices **à part du composite** |
-| Végétation | NDVI Sentinel-2 L2A, mensuel (exception à la semaine ISO, à noter en D15), Planetary Computer, `pystac-client` + `xarray` + `odc-stac`, méthode d'`eo_factory` (lue, non copiée) |
+| Végétation | NDVI Sentinel-2 L2A, mensuel (exception à la semaine ISO, notée en D15), Planetary Computer, `pystac-client` + `xarray` + `odc-stac`, méthode d'`eo_factory` (lue, non copiée) |
 | **Radiométrie** | **Identique entre toutes les images** : condition primordiale pour comparer les valeurs de NDVI (section 6.4) |
 | Classes de forêt | BD Forêt V2 (prises de vues de 2006), tenue à jour par une carte récente d'arbres (le RPG prime ; pixel gardé s'il est encore un arbre et de NDVI d'été ≥ 0,4, sauf peupleraie ; écart été-hiver pour le feuillage), **sur tout le département** (le suivi NDVI et NDMI ne se limite pas aux marais) ; aucune source récente ne donne mieux pour les essences et les peupleraies ([spike n°7, section 1.2](spikes/07_v2_chiffrage.md)) ; OSO et FORMSpoT possibles avec un compte Dinamis-Theia |
 | Classes agricoles | RPG 2025 ; rotation traitée par classe et par année (RPG de chaque année) ; RPG 2025 pour l'année en cours, bruit signalé |
@@ -257,14 +257,14 @@ Restent aussi à faire : contrôle de marée avec les crues d'hiver et sensibili
 | # | Étape | Sortie |
 |---|---|---|
 | V2.0 | Surfaces par classe de la BD Forêt V2 et du RPG 2025 (millésime de la BD Forêt pour la Vendée : **fait, prises de vues de 2006, diffusée en 2009**, voir [spike n°7, section 1.1](spikes/07_v2_chiffrage.md)) ; histogramme du VV sur les périmètres de marais en hiver et en été, par orbite relative ; masque d'eau permanente (**fait**, section 3.9) ; **masque de marée** (réseau maritime de la BD TOPO avec marge, pixels corrélés à la hauteur de marée du SHOM : fait, Q19 décidée le 2026-10-29) ; **contrôle de dérive radiométrique sur quelques mois de baselines différentes** (cibles stables) ; essai médiane contre moyenne sur un mois ; **NDMI contre NDVI sur un mois de 2022 (sécheresse) et un de 2023** | Regroupement des classes, seuil d'eau (Q9), cibles stables (Q13), domaine (Q4) |
-| V2.1 | Classes mises à la grille ; `config/nomenclature_ocs.yaml` ; périodes et domaine des marais dans `config/projet.yaml` | Décision D15 : classes, mensuel, périodes |
+| V2.1 | Classes mises à la grille ; `config/nomenclature_ocs.yaml` ; périodes et domaine des marais dans `config/projet.yaml` | D15 validée le 2026-11-11 (classes, mensuel, périodes) |
 | V2.2 | **Crues Sentinel-1 2015-2026** (calcul léger, déjà exploitable : tendance en hectares) puis composites NDVI mensuels | Séries de crue ; COG, `rst.produit` |
 | V2.3 | Agrégats zone × classe, référence, rang ; test de l'hypothèse « hiver sans crue, été sec » avec les nappes et les arrêtés | `idx.satellite_mois`, décision D16 |
 | V2.4 | API, tuiles, dashboard, QGIS | Onglet « Satellite » |
 
-## 13. Décision D15 proposée : unité de temps, classes, périodes et domaines de la brique satellite
+## 13. Décision D15 : unité de temps, classes, périodes et domaines de la brique satellite
 
-*Proposition du 2026-11-11. **Points 1 à 4 validés par l'utilisateur le 2026-11-11** (mois civil, classes et trois règles, périodes, domaines) ; le point 5 (radiométrie) attend sa confirmation après la vérification de l'offset sur le NDMI ; elle sera reportée dans [`methodologie.md`](methodologie.md) une fois validée. Chiffres : [spike n°7](spikes/07_v2_chiffrage.md) (sections 1.1 à 1.3, 2.3, 3.8, 3.9, 4.4). Aucun indice existant ne change : la brique reste hors du composite.*
+***Validée par l'utilisateur le 2026-11-11 (points 1 à 5) et reportée dans [`methodologie.md`](methodologie.md) (D15), qui prime en cas d'écart.** Texte d'origine conservé ci-dessous ; elle sera reportée dans [`methodologie.md`](methodologie.md) une fois validée. Chiffres : [spike n°7](spikes/07_v2_chiffrage.md) (sections 1.1 à 1.3, 2.3, 3.8, 3.9, 4.4). Aucun indice existant ne change : la brique reste hors du composite.*
 
 **1. Unité de temps : le mois civil (exception à la semaine ISO).** Le suivi hebdomadaire reste celui des indices existants ; la brique satellite est mensuelle.
 

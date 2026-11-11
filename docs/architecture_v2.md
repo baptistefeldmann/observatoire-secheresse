@@ -29,9 +29,9 @@ Hors périmètre : pression sur la ressource (V3), prévision (V4), carte d'occu
 | Anomalie du NDVI | Écart à la médiane de la classe (Q3) |
 | Détection de l'eau | **Après V2.0** : pas de seuil fixe sur VV. **Détection par changement** (VV d'hiver inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite, et VV ≤ −16 dB) avec **filtre spatial** (médiane 3 × 3, taches de moins de 10 pixels supprimées) ; validée par Sentinel-2 sur l'eau libre (F1 de 0,81 au déversoir du Lay), pas sur les prairies inondées (Q9, [spike n°7](spikes/07_v2_chiffrage.md)) |
 | Contrôle de dérive radiométrique | Cibles stables et seuil proposés sur les données (Q13) |
-| Fenêtre de référence | **Élargie** : Sentinel-2 de 2018 à 2026 (référence 2018-2025, 8 ans) ; Sentinel-1 de 2015 à 2026 |
+| Fenêtre de référence | **Confirmée sur des chiffres le 2026-11-11** : Sentinel-2 de 2018 à l'année en cours (référence figée 2018-2025, 8 ans) ; Sentinel-1 de 2015 à l'année en cours ([spike n°7, section 4.4](spikes/07_v2_chiffrage.md)) |
 
-À confirmer : pour Sentinel-2, j'ai compris « fenêtre élargie » comme 2018-2026 (début de l'archive L2A homogène de la spec). L'étape intermédiaire 2022-2026 reste possible puisque la période est un paramètre.
+Fenêtre de Sentinel-2 : 2018 est la première année complète (143 à 145 dates) ; 2017 est incomplète. L'étape intermédiaire 2022-2025 reste possible puisque la période est un paramètre (mais sans classe 1).
 
 ## 3. Contraintes héritées
 
@@ -107,6 +107,7 @@ Un NDVI n'est comparable d'un mois ou d'une année à l'autre que si les réflec
 | **Décalage BOA** : depuis la baseline 04.00 (2022-01-25), les DN portent +1000 ; sans correction, le NDVI médian du territoire est faux de 0,13 (spike) | Offset lu **par scène** selon sa baseline ; **scène à baseline inconnue écartée et comptée au rapport** (plus strict qu'`eo_factory`, qui la déduit de la date) |
 | **Plusieurs baselines** dans la période (02.12, 03.00, 04.00, 05.xx), avec d'éventuels autres changements de traitement que l'offset | **Contrôle de dérive** : NDVI médian mensuel de **cibles stables** (forêts de conifères et chênes verts de la BD Forêt, sol nu) ; comparaison aux mêmes mois avant et après chaque changement de baseline ; alerte au-delà d'un seuil fixé sur les données |
 | **Plusieurs satellites** (2A, 2B, 2C) | Même contrôle, scindé par plateforme : NDVI des cibles stables d'un même jour, 2A contre 2B contre 2C |
+| **Scènes en double** (même tuile, même jour, deux baselines : 50 % des couples en 2022, 65 % en 2023) | **Une seule scène par tuile et par jour, la baseline la plus récente** ; l'écart de NDVI entre deux baselines d'une même acquisition est de 0,000 à 0,004, celui de NDMI de moins de 0,001 (spike n°7, section 4.4) |
 | Mélange de niveaux ou de bandes | **L2A uniquement**, jamais de L1C ; mêmes bandes B04 et B08 natives à 10 m |
 | Réflectances aberrantes (saturation, négatives) | Réflectance = (DN − offset) / 10 000, négatifs ramenés à 0, NDVI par date **avant** la médiane |
 | Lectures corrompues (jetons expirés) | Contrôle d'intégrité (section 9.1) |
@@ -260,3 +261,47 @@ Restent aussi à faire : contrôle de marée avec les crues d'hiver et sensibili
 | V2.2 | **Crues Sentinel-1 2015-2026** (calcul léger, déjà exploitable : tendance en hectares) puis composites NDVI mensuels | Séries de crue ; COG, `rst.produit` |
 | V2.3 | Agrégats zone × classe, référence, rang ; test de l'hypothèse « hiver sans crue, été sec » avec les nappes et les arrêtés | `idx.satellite_mois`, décision D16 |
 | V2.4 | API, tuiles, dashboard, QGIS | Onglet « Satellite » |
+
+## 13. Décision D15 proposée : unité de temps, classes, périodes et domaines de la brique satellite
+
+*Proposition du 2026-11-11. **Points 1 à 4 validés par l'utilisateur le 2026-11-11** (mois civil, classes et trois règles, périodes, domaines) ; le point 5 (radiométrie) attend sa confirmation après la vérification de l'offset sur le NDMI ; elle sera reportée dans [`methodologie.md`](methodologie.md) une fois validée. Chiffres : [spike n°7](spikes/07_v2_chiffrage.md) (sections 1.1 à 1.3, 2.3, 3.8, 3.9, 4.4). Aucun indice existant ne change : la brique reste hors du composite.*
+
+**1. Unité de temps : le mois civil (exception à la semaine ISO).** Le suivi hebdomadaire reste celui des indices existants ; la brique satellite est mensuelle.
+
+| Mesure (2018-2025) | Mois | Semaine ISO |
+|---|---|---|
+| Sentinel-2 : part des périodes avec au moins 3 dates utilisables (une tuile) | **93 %** | 12 % |
+| Idem avec les quatre tuiles du département | 99 % | 22 % |
+| Part des périodes sans aucune date utilisable (une tuile) | 0 % (4 mois sur 96 avec une seule date) | **24 %** |
+| Sentinel-1, orbite 81 : passages | de 2,4 à 4,8 par mois | 0 à 1 par semaine |
+
+Chaque mois, le composite est la médiane des NDVI et des NDMI par date (section 6.3) ; la surface de crue du mois est la médiane des surfaces des passages de l'orbite 81. **Écarté** : la semaine ISO (un quart des semaines sans image optique) ; le mois glissant de 30 jours (même densité, sans le calendrier des mois).
+
+**2. Classes (`config/nomenclature_ocs.yaml`).** Chaque pixel de 10 m reçoit une classe selon la **BD Forêt V2** (prises de vues de 2006 en Vendée) et le **RPG** de l'année, avec trois règles :
+1. le **RPG prime** sur la BD Forêt quand une parcelle est déclarée ;
+2. un pixel de forêt ne reste dans sa classe que s'il est **encore un arbre** sur la carte d'Impact Observatory 2023 (WorldCover à défaut) **et** si son **NDVI d'été n'est pas sous 0,4** ; **la classe peupleraie en est exemptée** (la carte d'arbres n'en reconnaît que 38 %) ;
+3. l'**écart de NDVI entre l'été et l'hiver** contrôle le type de feuillage (conifères près de 0, feuillus et peupleraie nettement positifs, seuils à fixer sur les données).
+
+Classes (surfaces du département, spike n°7 section 1) : forêt, **7 classes** : feuillus mélangés et autres (26 725 ha), chênes décidus purs (5 353), pin maritime pur (5 029), mélange feuillus-conifères (3 676), landes et formations herbacées (3 321), autres conifères (2 925), peupleraie (2 371), plus en réserve le châtaignier pur et la forêt ouverte, et **exclue** la forêt sans couvert (coupes, 969 ha) ; cultures, **9 classes** du RPG : prairies permanentes, maïs, blé tendre, prairies temporaires, fourrages, autres céréales, tournesol, orge, colza (toutes au-dessus de 8 400 ha purs). **Les forêts et les prairies permanentes sont des classes de confiance** (BD Forêt ancienne, RPG déclaratif). Sur le département, le cœur des polygones de forêt fermée est encore vert (moins de 1 % des pixels sous un NDVI de 0,4 en été) et à 90-97 % encore un arbre en 2023. **Écartés** : une autre carte d'occupation du sol à la place de la BD Forêt (aucune ne donne les essences et les peupleraies ; OSO et FORMSpoT demandent un compte Dinamis-Theia et restent possibles) ; une classe unique « forêt » (le NDVI d'été varie d'une année à l'autre de 0,67 à 0,73 pour le pin et de 0,87 à 0,91 pour les chênes, spike n°7 section 4.1 : une anomalie ne se lit pas pareil).
+
+**3. Périodes.**
+
+| Série | Période | Référence figée (D10) |
+|---|---|---|
+| NDVI et NDMI | 2018 à l'année en cours | **2018-2025** (8 ans), jamais glissante ; 2026 n'y entre pas |
+| Surface de crue | 2015 à l'année en cours | 2015-2025 (11 ans), seulement pour situer une année par son rang ; la tendance utilise toute la série, en hectares |
+
+Fenêtre Sentinel-2 retenue sur des chiffres (spike n°7, section 4.4) : 2018 est la première année complète (143 à 145 dates, les deux satellites) ; 2017 n'a que 98 dates et 5 mois sur 12 sous 3 dates ; la référence de 8 ans atteint la classe 1 (−1,54 contre un seuil de −1,28), avec le niveau d'incertitude d'une référence courte (D7 exige 15 ans), signalé « hors référence ». **Écartés** : 2017-2025 (gain de 0,05 pour une année incomplète), 2020-2025 (classe 1 de justesse, −1,41), 2022-2025 (pas de classe 1, −1,23), 2018-2026 (2026, très sèche, ne doit jamais entrer dans une référence figée).
+
+**4. Domaines.**
+
+| Indice | Domaine |
+|---|---|
+| NDVI et NDMI | **tout le département**, par zone du projet (12 zones) et par classe |
+| Crue | les deux marais (périmètres Natura 2000), **chacun en un seul bloc** pour le Marais breton (Q15) et par régime pour le Marais poitevin (Q14), **orbite 81** (Q18), moins : le réseau maritime (variante D) avec 250 m de marge, les pixels corrélés à la marée, la forêt, les cordons dunaires de l'EPMP, les marais salants, l'estran, et le **masque d'eau permanente** (masque fixe de Sentinel-1 réuni aux surfaces permanentes de la BD TOPO) : **37 107 ha** pour le Marais poitevin, **29 270 ha** pour le Marais breton |
+
+**5. Radiométrie.** Offset BOA lu par scène (L2A seulement, scène à baseline inconnue écartée) ; **une seule scène par tuile et par jour, la baseline la plus récente** (le catalogue contient deux versions pour 50 % des couples tuile-jour en 2022 et 65 % en 2023) ; l'écart entre baselines d'une même acquisition est de 0,000 à 0,004 pour le NDVI et de moins de 0,001 pour le NDMI (seuil de dérive : 0,03) ; l'offset s'applique aux trois bandes B04, B08 et B11 ; le contrôle de dérive suit aussi le NDMI des cibles stables (celui des pins monte de 0,20 à 0,28 de 2018 à 2025, à surveiller).
+
+**Reste ouvert, hors D15** (D16, avec la première série) : seuils des trois règles de classes ; règle de nombre minimal de dates valides par pixel et de part de pixels valides par zone et par classe ; test de l'hypothèse « hiver sans crue, été sec » avec les nappes et les arrêtés ; mois publiés ; sensibilité du masque d'eau permanente (seuil de 50 %, année par année) ; contrôle de marée avec les crues d'hiver.
+
+**À la mise en œuvre (V2.1)** : paramètres dans `config/projet.yaml` (périodes, domaine des marais, orbite) ; version de méthode des indices satellitaires ; `LICENCE-DONNEES.md` à jour ; licence de l'EPMP à confirmer avant toute publication de la crue par régime (Q17).

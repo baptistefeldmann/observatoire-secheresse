@@ -496,6 +496,46 @@ Observations valides par pixel : médiane de 5 (1 pour 0,1 % des pixels, 3 pour 
 - Les forêts sont plus vertes en juillet 2022 qu'en juillet 2023 : la sécheresse de 2022 n'a atteint le houppier qu'en août. Un seul mois ne résume pas une saison.
 - **Limite** : une seule fenêtre de 15 km, 5 dates par mois.
 
+### 4.4 Fenêtre de référence de Sentinel-2 et scènes en double (2026-11-11)
+
+Scènes du catalogue STAC sur le département (`n6_fenetre_reference_s2.py`, aucun pixel lu) et test des scènes en double (`n6b_doublons_baseline.py`).
+
+**Densité des scènes** (dates d'acquisition distinctes par an, tous satellites ; nuages de scène < 50 % pour la ligne « mois ») :
+
+| Année | 2015 | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Dates | 24 | 78 | 98 | 143 | 145 | 145 | 136 | 145 | 145 | 143 | 174 |
+| Satellites | 2A | 2A | 2A et 2B (juillet) | 2A, 2B | 2A, 2B | 2A, 2B | 2A, 2B | 2A, 2B | 2A, 2B | 2A, 2B | 2B, 2C et 2A |
+
+- **2018 est la première année complète** : de 143 à 145 dates, les deux satellites toute l'année. **2017** n'a que 98 dates (2B n'arrive qu'en juillet) et, pour la tuile 30TWS, **5 mois sur 12 sous 3 dates utilisables** ; 2015 et 2016 n'ont que 24 et 78 dates, un seul satellite. La référence ne remonte donc pas avant 2018.
+- **Mois et semaines, 2018-2025** : avec les nuages de scène < 50 %, **93 % des mois ont au moins 3 dates utilisables pour une tuile (99 % avec les quatre tuiles du département)**, médiane de 5,5 dates par mois (7 avec les quatre tuiles). Mois sous 3 dates pour la tuile 30TWS : décembre 2018 (1), janvier 2021 (1), décembre 2022 (2), novembre 2024 (2), décembre 2024 (1), janvier 2025 (2), février 2025 (1). **Pour la semaine ISO : 24 % des semaines n'ont aucune date utilisable (13 % avec les quatre tuiles) et seulement 12 % en ont au moins 3 (22 %)** : la semaine ne convient pas, le mois oui.
+- **Sentinel-1, orbite 81** (passages par an sur le Marais poitevin) : environ 58 de 2017 à 2021, **environ 29 de 2022 à 2024** (Sentinel-1A seul), environ 50 en 2025 : de 4,8 à 2,4 passages par mois selon l'année (section 3.8).
+
+**Scènes en double.** À partir de 2021, le catalogue contient, pour une même tuile et un même jour, **deux versions de la scène avec deux baselines** : 4 % des couples tuile-jour en 2021 (baselines 3.0 et 4.0), **50 % en 2022** (4.0 et 5.1), **65 % en 2023** (5.09 et 5.1), 4 % en 2024, 21 % en 2025 et 19 % en 2026 (5.1 et 5.11, 5.11 et 5.12). Une chaîne qui regroupe par jour sans y prendre garde en mélangerait deux. Test sur les mêmes pixels de forêt (conifères, feuillus et mélange, fenêtre de 15 km à 20 m, de mars à octobre, nuages de scène < 25 %, 12 000 à 26 000 pixels par date), NDVI et NDMI (B08 et B11, **même offset de chaque scène sur les trois bandes**), médiane des écarts « version récente − version ancienne » sur les mêmes pixels :
+
+| Couple de baselines | Dates | Écart de NDVI (corrigé) | NDVI sans correction d'offset | Écart de NDMI (corrigé) | NDMI sans correction d'offset | Écart-type pixel à pixel du NDMI |
+|---|---|---|---|---|---|---|
+| 04.00 → 05.10 (2022) | 43 | **+0,004** | +0,002 | **−0,0005** | −0,0003 | 0,026 |
+| 05.09 → 05.10 (2023) | 41 | **0,000** | +0,0003 | **+0,0005** | +0,0003 | 0,007 |
+
+- **Le changement de baseline, à offset corrigé, déplace le NDVI de 0,000 à 0,004 et le NDMI de moins de 0,001** : bien en dessous du seuil de dérive de 0,03 (section 4.1). Quelques dates sortent de la médiane (de −0,08 à −0,10 de NDVI pour la tuile 30TWS) : à surveiller, sans en connaître la cause (masque de nuages ou géométrie différents d'une version à l'autre).
+- **Limite du test** : les deux versions d'un couple ont toutes les deux l'offset (à partir de la baseline 04.00) : il ne teste pas le saut d'offset lui-même. Aucun couple 3.0 et 4.0 (offset 0 contre −1000) n'existe de mars à octobre. Le saut d'offset est mesuré sur les cibles stables : sans correction, **le NDVI chute de 0,27 à 0,29** à partir de 2022 (section 4.1) ; avec elle, **le NDMI des cibles stables, de juillet-août, passe de 0,377 (≤ 2021) à 0,368 (≥ 2022) pour les chênes et de 0,228 à 0,261 pour le pin** (écart d'une année à l'autre de 0,20 à 0,28 pour le pin) : pas de saut net sur la bande B11 à la date du changement.
+- **Entre satellites** (NDMI des cibles stables, juillet-août, corrigé) : 2A et 2B identiques pour les chênes (0,377 et 0,377) et à 0,005 près pour le pin (0,243 et 0,238) ; 2C à +0,01 (chênes, 4 scènes) et +0,04 (pin, 9 scènes de 2025), comme pour le NDVI : à surveiller avec plus de scènes.
+- **À surveiller : le NDMI des pins monte de 0,200 (2018) à 0,284 (2025)**, sans saut à un changement de baseline (de 0,200 à 0,229 de 2018 à 2020, une seule baseline), alors que celui des chênes est plat (de 0,34 à 0,39). Je ne l'ai pas attribué (sécheresses, état des pinèdes, ou dérive de B11 propre à une cible) ; le contrôle de dérive de la V2 doit suivre le NDMI des cibles stables comme le NDVI.
+- **Règle proposée** : garder **une seule scène par tuile et par jour, la baseline la plus récente**, pour que toutes les années aient le même traitement que les scènes d'aujourd'hui. Les couples 3.0 et 4.0 de 2021 (4 % des couples tuile-jour) existent hors de mars à octobre : la règle « la plus récente » les ramène à la baseline avec offset.
+
+**Choix de la fenêtre de référence** (plus bas écart standardisé accessible, rang de Gringorten de la valeur parmi les années de la référence et elle-même ; classe 1 sous −1,28) :
+
+| Fenêtre | Années | Plus bas atteignable | Remarque |
+|---|---|---|---|
+| **2018-2025** | 8 | **−1,54** | première année complète ; 2025 est la dernière année entière ; 93 % des mois avec au moins 3 dates (une tuile) |
+| 2017-2025 | 9 | −1,59 | 2017 incomplète (98 dates, 5 mois sur 12 sous 3 dates) : gain négligeable pour une année de moindre qualité |
+| 2020-2025 | 6 | −1,41 | classe 1 accessible, de justesse |
+| 2022-2025 | 4 | −1,23 | pas de classe 1 (étape intermédiaire de l'architecture) |
+| 2018-2026 | 9 | | **exclue** : 2026 est une année très sèche, qui n'entre jamais dans une référence figée (D10) |
+
+**Fenêtre retenue : 2018-2025**, figée à 2025 (D10), l'analyse allant de 2018 à l'année en cours. Pour Sentinel-1 : 2015-2026 pour la tendance (valeurs brutes en hectares), la référence figée de 2015-2025 ne servant qu'à situer une année par son rang.
+
 ## 5. Conséquences pour l'architecture
 
 1. **Q9 est reprise** : pas de seuil fixe sur VV. Méthode retenue pour la suite : **détection par changement** (VV d'hiver inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite, **et** VV ≤ −16 dB ; pixels déjà sombres en été écartés), **filtre spatial** (médiane 3 × 3, taches de moins de 10 pixels supprimées). Mesures : eau libre du déversoir à F1 de 0,81 et précision de 0,92 ; bruit d'été de 15 à 204 ha (section 3.7). Sentinel-2 valide l'eau libre, **pas les prairies inondées** (section 3.6) : il faut une autre vérité de terrain pour le marais mouillé. **Sur les trois fenêtres de contrôle, l'utilisateur confirme que le radar détecte bien de l'eau** (section 3.6) : la méthode est retenue pour les prairies inondées, avec les mesures face à Sentinel-2 lues comme des bornes basses.

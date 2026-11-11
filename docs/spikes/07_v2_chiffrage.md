@@ -405,9 +405,37 @@ Un passage qui ne couvre qu'une partie du marais **sous-estime les hectares** : 
 - **Face à Sentinel-2** (variante Δ ≤ −3 dB, VV ≤ −16 dB, filtre ; comparaisons de la section 3.5 avec une zone valide d'au moins 50 % et 150 ha de crue vus par Sentinel-2 ; peu de comparaisons par case, de 4 à 6) : écart de surface médian au **déversoir du Lay** (eau libre, la vérité la plus fiable) : **81 : 0 %** (F1 0,81, 5 comparaisons), 8 : −18 % (F1 0,84, 5), 30 : −36 % (F1 0,73, 4). Marais breton : 81 : −18 % (5), 103 : −34 % (5), 30 : −69 % (4). Reste du Marais poitevin : 81 : −46 % (6), 30 : −65 % (5), 8 : +28 % (1). **L'orbite 30 est la plus basse, la 81 la plus proche de Sentinel-2.**
 - **Cadence des passages** (nombre de dates par an, par orbite, sur le Marais poitevin) : environ 58 de 2017 à 2021 (Sentinel-1A et 1B, 6 jours), **environ 29 de 2022 à 2024** (1A seul, 12 jours), environ 50 en 2025 (arrivée de Sentinel-1C). La médiane mensuelle repose donc sur deux fois moins de passages en 2022-2024 qu'avant et après : à contrôler sur la tendance, quelle que soit l'orbite choisie.
 
-**Proposition (Q18, à décider)** : publier la surface de crue d'**une seule orbite couvrant 100 % des deux marais à chaque passage, la 81**, pour une série homogène en hectares ; les orbites 8, 30 et, dans le Marais breton, 103 servent de contrôle (alerte si l'une diverge fortement de la 81). Exclues : 132 (aveugle), 154 (46 %), 103 dans le Marais poitevin (9 %). Variante plus lourde, à construire en V2.1 : plusieurs orbites avec un **facteur d'échelle par orbite et par marais**, estimé sur des passages à moins de trois jours d'écart de 2015 à 2025.
+**Décision (Q18, 2026-11-11 : l'utilisateur retient l'orbite 81)** : publier la surface de crue d'**une seule orbite couvrant 100 % des deux marais à chaque passage, la 81**, pour une série homogène en hectares ; les orbites 8, 30 et, dans le Marais breton, 103 servent de contrôle (alerte si l'une diverge fortement de la 81). Exclues : 132 (aveugle), 154 (46 %), 103 dans le Marais poitevin (9 %). Variante plus lourde, à construire en V2.1 : plusieurs orbites avec un **facteur d'échelle par orbite et par marais**, estimé sur des passages à moins de trois jours d'écart de 2015 à 2025.
 
 **Limites** : deux hivers seulement ; les passages d'orbites différentes ne tombent pas les mêmes jours, ce qui ajoute du bruit à la comparaison (mais le même classement se retrouve les deux hivers) ; Sentinel-2 est lui-même une borne basse pour les prairies inondées (section 3.6), le choix de la 81 repose surtout sur l'eau libre du déversoir ; la 81 est choisie sur son niveau de détection face à Sentinel-2, pas sur une mesure de la surface réellement inondée, qu'aucune source ne donne ici.
+
+### 3.9 Masque d'eau permanente (2026-11-11)
+
+Mesure par `docs/spikes/v2_0/n5_masque_eau_permanente.py` et `n5b_masque_et_bdtopo.py`, **orbite 81** (Q18), pixels de 10 m, domaine net. Un pixel est « sombre » à un passage si son VV, filtré (médiane 3 × 3), est ≤ −16 dB. **Masque fixe : sombre dans plus de la moitié des passages de juillet à septembre de 2015 à 2025** (124 passages par pixel en médiane, 11 étés).
+
+| | Marais poitevin | Marais breton |
+|---|---|---|
+| **Masque fixe (> 50 % des passages)** | **305 ha** (0,7 % du domaine) | **770 ha** (2,4 %) |
+| Part > 30 % / 40 % / 60 % / 70 % | 1 810 / 725 / 195 / 143 ha | 3 824 / 1 850 / 394 / 245 ha |
+| Surfaces d'eau de la BD TOPO (≥ 1 ha) | 1 398 ha | 1 843 ha |
+| Dont vues par le masque | 208 ha (15 %) | 402 ha (22 %) |
+| Masque hors BD TOPO | 97 ha | 368 ha |
+
+- **Le masque est sensible au seuil de part de passages** : de 1 810 ha à 143 ha dans le Marais poitevin entre 30 % et 70 % ; la moitié est un compromis, pas une valeur sans conséquence. Il **ne voit que 15 à 22 % de l'eau de la BD TOPO** : les canaux étroits (moins de 30 m) se mélangent à l'herbe et au sol dans un pixel, et l'eau permanente n'est sombre que pour la moitié de ses pixels (section 3.1).
+- **Le « sombre en été » varie beaucoup d'une année à l'autre** : surface des pixels sombres dans plus de la moitié des passages d'un été, de 232 ha (2015) à 1 959 ha (2019) dans le Marais poitevin et de 217 ha (2015) à 3 335 ha (2016) dans le Marais breton, avec un recouvrement (Jaccard) de 0,15 à 0,51 avec le masque fixe. Je n'en ai pas cherché la cause (étés humides, état des sols, traitement des données). **Un masque calculé année par année ne serait pas comparable dans le temps** : le masque fixe de 2015-2025, prévu par l'architecture, est justifié.
+- **Effet sur la surface de crue** (médiane des passages, orbite 81, Δ ≤ −3 dB, filtre ; la détection par changement écarte déjà les pixels sombres dans la référence d'été de l'année) :
+
+| Hiver | Sans masque | Masque Sentinel-1 | Surfaces d'eau de la BD TOPO (+ 10 m) | Les deux |
+|---|---|---|---|---|
+| Poitevin 2023-2024 | 558 ha | 553 ha (−1 %) | 518 ha (−7 %) | 518 ha |
+| Poitevin 2024-2025 | 606 ha | 603 ha (−0,5 %) | 561 ha (−7 %) | 560 ha |
+| Breton 2023-2024 | 493 ha | 461 ha (−6 %) | **300 ha (−39 %)** | 298 ha |
+| Breton 2024-2025 | 454 ha | 446 ha (−2 %) | **356 ha (−22 %)** | 355 ha |
+
+- **Le masque de Sentinel-1 change peu la surface de crue (−0,5 à −6 %)**, parce que la détection par changement écarte déjà ce qui est sombre en été.
+- **Les surfaces d'eau de la BD TOPO en retirent bien plus dans le Marais breton (−22 à −39 %)** : des plans d'eau qui se remplissent en hiver (bassins, réservoirs, et probablement des surfaces gérées) sont comptés comme crue sans en être. Je n'ai pas séparé ce qui vient des plans d'eau de ce que retire la marge d'un pixel de 10 m autour d'eux (qui touche aussi les berges) ; l'effet n'est pas contrôlé visuellement.
+
+**Proposition** : masque d'eau permanente = **masque fixe de Sentinel-1 (> 50 % des passages de juillet à septembre, orbite 81, 2015-2025) réuni aux surfaces d'eau de la BD TOPO**, soustrait à chaque passage ; sensibilité à calculer année par année avec la série. À valider par un contrôle visuel du Marais breton (où l'écart est le plus grand) avant de l'adopter, en plus de la marge de 10 m.
 
 ## 4. Sentinel-2
 
@@ -477,7 +505,7 @@ Observations valides par pixel : médiane de 5 (1 pour 0,1 % des pixels, 3 pour 
 ## 6. Ce qui reste à faire
 
 - **Réseau maritime et contrôle de marée** : faits (section 2.3). Marge de 250 m validée, variante D retenue, forêt retirée du domaine de la crue (2026-10-29). Masque des pixels corrélés validé (Q19 décidée le 2026-10-29). Reste à refaire le test avec les crues d'hiver quand la série sera calculée.
-- **Masque d'eau permanente de Sentinel-1** sur 2015-2025 : non fait ; en 2024, Sentinel-2 en voit 251 ha dans le Marais poitevin.
+- **Masque d'eau permanente** : **fait** (section 3.9) : masque fixe de Sentinel-1 (orbite 81, 2015-2025, 305 ha et 770 ha) réuni aux surfaces d'eau de la BD TOPO ; contrôle visuel du Marais breton à faire avant adoption.
 - **Millésime de la BD Forêt V2** pour la Vendée : **fait** (section 1.1) : prises de vues de 2006, carte diffusée en 2009 ; les forêts fermées sont encore vertes à cœur, les peupleraies sont fragiles (30 % dans le RPG 2025).
 - **Vérité de terrain pour les prairies inondées** (marais mouillé, Marais breton) : l'utilisateur a confirmé l'eau sur les trois fenêtres de `rasters/v2_0/` (2026-10-28). Reste à trancher les pixels éparpillés du Marais breton (2021) et, si l'on veut un chiffre de précision, des niveaux d'eau des échelles limnimétriques de l'EPMP (à demander, séries absentes du fichier).
 - **Licence des couches de l'EPMP** : à demander avant tout usage publié.

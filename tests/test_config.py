@@ -7,7 +7,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from pipeline.config import charger_config
+from pipeline.config import ClasseForet, PosteForet, charger_config
 
 DOSSIER_CONFIG = Path(__file__).resolve().parents[1] / "config"
 
@@ -139,4 +139,110 @@ def test_onde_hors_composite(copie_config: Path) -> None:
     }
     _modifier(copie_config / "zones.yaml", {"zones": [zone]})
     with pytest.raises(ValidationError):
+        charger_config(copie_config)
+
+
+def _modifier_imbrique(fichier: Path, chemin: list[str], valeur: object) -> None:
+    contenu = yaml.safe_load(fichier.read_text(encoding="utf-8"))
+    cible = contenu
+    for cle in chemin[:-1]:
+        cible = cible[cle]
+    cible[chemin[-1]] = valeur
+    fichier.write_text(yaml.safe_dump(contenu, allow_unicode=True), encoding="utf-8")
+
+
+def test_config_satellite_du_depot() -> None:
+    config = charger_config(DOSSIER_CONFIG)
+    sat = config.projet.satellite
+    assert sat.version_methodo == "D15"
+    assert sat.crue.orbite_publiee == 81
+    assert [m.id for m in sat.crue.marais] == ["marais_poitevin", "marais_breton"]
+    ref = config.projet.periode_reference
+    # D10 : références figées à 2025, 2026 n'y entre jamais
+    assert (ref.sentinel2.debut, ref.sentinel2.fin, ref.sentinel2.annee_gel) == (2018, 2025, 2025)
+    assert (ref.sentinel1.debut, ref.sentinel1.fin, ref.sentinel1.annee_gel) == (2015, 2025, 2025)
+
+
+def test_orbite_publiee_aussi_en_controle(copie_config: Path) -> None:
+    _modifier_imbrique(
+        copie_config / "projet.yaml",
+        ["satellite", "crue", "marais"],
+        [
+            {
+                "id": "m",
+                "nom": "M",
+                "motif_site": "M",
+                "orbites_controle": [81],
+                "station_maree": "S",
+            }
+        ],
+    )
+    with pytest.raises(ValidationError, match="orbite publiée"):
+        charger_config(copie_config)
+
+
+def test_motif_de_site_invalide(copie_config: Path) -> None:
+    _modifier_imbrique(
+        copie_config / "projet.yaml",
+        ["satellite", "crue", "marais"],
+        [{"id": "m", "nom": "M", "motif_site": "(", "station_maree": "S"}],
+    )
+    with pytest.raises(ValidationError, match="expression régulière"):
+        charger_config(copie_config)
+
+
+def test_filtre_median_pair(copie_config: Path) -> None:
+    _modifier_imbrique(
+        copie_config / "projet.yaml", ["satellite", "crue", "detection", "filtre_median_px"], 4
+    )
+    with pytest.raises(ValidationError, match="impaire"):
+        charger_config(copie_config)
+
+
+def test_nomenclature_ocs_du_depot() -> None:
+    ocs = charger_config(DOSSIER_CONFIG).nomenclature_ocs
+    assert len(ocs.foret.classes) == 7
+    assert len(ocs.cultures.classes) == 9
+    # les 27 codes de la BD Forêt de la Vendée (28 libellés : FF1-49-49 en a deux graphies)
+    postes: list[ClasseForet | PosteForet] = [
+        *ocs.foret.classes,
+        *ocs.foret.reserve,
+        *ocs.foret.exclues,
+    ]
+    tous = {c for p in postes for c in p.code_tfv}
+    assert len(tous) == 27
+    # D15 : la peupleraie et les landes échappent à la règle « encore un arbre »
+    libres = {c.id for c in ocs.foret.classes if not c.controle_foret}
+    assert libres == {"peupleraie", "landes"}
+    # classes de confiance : forêts (hors peupleraie, landes) et prairies permanentes
+    confiance = {c.id for c in ocs.foret.classes if c.confiance}
+    confiance |= {c.id for c in ocs.cultures.classes if c.confiance}
+    assert "prairies_permanentes" in confiance and "pin_maritime" in confiance
+    assert "mais" not in confiance
+
+
+def test_code_tfv_affecte_deux_fois(copie_config: Path) -> None:
+    fichier = copie_config / "nomenclature_ocs.yaml"
+    contenu = yaml.safe_load(fichier.read_text(encoding="utf-8"))
+    contenu["foret"]["reserve"][0]["code_tfv"].append("FF1G01-01")  # déjà dans chenes_decidus
+    fichier.write_text(yaml.safe_dump(contenu, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValidationError, match="plusieurs classes"):
+        charger_config(copie_config)
+
+
+def test_code_de_classe_en_double(copie_config: Path) -> None:
+    fichier = copie_config / "nomenclature_ocs.yaml"
+    contenu = yaml.safe_load(fichier.read_text(encoding="utf-8"))
+    contenu["foret"]["classes"][1]["code"] = contenu["foret"]["classes"][0]["code"]
+    fichier.write_text(yaml.safe_dump(contenu, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValidationError, match="code de classe en double"):
+        charger_config(copie_config)
+
+
+def test_code_group_affecte_deux_fois(copie_config: Path) -> None:
+    fichier = copie_config / "nomenclature_ocs.yaml"
+    contenu = yaml.safe_load(fichier.read_text(encoding="utf-8"))
+    contenu["cultures"]["classes"][1]["code_group"].append(18)
+    fichier.write_text(yaml.safe_dump(contenu, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValidationError, match="code_group"):
         charger_config(copie_config)

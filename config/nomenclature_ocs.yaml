@@ -1,0 +1,63 @@
+# Nomenclature des classes de la brique satellite (V2, docs/methodologie.md, D15, point 2).
+#
+# Chaque pixel de 10 m reçoit un code entier (8 bits) selon la BD Forêt V2 et le RPG, puis
+# trois règles (D15). Le NDVI et le NDMI sont ensuite comparés à la référence de la même
+# classe : on ne compare jamais une classe à une autre.
+#
+# Codes : 0 = hors classes (non suivi), 1 à 99 = forêt, 101 à 199 = cultures, 255 = nodata.
+# Surfaces : département de la Vendée, spike n°7 (docs/spikes/07_v2_chiffrage.md, section 1).
+# Pour un autre territoire : vérifier que les codes de la BD Forêt et du RPG y sont couverts.
+
+codes_speciaux:
+  hors_classes: 0
+  nodata: 255
+
+regles:
+  # Règle 1 : le RPG de l'année prime sur la BD Forêt quand une parcelle est déclarée.
+  rpg_prime: true
+  # Règle 2 : un pixel de forêt ne reste dans sa classe que s'il est encore un arbre sur la carte
+  # d'occupation du sol récente (Impact Observatory 2023, WorldCover à défaut) et si son NDVI d'été
+  # n'est pas sous ce seuil. Les classes `controle_foret: false` en sont exemptées.
+  ndvi_ete_min: 0.4          # provisoire : seuil à confirmer sur la première série (D16)
+  # Règle 3 : l'écart de NDVI entre l'été et l'hiver contrôle le type de feuillage
+  # (`feuillage` des classes ci-dessous). Ses seuils sont à fixer sur les données (D16).
+
+foret:
+  source: "BD Forêt V2, champ code_tfv"
+  classes:
+    - {id: feuillus_melanges, code: 1, nom: "Feuillus mélangés et autres", feuillage: caduc, confiance: true, controle_foret: true,
+       code_tfv: ["FF1-00", "FF1-00-00", "FF1-14-14", "FF1-49-49", "FF1G06-06"]}   # 26 725 ha
+    - {id: chenes_decidus, code: 2, nom: "Chênes décidus purs", feuillage: caduc, confiance: true, controle_foret: true,
+       code_tfv: ["FF1G01-01"]}                                                    # 5 353 ha
+    - {id: pin_maritime, code: 3, nom: "Pin maritime pur", feuillage: persistant, confiance: true, controle_foret: true,
+       code_tfv: ["FF2-51-51"]}                                                    # 5 029 ha : cible stable
+    - {id: melange_feuillus_coniferes, code: 4, nom: "Mélange feuillus-conifères", feuillage: mixte, confiance: true, controle_foret: true,
+       code_tfv: ["FF31", "FF32"]}                                                 # 3 676 ha
+    - {id: autres_coniferes, code: 5, nom: "Autres conifères", feuillage: persistant, confiance: true, controle_foret: true,
+       code_tfv: ["FF2-00", "FF2-00-00", "FF2-52-52", "FF2-63-63", "FF2-64-64", "FF2-80-80",
+                  "FF2-90-90", "FF2-91-91", "FF2G53-53", "FF2G61-61"]}             # 2 925 ha
+    - {id: peupleraie, code: 6, nom: "Peupleraie", feuillage: caduc, confiance: false, controle_foret: false,
+       code_tfv: ["FP"]}                                                           # 2 371 ha : la carte d'arbres n'en reconnaît que 38 %
+    - {id: landes, code: 7, nom: "Landes et formations herbacées", feuillage: null, confiance: false, controle_foret: false,
+       code_tfv: ["LA4", "LA6"]}                                                   # 3 321 ha : pas une forêt, hors règles 2 et 3
+  # En réserve (non suivies tant qu'un besoin n'est pas confirmé) et exclues.
+  reserve:
+    - {id: chataignier, nom: "Châtaignier pur (taillis)", code_tfv: ["FF1-10-10"]}   # 2 338 ha
+    - {id: foret_ouverte, nom: "Forêt ouverte (couvert partiel : NDVI mêlé de sol)", code_tfv: ["FO1", "FO2", "FO3"]}   # 1 969 ha
+  exclues:
+    - {id: sans_couvert, nom: "Forêt fermée sans couvert arboré (coupes)", code_tfv: ["FF0"]}   # 969 ha
+
+cultures:
+  source: "RPG, champ code_group (groupe de cultures)"
+  classes:
+    - {id: prairies_permanentes, code: 101, nom: "Prairies permanentes", confiance: true, code_group: [18]}   # 136 443 ha
+    - {id: mais, code: 102, nom: "Maïs", confiance: false, code_group: [2]}                                 # 82 861 ha
+    - {id: ble_tendre, code: 103, nom: "Blé tendre", confiance: false, code_group: [1]}                     # 70 211 ha
+    - {id: prairies_temporaires, code: 104, nom: "Prairies temporaires", confiance: false, code_group: [19]}   # 40 222 ha
+    - {id: fourrages, code: 105, nom: "Fourrages", confiance: false, code_group: [16]}                      # 32 361 ha
+    - {id: autres_cereales, code: 106, nom: "Autres céréales", confiance: false, code_group: [4]}           # 29 416 ha
+    - {id: tournesol, code: 107, nom: "Tournesol", confiance: false, code_group: [6]}                       # 19 004 ha
+    - {id: orge, code: 108, nom: "Orge", confiance: false, code_group: [3]}                                 # 15 860 ha
+    - {id: colza, code: 109, nom: "Colza", confiance: false, code_group: [5]}                               # 10 247 ha
+  # Hors classes : protéagineux, oléagineux divers, légumineuses à grains, gel, légumes, fibres, vignes, vergers
+  # (environ 23 000 ha en tout).

@@ -16,6 +16,11 @@ from pipeline.http import ClientHttp
 from pipeline.indices.commun import derniere_semaine_complete
 
 
+def _nb_classes(config: Config) -> int:
+    ocs = config.nomenclature_ocs
+    return len(ocs.foret.classes) + len(ocs.cultures.classes)
+
+
 def _afficher_config(config: Config) -> None:
     t = config.projet.territoire
     print(f"Territoire : {t.nom} ({t.code_departement}), slug « {t.slug} »")
@@ -24,6 +29,14 @@ def _afficher_config(config: Config) -> None:
     print(f"Référence  : {ref.debut}-{ref.fin} (minimum {ref.annees_min} ans)")
     fraicheur = config.projet.indices.ips.fraicheur_max_jours
     print(f"IPS        : station exclue du composite au-delà de {fraicheur} j sans mesure")
+    sat = config.projet.satellite
+    s2 = config.projet.periode_reference.sentinel2
+    s1 = config.projet.periode_reference.sentinel1
+    print(
+        f"Satellite  : {sat.version_methodo}, référence NDVI {s2.debut}-{s2.fin}, "
+        f"crue {s1.debut}-{s1.fin} (orbite {sat.crue.orbite_publiee}, "
+        f"{len(sat.crue.marais)} marais), {_nb_classes(config)} classes"
+    )
     print("Zones      :")
     for zone in config.zonage.zones:
         poids = ", ".join(f"{k}={v:.2f}" for k, v in zone.ponderations.items())

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import math
 import os
+import re
 from pathlib import Path
 from typing import Any, Literal
 
@@ -62,7 +63,8 @@ class Periode(_Modele):
 
 class PeriodesReference(_Modele):
     hydro_meteo: Periode
-    sentinel2: Periode
+    sentinel2: Periode  # NDVI et NDMI
+    sentinel1: Periode  # surface de crue
 
 
 class Ingestion(_Modele):
@@ -159,6 +161,102 @@ class Validation(_Modele):
         return self
 
 
+class Detection(_Modele):
+    """Détection d'eau par changement sur le VV (Sentinel-1)."""
+
+    baisse_db: float = Field(gt=0)
+    seuil_vv_db: float = Field(lt=0)
+    taches_min_px: int = Field(ge=1)
+    filtre_median_px: int = Field(ge=1)
+
+    @field_validator("filtre_median_px")
+    @classmethod
+    def _fenetre_impaire(cls, valeur: int) -> int:
+        if valeur % 2 == 0:
+            raise ValueError("la fenêtre du filtre médian doit être impaire")
+        return valeur
+
+
+class EauPermanente(_Modele):
+    """Masque fixe de l'eau permanente (pixels sombres une grande part de l'été)."""
+
+    mois: list[int] = Field(min_length=1)
+    part_min: float = Field(gt=0, lt=1)
+    seuil_vv_db: float = Field(lt=0)
+    debut: int
+    fin: int
+
+    @model_validator(mode="after")
+    def _verifier(self) -> EauPermanente:
+        if any(not 1 <= m <= 12 for m in self.mois):
+            raise ValueError(f"mois hors de 1 à 12 : {self.mois}")
+        if self.debut > self.fin:
+            raise ValueError(f"début ({self.debut}) postérieur à la fin ({self.fin})")
+        return self
+
+
+class Maree(_Modele):
+    """Exclusion de la marée (Q19) : masque calculé une fois sur la période donnée, puis figé."""
+
+    marge_reseau_m: float = Field(ge=0)
+    r_max: float = Field(ge=-1, lt=0)
+    elargissement_m: float = Field(ge=0)
+    debut: int
+    fin: int
+
+    @model_validator(mode="after")
+    def _verifier_bornes(self) -> Maree:
+        if self.debut > self.fin:
+            raise ValueError(f"début ({self.debut}) postérieur à la fin ({self.fin})")
+        return self
+
+
+class Marais(_Modele):
+    id: str = Field(pattern=r"^[a-z0-9_]+$")
+    nom: str = Field(min_length=1)
+    motif_site: str = Field(min_length=1)  # expression régulière sur le nom du site Natura 2000
+    orbites_controle: list[int] = []
+    station_maree: str = Field(min_length=1)
+    regimes: str | None = None  # source d'un découpage en régimes (publication par régime, Q14)
+
+    @field_validator("motif_site")
+    @classmethod
+    def _motif_valide(cls, valeur: str) -> str:
+        try:
+            re.compile(valeur)
+        except re.error as exc:
+            raise ValueError(f"expression régulière invalide : {valeur}") from exc
+        return valeur
+
+
+class Crue(_Modele):
+    orbite_publiee: int = Field(ge=1)
+    detection: Detection
+    eau_permanente: EauPermanente
+    maree: Maree
+    marais: list[Marais] = []
+
+    @model_validator(mode="after")
+    def _verifier(self) -> Crue:
+        ids = [m.id for m in self.marais]
+        if len(ids) != len(set(ids)):
+            raise ValueError("identifiant de marais en double")
+        for m in self.marais:
+            if self.orbite_publiee in m.orbites_controle:
+                raise ValueError(
+                    f"{m.id} : l'orbite publiée ({self.orbite_publiee}) ne peut pas être "
+                    "aussi une orbite de contrôle"
+                )
+        return self
+
+
+class Satellite(_Modele):
+    """Brique satellite (V2), hors composite : version de méthode propre (D15)."""
+
+    version_methodo: str = Field(min_length=1)
+    crue: Crue
+
+
 class Projet(_Modele):
     territoire: Territoire
     crs: str
@@ -166,6 +264,7 @@ class Projet(_Modele):
     periode_reference: PeriodesReference
     ingestion: Ingestion
     indices: Indices
+    satellite: Satellite
     hebdo: Hebdo
     api: Api
     publication: Publication
@@ -323,6 +422,98 @@ class Stations(_Modele):
         return valeur
 
 
+# --- nomenclature_ocs.yaml ---------------------------------------------------
+
+
+class ClasseForet(_Modele):
+    id: str = Field(pattern=r"^[a-z0-9_]+$")
+    code: int = Field(ge=1, le=99)
+    nom: str = Field(min_length=1)
+    feuillage: Literal["caduc", "persistant", "mixte"] | None
+    confiance: bool  # classe dite « de confiance » (donnée ancienne ou déclarative)
+    controle_foret: bool  # soumise aux règles 2 et 3 (encore un arbre, NDVI d'été)
+    code_tfv: list[str] = Field(min_length=1)
+
+
+class PosteForet(_Modele):
+    """Poste de la BD Forêt en réserve ou exclu."""
+
+    id: str = Field(pattern=r"^[a-z0-9_]+$")
+    nom: str = Field(min_length=1)
+    code_tfv: list[str] = Field(min_length=1)
+
+
+class Foret(_Modele):
+    source: str
+    classes: list[ClasseForet]
+    reserve: list[PosteForet] = []
+    exclues: list[PosteForet] = []
+
+
+class ClasseCulture(_Modele):
+    id: str = Field(pattern=r"^[a-z0-9_]+$")
+    code: int = Field(ge=101, le=199)
+    nom: str = Field(min_length=1)
+    confiance: bool
+    code_group: list[int] = Field(min_length=1)
+
+
+class Cultures(_Modele):
+    source: str
+    classes: list[ClasseCulture]
+
+
+class CodesSpeciaux(_Modele):
+    hors_classes: int = Field(ge=0, le=255)
+    nodata: int = Field(ge=0, le=255)
+
+
+class ReglesOcs(_Modele):
+    rpg_prime: bool
+    ndvi_ete_min: float = Field(gt=0, lt=1)
+
+
+def _doublons[T: (str, int)](valeurs: list[T]) -> list[str]:
+    return sorted({str(v) for v in valeurs if valeurs.count(v) > 1})
+
+
+class NomenclatureOcs(_Modele):
+    codes_speciaux: CodesSpeciaux
+    regles: ReglesOcs
+    foret: Foret
+    cultures: Cultures
+
+    @model_validator(mode="after")
+    def _verifier_coherence(self) -> NomenclatureOcs:
+        classes: list[ClasseForet | ClasseCulture] = [
+            *self.foret.classes,
+            *self.cultures.classes,
+        ]
+        for champ, valeurs in (
+            ("identifiant", _doublons([c.id for c in classes])),
+            ("code", _doublons([c.code for c in classes])),
+        ):
+            if valeurs:
+                raise ValueError(f"{champ} de classe en double : {', '.join(valeurs)}")
+        speciaux = {self.codes_speciaux.hors_classes, self.codes_speciaux.nodata}
+        if len(speciaux) < 2 or speciaux & {c.code for c in classes}:
+            raise ValueError("codes spéciaux confondus entre eux ou avec un code de classe")
+        foret: list[ClasseForet | PosteForet] = [
+            *self.foret.classes,
+            *self.foret.reserve,
+            *self.foret.exclues,
+        ]
+        postes = [code for p in foret for code in p.code_tfv]
+        doubles_tfv = sorted({c for c in postes if postes.count(c) > 1})
+        if doubles_tfv:
+            raise ValueError(f"code_tfv affecté à plusieurs classes : {', '.join(doubles_tfv)}")
+        groupes = [g for c in self.cultures.classes for g in c.code_group]
+        doubles_g = sorted({g for g in groupes if groupes.count(g) > 1})
+        if doubles_g:
+            raise ValueError(f"code_group affecté à plusieurs classes : {doubles_g}")
+        return self
+
+
 # --- sources.yaml ------------------------------------------------------------
 
 
@@ -411,6 +602,7 @@ class Config(_Modele):
     classes: Classes
     zonage: Zonage
     stations: Stations
+    nomenclature_ocs: NomenclatureOcs
     sources: Sources
 
 
@@ -434,6 +626,9 @@ def charger_config(dossier: Path | None = None) -> Config:
             Stations.model_validate(_lire_yaml(fichier_stations))
             if fichier_stations.is_file()
             else Stations()
+        ),
+        nomenclature_ocs=NomenclatureOcs.model_validate(
+            _lire_yaml(dossier / "nomenclature_ocs.yaml")
         ),
         sources=Sources.model_validate(_lire_yaml(dossier / "sources.yaml")),
     )

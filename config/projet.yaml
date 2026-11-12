@@ -26,9 +26,15 @@ periode_reference:
     # ou à défaut les premières années disponibles. Définitif : l'échelle doit rester fixe pour
     # suivre la fréquence des sécheresses dans le temps (D10). Ne pas avancer cette année.
     annee_gel: 2025
-  sentinel2:                 # [V2]
+  # Brique satellite (V2, docs/methodologie.md, D15). Références figées (D10) : 2026 n'y entre jamais.
+  sentinel2:                 # NDVI et NDMI : 2018 = première année complète des deux satellites
     debut: 2018
     fin: 2025
+    annee_gel: 2025
+  sentinel1:                 # surface de crue : référence servant seulement à situer une année par son rang
+    debut: 2015
+    fin: 2025
+    annee_gel: 2025
 
 ingestion:
   fenetre_reingestion_jours: 90   # captation des corrections a posteriori de Hub'Eau
@@ -102,3 +108,41 @@ chemins:
   rapports: logs/hebdo       # rapports d'exécution du job, non versionnés
   qgis: qgis                 # projet QGIS généré par make qgis, chargé dans PostGIS
   rapport_validation: docs/validation.md   # rapport de make validation, versionné
+
+# Brique satellite (V2, hors composite). Unité de temps : le mois civil (D15, point 1).
+# NDVI et NDMI : tout le département, par zone de `zones.yaml` et par classe de `nomenclature_ocs.yaml`.
+satellite:
+  version_methodo: "D15"     # indépendant de `indices.version_methodo` (composite, D14)
+  crue:
+    # Surface de crue, en hectares bruts (jamais un taux), sur les marais ci-dessous.
+    orbite_publiee: 81       # Q18 : une seule orbite relative pour la série publiée
+    detection:               # détection par changement (architecture_v2.md, 9.2)
+      baisse_db: 3           # VV inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite
+      seuil_vv_db: -16       # et VV filtré inférieur à ce seuil
+      taches_min_px: 10      # taches plus petites supprimées
+      filtre_median_px: 3    # médiane 3 x 3 sur le VV en dB (chatoiement)
+    eau_permanente:          # masque fixe (comparabilité de la série), réuni aux surfaces permanentes de la BD TOPO
+      mois: [7, 8, 9]
+      part_min: 0.5          # part des passages sombres sur la période
+      seuil_vv_db: -16
+      debut: 2015
+      fin: 2025
+    maree:                   # exclusion de la marée (Q19), masque calculé une fois et figé (D10)
+      marge_reseau_m: 250    # autour du réseau maritime (tronçons salés ou d'estuaire de la BD TOPO)
+      r_max: -0.5            # pixel retiré si corrélation VV - hauteur de marée inférieure à ce seuil
+      elargissement_m: 30
+      debut: 2022
+      fin: 2025
+    marais:                  # un bloc par marais ; `motif_site` : nom du site Natura 2000 (ZPS), expression régulière
+      - id: marais_poitevin
+        nom: "Marais poitevin"
+        motif_site: "Marais poitevin"
+        orbites_controle: [8, 30]
+        station_maree: "La Pallice"
+        regimes: epmp        # surface publiée aussi par régime (Q14) ; licence de l'EPMP à demander (Q17)
+      - id: marais_breton
+        nom: "Marais breton"
+        motif_site: "Marais [Bb]reton"
+        orbites_controle: [30, 103]
+        station_maree: "Les Sables-d'Olonne"
+        regimes: null        # un seul bloc (Q15)

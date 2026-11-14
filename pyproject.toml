@@ -81,7 +81,10 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["geopandas.*", "shapely.*", "pyproj.*", "scipy.*", "geoalchemy2.*"]
+module = [
+    "geopandas.*", "shapely.*", "pyproj.*", "scipy.*", "geoalchemy2.*",
+    "rasterio.*", "odc.*", "pystac_client.*", "planetary_computer.*", "dask.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

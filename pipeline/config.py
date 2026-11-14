@@ -471,6 +471,9 @@ class CodesSpeciaux(_Modele):
 class ReglesOcs(_Modele):
     rpg_prime: bool
     ndvi_ete_min: float = Field(gt=0, lt=1)
+    erosion_m: float = Field(ge=0)  # pixel « pur » : polygones érodés de cette distance
+    # postes de la BD Forêt ajoutés comme arbres à la carte d'arbres récente (règle 2)
+    arbres_complement_tfv: list[str] = []
 
 
 def _doublons[T: (str, int)](valeurs: list[T]) -> list[str]:
@@ -507,6 +510,11 @@ class NomenclatureOcs(_Modele):
         doubles_tfv = sorted({c for c in postes if postes.count(c) > 1})
         if doubles_tfv:
             raise ValueError(f"code_tfv affecté à plusieurs classes : {', '.join(doubles_tfv)}")
+        inconnus = sorted(set(self.regles.arbres_complement_tfv) - set(postes))
+        if inconnus:
+            raise ValueError(
+                f"arbres_complement_tfv : postes absents de la nomenclature : {inconnus}"
+            )
         groupes = [g for c in self.cultures.classes for g in c.code_group]
         doubles_g = sorted({g for g in groupes if groupes.count(g) > 1})
         if doubles_g:
@@ -583,6 +591,27 @@ class VigiEau(_Modele):
     ressource: str  # titre de la ressource : historique complet des arrêtés (CSV)
 
 
+class SourceArbres(_Modele):
+    collection: str
+    annee: int
+    bande: str
+    classes_arbre: list[int] = Field(min_length=1)
+
+
+class CarteArbres(_Modele):
+    stac: str
+    principale: SourceArbres
+    repli: SourceArbres | None = None
+
+
+class OccupationSol(_Modele):
+    wfs: str
+    page: int = Field(ge=1)
+    bdforet: str
+    rpg: dict[int, str] = Field(min_length=1)  # année -> couche
+    carte_arbres: CarteArbres
+
+
 class Sources(_Modele):
     hubeau: HubEau
     geo_api: str
@@ -591,6 +620,7 @@ class Sources(_Modele):
     sim: Sim
     vigieau: VigiEau
     sentinel2: Sentinel2
+    occupation_sol: OccupationSol
     http: Http
 
 

@@ -124,6 +124,27 @@ Les mesures des sections 1.1 et 1.2 portent sur le domaine des marais, soit envi
 
 **Limites** : une seule année par source, ramenée au pas de 30 m (vote majoritaire pour WorldCover et Impact Observatory, plus proche voisin pour le HRL, moyenne pour Meta) ; la BD Forêt sert de référence faute de vérité de terrain, donc un « arbre hors BD Forêt » n'est pas forcément une erreur (forêt apparue depuis 2006, ou trop petite) ; mesures sur le domaine net.
 
+### 1.4 Classes mises à la grille (V2.1b, 2026-11-14)
+
+`make classes` (code : `pipeline/raster/classes.py`) met la BD Forêt et le RPG de chaque année (2018 à 2025) sur la grille de 10 m du projet, avec la règle 1 (le RPG prime, sur son emprise non érodée) et la partie « encore un arbre » de la règle 2 (Impact Observatory 2023). Chaque polygone est érodé d'un pixel (pixel « pur »). Sorties : `rasters/classes/ocs_<annee>_<slug>.tif` (9 343 × 14 236 pixels, entier 8 bits, environ 10 Mo par année), sources en cache dans `rasters/classes/sources/`.
+
+**Contrôles sur les vraies données** (surfaces dans le territoire, sans l'anneau de 1 km de la grille) :
+
+| Mesure | Spike n°7 (ha purs) | Grille | Écart |
+|---|---|---|---|
+| RPG 2025, prairies permanentes | 98 473 | 98 427 | −0,05 % |
+| RPG 2025, maïs / blé tendre / colza | 67 559 / 57 756 / 8 442 | 67 563 / 57 713 / 8 440 | moins de 0,1 % |
+| BD Forêt, feuillus mélangés / chênes / pin | 18 554 / 4 494 / 4 340 | 18 486 / 4 467 / 4 332 | moins de 0,6 % |
+| Idempotence (2025 relancée) | | fichier identique à l'octet près | |
+
+**Ce que retirent les règles (BD Forêt, territoire, ha)** : feuillus mélangés 18 486 → 13 580 (carte d'arbres) → 13 341 (RPG 2025) ; chênes 4 467 → 4 164 → 4 151 ; pin 4 332 → 4 086 ; mélange 2 654 → 2 152 → 2 137 ; autres conifères 2 230 → 1 992 ; peupleraie 1 513 → 1 344 (RPG, exemptée de la carte d'arbres) ; landes 2 419 → 2 104 (RPG).
+
+**Point examiné : les îlots de la BD Forêt (FF1-00)** : la carte d'arbres retirait un quart des feuillus mélangés, presque tout dans un poste, **FF1-00, « feuillus purs en îlots »** (polygones de 1 ha en moyenne, 3 171 ha purs), dont **22 % seulement** des pixels sont des arbres pour Impact Observatory ; les autres postes de la classe en gardent 80 à 94 %. La part d'arbres des cœurs reste celle de D15 une fois les bords écartés (érosion de 30 m : 91 à 98 % selon la classe ; érosion de 10 m : 73 à 94 %). **Examen visuel par l'utilisateur (2026-11-14)** : la carte d'arbres est plutôt correcte, même s'il en manque ; les îlots rattrapent des bosquets et des haies qu'elle ne voit pas, avec quelques faux positifs. **Décision : les polygones FF1-00 sont ajoutés à la carte d'arbres** (`regles.arbres_complement_tfv`, reportée dans `methodologie.md`, D15, règle 2). Effet mesuré : **672 262 pixels ajoutés** (6 723 ha sur l'emprise de lecture), aucun retiré ; carte complétée écrite dans `rasters/classes/arbres_<slug>.tif` (5,2 % des pixels contre 4,7 %) ; feuillus mélangés du territoire, après RPG 2025 : **15 615 ha** (13 341 sans le complément, 18 486 pour la BD Forêt seule). Une carte d'arbres plus exhaustive et plus précise sera cherchée plus tard.
+
+**Cohérence du RPG d'une année à l'autre** : les groupes retenus gardent les mêmes cultures de 2018 à 2025 (blé tendre BTH, colza CZH, maïs MIE et MIS, tournesol TRN) et des surfaces stables (prairies permanentes de 204 800 à 209 500 ha sur l'emprise de lecture). **Deux écarts de composition à garder en tête pour D16** : la couche 2025 (« grandes catégories ») ne donne plus que PPH pour les prairies permanentes et PTR pour les temporaires (PRL et RGA des années précédentes n'y sont plus distingués), et les **fourrages** passent de 30 000 ha (2022) à 45 000 (2023) puis 52 000 à 54 000 ha (2024-2025) sur l'emprise de lecture, sans changement visible de leurs cultures dominantes : à vérifier avant de tirer une anomalie de cette classe.
+
+Contrôle visuel : `rasters/classes/controle_classes_2025.png` (forêt de Mervent et bocage, Marais breton) ; les chiffres de « ce que retirent les règles » ci-dessus sont ceux de la première version, sans le complément FF1-00.
+
 ## 2. Domaine des marais
 
 Périmètres Natura 2000 ZPS (Marais poitevin et Marais breton) dans le territoire, moins les marais salants, les zones intertidales, les plages et dunes (CORINE codes 422, 423, 331) et l'estran (BD TOPO) :

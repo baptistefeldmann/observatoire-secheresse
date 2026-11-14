@@ -15,9 +15,17 @@ codes_speciaux:
 regles:
   # Règle 1 : le RPG de l'année prime sur la BD Forêt quand une parcelle est déclarée.
   rpg_prime: true
+  # Pixel « pur » : chaque polygone (BD Forêt, RPG) est érodé de cette distance avant d'être mis à la
+  # grille, pour que les pixels de bord, mêlés à leur voisin, ne comptent pas (les surfaces « pures » du
+  # spike n°7 sont comptées ainsi). Le RPG efface la forêt sur toute son emprise non érodée.
+  erosion_m: 10
   # Règle 2 : un pixel de forêt ne reste dans sa classe que s'il est encore un arbre sur la carte
   # d'occupation du sol récente (Impact Observatory 2023, WorldCover à défaut) et si son NDVI d'été
   # n'est pas sous ce seuil. Les classes `controle_foret: false` en sont exemptées.
+  # La carte d'arbres est complétée par des polygones de la BD Forêt : les postes ci-dessous y sont
+  # ajoutés comme arbres (décision du 2026-11-14 : la carte d'Impact Observatory rate bosquets et haies,
+  # que les « feuillus purs en îlots » FF1-00 rattrapent, avec quelques faux positifs).
+  arbres_complement_tfv: ["FF1-00"]
   ndvi_ete_min: 0.4          # provisoire : seuil à confirmer sur la première série (D16)
   # Règle 3 : l'écart de NDVI entre l'été et l'hiver contrôle le type de feuillage
   # (`feuillage` des classes ci-dessous). Ses seuils sont à fixer sur les données (D16).

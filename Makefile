@@ -1,12 +1,12 @@
-.PHONY: help install dvc-auth up down db-roles referentiels ingest reference indices validation hebdo qgis site pages db-rebuild config test test-db lint format
+.PHONY: help install classes dvc-auth up down db-roles referentiels ingest reference indices validation hebdo qgis site pages db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
 help:  ## Liste des commandes
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
 
-install:  ## Installe l'environnement Python
-	uv sync
+install:  ## Installe l'environnement Python (avec les bibliothèques raster de la V2)
+	uv sync --extra raster
 
 dvc-auth:  ## Copie les identifiants DagsHub de .env dans .dvc/config.local (non versionné)
 	@test -f .env || { echo ".env manquant (voir .env.example)"; exit 1; }
@@ -37,6 +37,9 @@ ingest:  ## Ingestion complète de l'historique
 
 reference:  ## Calcul des normales
 	$(PIPELINE) reference
+
+classes:  ## [V2] Classes de la brique satellite mises à la grille -> rasters/classes/
+	$(PIPELINE) classes
 
 indices:  ## Indices hebdomadaires de tout l'historique -> data/indices/
 	$(PIPELINE) indices

@@ -246,3 +246,12 @@ def test_code_group_affecte_deux_fois(copie_config: Path) -> None:
     fichier.write_text(yaml.safe_dump(contenu, allow_unicode=True), encoding="utf-8")
     with pytest.raises(ValidationError, match="code_group"):
         charger_config(copie_config)
+
+
+def test_complement_d_arbres_vers_un_poste_inconnu(copie_config: Path) -> None:
+    fichier = copie_config / "nomenclature_ocs.yaml"
+    contenu = yaml.safe_load(fichier.read_text(encoding="utf-8"))
+    contenu["regles"]["arbres_complement_tfv"] = ["XX9"]
+    fichier.write_text(yaml.safe_dump(contenu, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValidationError, match="XX9"):
+        charger_config(copie_config)

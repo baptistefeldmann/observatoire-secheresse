@@ -33,6 +33,7 @@ make referentiels  # communes, mailles SIM, stations -> data/referentiels/
 make ingest        # ingestion complète de l'historique
 make reference     # calcul des normales
 make indices       # indices hebdomadaires de tout l'historique -> data/indices/
+make classes       # [V2] classes de la brique satellite mises à la grille -> rasters/classes/ (réseau)
 make validation    # indices confrontés aux arrêtés sécheresse (VigiEau) -> docs/validation.md
 make hebdo         # job hebdomadaire
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS

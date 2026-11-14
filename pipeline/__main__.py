@@ -52,6 +52,23 @@ def _referentiels(config: Config) -> None:
         print(f"{nom:<16} -> {chemin}")
 
 
+def _classes(config: Config, annees: list[int] | None, actualiser: bool) -> None:
+    from pipeline.raster import classes  # extra `raster` : importé seulement ici
+
+    surface_pixel_ha = config.sources.sentinel2.resolution_m**2 / 1e4
+    ocs = config.nomenclature_ocs
+    noms = {c.code: c.nom for c in ocs.foret.classes}
+    noms |= {c.code: c.nom for c in ocs.cultures.classes}
+    noms[ocs.codes_speciaux.hors_classes] = "hors classes"
+    noms[ocs.codes_speciaux.nodata] = "hors emprise"
+    for annee, bilan in classes.construire(
+        config, ClientHttp(config.sources.http), annees, actualiser
+    ).items():
+        print(f"{classes.chemin_classes(config, annee)} (carte d'arbres : {bilan.carte_arbres})")
+        for code, nombre in sorted(bilan.pixels.items()):
+            print(f"  {code:>3} {noms.get(code, '-'):<34} {nombre * surface_pixel_ha:>10.0f} ha")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="pipeline", description="Observatoire de la sécheresse")
     sous = parser.add_subparsers(dest="commande", required=True)
@@ -64,6 +81,13 @@ def main(argv: list[str] | None = None) -> int:
     calcul = sous.add_parser("indices", help="indices hebdomadaires -> data/indices/")
     calcul.add_argument("--debut", help="première semaine AAAA-Www (défaut : historique_debut)")
     calcul.add_argument("--fin", help="dernière semaine AAAA-Www (défaut : dernière complète)")
+    classes = sous.add_parser("classes", help="[V2] classes mises à la grille -> rasters/classes/")
+    classes.add_argument(
+        "--annee", type=int, action="append", help="année du RPG (défaut : toutes)"
+    )
+    classes.add_argument(
+        "--actualiser", action="store_true", help="relit BD Forêt, RPG et carte d'arbres"
+    )
     valider = sous.add_parser("validation", help="indices confrontés aux arrêtés sécheresse")
     valider.add_argument(
         "--hors-ligne", action="store_true", help="réutilise les arrêtés de data/validation/"
@@ -103,6 +127,9 @@ def main(argv: list[str] | None = None) -> int:
         fin = args.fin or derniere_semaine_complete(date.today())
         for nom, calcule in indices.calculer(config, debut, fin).items():
             print(f"{nom:<16} {len(calcule):>9} lignes ({debut} à {fin})")
+        return 0
+    if args.commande == "classes":
+        _classes(config, args.annee, args.actualiser)
         return 0
     if args.commande == "validation":
         client = None if args.hors_ligne else ClientHttp(config.sources.http)

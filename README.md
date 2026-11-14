@@ -151,6 +151,7 @@ make db-rebuild           # charge PostGIS (environ 1 min)
 make ingest               # référentiels + historique complet (~10 min)
 make reference            # normales (~20 s)
 make indices              # indices de 1991 à la dernière semaine complète (~25 s)
+make classes              # [V2] classes BD Forêt + RPG mises à la grille 10 m -> rasters/classes/ (réseau, non versionné)
 make db-rebuild
 make validation           # indices confrontés aux arrêtés sécheresse -> docs/validation.md (~5 s)
 ```

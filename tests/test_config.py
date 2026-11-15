@@ -154,7 +154,10 @@ def _modifier_imbrique(fichier: Path, chemin: list[str], valeur: object) -> None
 def test_config_satellite_du_depot() -> None:
     config = charger_config(DOSSIER_CONFIG)
     sat = config.projet.satellite
-    assert sat.version_methodo == "D15"
+    assert sat.version_methodo == "D16"
+    # D16 : référence fixe publiée, référence « hydro » en contrôle seulement
+    assert sat.crue.reference.variante == "fixe"
+    assert sat.crue.reference.variantes == ["fixe", "hydro"]
     assert sat.crue.orbite_publiee == 81
     assert [m.id for m in sat.crue.marais] == ["marais_poitevin", "marais_breton"]
     ref = config.projet.periode_reference

@@ -152,6 +152,8 @@ make ingest               # référentiels + historique complet (~10 min)
 make reference            # normales (~20 s)
 make indices              # indices de 1991 à la dernière semaine complète (~25 s)
 make classes              # [V2] classes BD Forêt + RPG mises à la grille 10 m -> rasters/classes/ (réseau, non versionné)
+make crue                 # [V2] surface de crue Sentinel-1 par passage -> data/satellite/ (réseau, ~4 h, reprenable)
+make crue-mois            # [V2] crue par mois et tendance d'hiver -> data/satellite/ (sans réseau)
 make db-rebuild
 make validation           # indices confrontés aux arrêtés sécheresse -> docs/validation.md (~5 s)
 ```
@@ -405,7 +407,7 @@ logs/        rapports du job hebdomadaire, non versionnés
 | Document | Contenu |
 |---|---|
 | [`docs/SPEC.md`](docs/SPEC.md) | spécification de référence : architecture, sources, schéma, méthode, phases V1 à V4 |
-| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D15 et contrôles chiffrés (elles priment sur la spec) |
+| [`docs/methodologie.md`](docs/methodologie.md) | décisions de méthode D1 à D16 et contrôles chiffrés (elles priment sur la spec) |
 | [`docs/validation.md`](docs/validation.md) | indices confrontés aux arrêtés sécheresse, généré par `make validation` |
 | [`docs/acces_distant.md`](docs/acces_distant.md) | QGIS, dashboard et API depuis un poste Windows par tunnel SSH |
 | [`docs/workflow.svg`](docs/workflow.svg) | schéma du workflow complet (section 2) |

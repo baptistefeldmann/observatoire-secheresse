@@ -1,0 +1,6 @@
+outs:
+- md5: 6c1ca5de0a819583c714f50fb37046eb.dir
+  size: 603634
+  nfiles: 5
+  hash: md5
+  path: satellite

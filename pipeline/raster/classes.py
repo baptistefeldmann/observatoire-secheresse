@@ -32,6 +32,7 @@ from shapely.geometry.base import BaseGeometry
 from pipeline import referentiels
 from pipeline.config import Config, NomenclatureOcs
 from pipeline.http import ClientHttp
+from pipeline.raster.cog import ecrire_cog
 from pipeline.raster.grille import Grille, grille_de
 from pipeline.sources import carte_arbres, ign_classes
 
@@ -195,29 +196,7 @@ def ecrire_classes(
     tags: dict[str, str],
 ) -> None:
     """COG de classes (8 bits, deflate, aperçus par le mode), écrit via un fichier temporaire."""
-    import rasterio
-    import rasterio.shutil
-
-    chemin.parent.mkdir(parents=True, exist_ok=True)
-    with rasterio.MemoryFile() as memoire:
-        with memoire.open(
-            driver="GTiff",
-            height=grille.hauteur,
-            width=grille.largeur,
-            count=1,
-            dtype="uint8",
-            crs=grille.crs,
-            transform=grille.transform,
-            nodata=nodata,
-        ) as dst:
-            dst.write(grille_classes, 1)
-            dst.update_tags(**tags)
-        temporaire = chemin.with_suffix(".tmp.tif")
-        with memoire.open() as src:
-            rasterio.shutil.copy(
-                src, temporaire, driver="COG", compress="DEFLATE", overview_resampling="mode"
-            )
-    temporaire.replace(chemin)
+    ecrire_cog(chemin, grille_classes, grille, nodata, tags)
 
 
 def _sources(

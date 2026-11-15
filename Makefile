@@ -1,4 +1,4 @@
-.PHONY: help install classes dvc-auth up down db-roles referentiels ingest reference indices validation hebdo qgis site pages db-rebuild config test test-db lint format
+.PHONY: help install classes crue crue-mois dvc-auth up down db-roles referentiels ingest reference indices validation hebdo qgis site pages db-rebuild config test test-db lint format
 
 PIPELINE = uv run python -m pipeline
 
@@ -40,6 +40,12 @@ reference:  ## Calcul des normales
 
 classes:  ## [V2] Classes de la brique satellite mises à la grille -> rasters/classes/
 	$(PIPELINE) classes
+
+crue:  ## [V2] Surface de crue Sentinel-1 par passage -> data/satellite/crue_passages.parquet (réseau, plusieurs heures)
+	$(PIPELINE) crue
+
+crue-mois:  ## [V2] Crue par mois et tendance d'hiver -> data/satellite/ (sans réseau)
+	$(PIPELINE) crue-mois
 
 indices:  ## Indices hebdomadaires de tout l'historique -> data/indices/
 	$(PIPELINE) indices

@@ -88,6 +88,15 @@ def main(argv: list[str] | None = None) -> int:
     classes.add_argument(
         "--actualiser", action="store_true", help="relit BD Forêt, RPG et carte d'arbres"
     )
+    crue = sous.add_parser(
+        "crue", help="[V2] surface de crue Sentinel-1 par passage -> data/satellite/"
+    )
+    crue.add_argument("--marais", action="append", help="identifiant d'un marais (défaut : tous)")
+    crue.add_argument(
+        "--annee", type=int, action="append", help="année à calculer (défaut : toutes)"
+    )
+    mois = sous.add_parser("crue-mois", help="[V2] crue par mois et tendance d'hiver (sans réseau)")
+    mois.add_argument("--pct-valides-min", type=float, default=0.0, help="part observable minimale")
     valider = sous.add_parser("validation", help="indices confrontés aux arrêtés sécheresse")
     valider.add_argument(
         "--hors-ligne", action="store_true", help="réutilise les arrêtés de data/validation/"
@@ -130,6 +139,17 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.commande == "classes":
         _classes(config, args.annee, args.actualiser)
+        return 0
+    if args.commande == "crue":
+        from pipeline.raster import crue as calcul_crue  # extra `raster` : importé seulement ici
+
+        print(calcul_crue.construire(config, date.today(), args.marais, args.annee))
+        return 0
+    if args.commande == "crue-mois":
+        from pipeline.indices import crue as agregats_crue
+
+        for nom, agregat in agregats_crue.calculer(config, args.pct_valides_min).items():
+            print(f"{nom:<14} {len(agregat):>6} lignes")
         return 0
     if args.commande == "validation":
         client = None if args.hors_ligne else ClientHttp(config.sources.http)

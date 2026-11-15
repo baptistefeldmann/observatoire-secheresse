@@ -26,9 +26,9 @@ regles:
   # ajoutés comme arbres (décision du 2026-11-14 : la carte d'Impact Observatory rate bosquets et haies,
   # que les « feuillus purs en îlots » FF1-00 rattrapent, avec quelques faux positifs).
   arbres_complement_tfv: ["FF1-00"]
-  ndvi_ete_min: 0.4          # provisoire : seuil à confirmer sur la première série (D16)
+  ndvi_ete_min: 0.4          # provisoire : seuil à confirmer sur la première série (D17)
   # Règle 3 : l'écart de NDVI entre l'été et l'hiver contrôle le type de feuillage
-  # (`feuillage` des classes ci-dessous). Ses seuils sont à fixer sur les données (D16).
+  # (`feuillage` des classes ci-dessous). Ses seuils sont à fixer sur les données (D17).
 
 foret:
   source: "BD Forêt V2, champ code_tfv"

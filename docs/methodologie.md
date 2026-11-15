@@ -363,7 +363,33 @@ Forêt, **7 classes** (surfaces du département) : feuillus mélangés et autres
 
 À surveiller : Sentinel-2C (+0,02 de NDVI et +0,04 de NDMI pour le pin, 9 scènes de 2025) et le NDMI des pins, qui monte de 0,20 à 0,28 de 2018 à 2025 sans saut à un changement de baseline (celui des chênes est plat) ; le contrôle de dérive suit le NDMI comme le NDVI.
 
-**Reste ouvert, hors D15** (D16, avec la première série) : seuils des trois règles de classes ; nombre minimal de dates valides par pixel et part de pixels valides par zone et par classe ; test de l'hypothèse « hiver sans crue, été sec » avec les nappes et les arrêtés ; mois publiés ; sensibilité du masque d'eau permanente (seuil de 50 %, année par année) ; contrôle de marée avec les crues d'hiver. **Conditions** : licence des couches de l'EPMP à confirmer avant toute communication externe et avant de publier la crue par régime (Q17, considérée comme utilisable pour le prototype) ; `LICENCE-DONNEES.md` à jour à la mise en œuvre.
+**Reste ouvert, hors D15** (D17, avec la première série) : seuils des trois règles de classes ; nombre minimal de dates valides par pixel et part de pixels valides par zone et par classe ; test de l'hypothèse « hiver sans crue, été sec » avec les nappes et les arrêtés ; mois publiés ; sensibilité du masque d'eau permanente (seuil de 50 %, année par année) ; contrôle de marée avec les crues d'hiver. **Conditions** : licence des couches de l'EPMP à confirmer avant toute communication externe et avant de publier la crue par régime (Q17, considérée comme utilisable pour le prototype) ; `LICENCE-DONNEES.md` à jour à la mise en œuvre.
+
+## D16 — Crue Sentinel-1 : référence sèche fixe, hiver complet de décembre à mars
+
+*Décision du 2026-11-15. Chiffrée sur les passages de l'orbite 81, 2015 à 2026 (11 hivers complets), Marais poitevin et Marais breton ; tables dans `data/satellite/` (`crue_passages`, `crue_mois`, `crue_tendance`).*
+
+**Question.** La crue d'un passage est comparée à la médiane d'été du même pixel (D15, point 4). Quel été prendre ? Trois façons ont été calculées ensemble : **précédent** (l'été de l'année civile d'avant ; impossible en 2015, le catalogue RTC débute en octobre 2014), **hydro** (le dernier été complet avant le passage, celui du spike) et **fixe** (médiane des onze étés 2015-2025).
+
+**Résultats.**
+
+- *Accord avec le spike* : en « hydro », Marais poitevin 534 et 593 ha (spike 541 et 591) ; Marais breton 429 et 407 ha (spike 451 et 440, de −5 à −7 %, cause non cherchée).
+- *Même classement des hivers* : corrélation de rang de 0,91 à 0,99 entre les trois variantes par passage, de 0,84 à 1,00 par hiver. Le Marais poitevin y est quasi insensible.
+- *Un cas où elles divergent* : hiver 2015-2016 du Marais breton, **1 620 ha (hydro) et 1 994 ha (précédent) contre 640 ha (fixe)** ; le 5 décembre 2015, 2 500 ha en hydro contre 548 en fixe. L'été de référence 2015, première année du catalogue, est en cause. La médiane de onze étés n'est pas sensible à un été isolé.
+- *Tendance* (Theil-Sen, Kendall) : aucune tendance détectable sur 2015-2025, quelle que soit la variante (pentes de −8 à +13 ha par an, p de 0,76 à 1,0, intervalles de ±60 à 80 ha par an). La variabilité entre hivers est trop forte (coefficient de variation de 0,43 et 0,55 ; de 91 à 983 ha dans le Marais poitevin) pour onze hivers.
+- *Bruit hors hiver* : le détecteur trouve de 200 à 450 ha en juillet-septembre et jusqu'à 1 000 ha en mai, autant que l'hiver (végétation et sols, pas de l'eau). Le plancher le plus proche est celui d'octobre-novembre : environ 100 ha en fixe, soit 20 à 35 % d'un hiver médian.
+- *Orbite 81, 100 % de pixels valides à tous les passages* : aucun seuil de part de pixels valides n'est nécessaire (`pct_valides_min` reste à 0).
+
+**Décision (option A).**
+
+1. **La référence est la médiane des étés de la période de référence Sentinel-1** (`periode_reference.sentinel1`, 2015-2025, gelée à 2025, comme D10) : `satellite.crue.reference.variante: fixe`. La variante « précédent » est supprimée. « hydro » reste calculée comme **contrôle** (`reference.controles`), dans `crue_passages.parquet` mais jamais publiée dans `crue_mois` ni `crue_tendance`.
+2. **Seule la fenêtre décembre-mars se lit comme de la crue.** Le bruit d'été est du même ordre : les surfaces d'avril à novembre ne sont pas interprétées.
+3. **Un hiver compte dans la tendance s'il a au moins trois passages et un passage chaque mois de décembre à mars.** L'hiver 2014-2015 (série commencée le 3 janvier 2015) en est exclu : 11 hivers, 2015 à 2025.
+4. **Aucune tendance n'est affirmée** tant que la série ne la distingue pas de la variabilité entre hivers : on publie la pente avec son intervalle à 95 % et le test de Kendall.
+
+**Application.** `satellite.version_methodo` passe à « D16 » (le composite reste en D14). Les passages sont fusionnés sans la variante abandonnée, `crue_mois` (286 lignes) et `crue_tendance` (2 lignes) sont recalculés. Tendances recalculées : Marais breton −4,8 ha par an [−44 ; +24], p = 0,88 ; Marais poitevin +12,8 ha par an [−63 ; +82], p = 0,76.
+
+**Limites connues.** Passages en Sentinel-1A seul de 2022 à 2024 (12 jours au lieu de 6, environ 30 passages par an au lieu de 58) : leur effet sur les médianes d'hiver n'est pas chiffré. L'écart au spike du Marais breton (−5 à −7 %) vient peut-être du domaine figé à 10 m.
 
 ## Validation par les arrêtés sécheresse
 

@@ -217,7 +217,9 @@ class Marais(_Modele):
     motif_site: str = Field(min_length=1)  # expression régulière sur le nom du site Natura 2000
     orbites_controle: list[int] = []
     station_maree: str = Field(min_length=1)
-    regimes: str | None = None  # source d'un découpage en régimes (publication par régime, Q14)
+    # découpage en régimes (Q14) : nom -> code dans `rasters/crue/regimes_<id>.tif` ; le reste du
+    # domaine forme le régime « autres » ; sans découpage, seulement le total
+    regimes: dict[str, int] | None = None
 
     @field_validator("motif_site")
     @classmethod
@@ -229,9 +231,30 @@ class Marais(_Modele):
         return valeur
 
 
+class ReferenceCrue(_Modele):
+    """Référence sèche de la détection de crue (médiane d'été du même pixel)."""
+
+    mois: list[int] = Field(min_length=1)
+    variante: Literal["hydro", "fixe"]  # référence publiée (D16)
+    controles: list[Literal["hydro", "fixe"]] = []  # calculées avec elle, jamais publiées
+
+    @property
+    def variantes(self) -> list[str]:
+        """Variantes calculées à chaque passage : la retenue, puis les contrôles."""
+        return [self.variante, *[c for c in self.controles if c != self.variante]]
+
+    @field_validator("mois")
+    @classmethod
+    def _mois_valides(cls, valeur: list[int]) -> list[int]:
+        if any(not 1 <= m <= 12 for m in valeur):
+            raise ValueError(f"mois hors de 1 à 12 : {valeur}")
+        return valeur
+
+
 class Crue(_Modele):
     orbite_publiee: int = Field(ge=1)
     detection: Detection
+    reference: ReferenceCrue
     eau_permanente: EauPermanente
     maree: Maree
     marais: list[Marais] = []

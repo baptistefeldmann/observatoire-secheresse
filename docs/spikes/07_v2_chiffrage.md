@@ -141,7 +141,7 @@ Les mesures des sections 1.1 et 1.2 portent sur le domaine des marais, soit envi
 
 **Point examiné : les îlots de la BD Forêt (FF1-00)** : la carte d'arbres retirait un quart des feuillus mélangés, presque tout dans un poste, **FF1-00, « feuillus purs en îlots »** (polygones de 1 ha en moyenne, 3 171 ha purs), dont **22 % seulement** des pixels sont des arbres pour Impact Observatory ; les autres postes de la classe en gardent 80 à 94 %. La part d'arbres des cœurs reste celle de D15 une fois les bords écartés (érosion de 30 m : 91 à 98 % selon la classe ; érosion de 10 m : 73 à 94 %). **Examen visuel par l'utilisateur (2026-11-14)** : la carte d'arbres est plutôt correcte, même s'il en manque ; les îlots rattrapent des bosquets et des haies qu'elle ne voit pas, avec quelques faux positifs. **Décision : les polygones FF1-00 sont ajoutés à la carte d'arbres** (`regles.arbres_complement_tfv`, reportée dans `methodologie.md`, D15, règle 2). Effet mesuré : **672 262 pixels ajoutés** (6 723 ha sur l'emprise de lecture), aucun retiré ; carte complétée écrite dans `rasters/classes/arbres_<slug>.tif` (5,2 % des pixels contre 4,7 %) ; feuillus mélangés du territoire, après RPG 2025 : **15 615 ha** (13 341 sans le complément, 18 486 pour la BD Forêt seule). Une carte d'arbres plus exhaustive et plus précise sera cherchée plus tard.
 
-**Cohérence du RPG d'une année à l'autre** : les groupes retenus gardent les mêmes cultures de 2018 à 2025 (blé tendre BTH, colza CZH, maïs MIE et MIS, tournesol TRN) et des surfaces stables (prairies permanentes de 204 800 à 209 500 ha sur l'emprise de lecture). **Deux écarts de composition à garder en tête pour D16** : la couche 2025 (« grandes catégories ») ne donne plus que PPH pour les prairies permanentes et PTR pour les temporaires (PRL et RGA des années précédentes n'y sont plus distingués), et les **fourrages** passent de 30 000 ha (2022) à 45 000 (2023) puis 52 000 à 54 000 ha (2024-2025) sur l'emprise de lecture, sans changement visible de leurs cultures dominantes : à vérifier avant de tirer une anomalie de cette classe.
+**Cohérence du RPG d'une année à l'autre** : les groupes retenus gardent les mêmes cultures de 2018 à 2025 (blé tendre BTH, colza CZH, maïs MIE et MIS, tournesol TRN) et des surfaces stables (prairies permanentes de 204 800 à 209 500 ha sur l'emprise de lecture). **Deux écarts de composition à garder en tête pour D17** : la couche 2025 (« grandes catégories ») ne donne plus que PPH pour les prairies permanentes et PTR pour les temporaires (PRL et RGA des années précédentes n'y sont plus distingués), et les **fourrages** passent de 30 000 ha (2022) à 45 000 (2023) puis 52 000 à 54 000 ha (2024-2025) sur l'emprise de lecture, sans changement visible de leurs cultures dominantes : à vérifier avant de tirer une anomalie de cette classe.
 
 Contrôle visuel : `rasters/classes/controle_classes_2025.png` (forêt de Mervent et bocage, Marais breton) ; les chiffres de « ce que retirent les règles » ci-dessus sont ceux de la première version, sans le complément FF1-00.
 
@@ -461,6 +461,28 @@ Mesure par `docs/spikes/v2_0/n5_masque_eau_permanente.py`, `n5b_masque_et_bdtopo
 | Breton 2024-2025 | 454 ha | 446 ha (−2 %) | 447 ha (−2 %) | 440 ha (−3 %) | 433 ha (−5 %) |
 
 **Proposition** : masque d'eau permanente = **masque fixe de Sentinel-1 (> 50 % des passages de juillet à septembre, orbite 81, 2015-2025) réuni aux surfaces d'eau PERMANENTES de la BD TOPO, sans marge** (retire de 2 à 8 % de la crue), soustrait à chaque passage. **Les surfaces intermittentes de la BD TOPO ne sont pas masquées.** À trancher plus tard, avec la série : les bassins intermittents du littoral (« Réservoir-bassin », 194 ha dans le Marais breton) et la sensibilité du seuil de 50 % ; la sensibilité année par année reste à calculer.
+
+### 3.10 Crue de production : trois références comparées (2026-11-15)
+
+Production (`make crue`, `make crue-mois`), orbite 81, 2015-2026, domaine figé à 10 m. Surface d'hiver = médiane des passages de décembre à mars (ha). Décision : [D16](../methodologie.md) (référence fixe).
+
+| Hiver (début) | Breton fixe | Breton hydro | Breton précédent | Poitevin fixe | Poitevin hydro | Poitevin précédent |
+|---|---|---|---|---|---|---|
+| 2015 | 640 | 1 620 | 1 994 | 532 | 576 | 1 146 |
+| 2016 | 247 | 122 | 242 | 222 | 193 | 208 |
+| 2017 | 201 | 211 | 209 | 427 | 408 | 408 |
+| 2018 | 297 | 258 | 264 | 346 | 306 | 306 |
+| 2019 | 403 | 314 | 314 | 983 | 918 | 918 |
+| 2020 | 404 | 405 | 405 | 717 | 749 | 660 |
+| 2021 | 237 | 163 | 163 | 165 | 163 | 212 |
+| 2022 | 119 | 106 | 91 | 91 | 82 | 88 |
+| 2023 | 309 | 429 | 395 | 504 | 534 | 460 |
+| 2024 | 369 | 407 | 548 | 541 | 584 | 584 |
+| 2025 | 300 | 268 | 268 | 623 | 593 | 620 |
+
+Médiane par mois civil (ha, toutes années, référence fixe) : Marais poitevin 523 / 701 / 320 / 1 103 / 1 116 / 145 / 194 / 176 / 209 / 91 / 129 / 235 (janvier à décembre) ; Marais breton 295 / 405 / 272 / 679 / 1 017 / 376 / 334 / 352 / 286 / 88 / 110 / 184. Avril-mai et l'été montrent autant de « crue » que l'hiver : seule la fenêtre décembre-mars est lue. Octobre-novembre (environ 100 ha) donne le plancher de bruit.
+
+Tendance Theil-Sen 2015-2025 (11 hivers) : Breton fixe −4,8 ha/an [−44 ; +24] p = 0,88 ; Poitevin fixe +12,8 ha/an [−63 ; +82] p = 0,76 ; mêmes conclusions avec les autres références (de −8 à +25 ha/an, p de 0,22 à 1,0).
 
 ## 4. Sentinel-2
 

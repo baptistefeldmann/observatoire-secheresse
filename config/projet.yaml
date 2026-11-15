@@ -112,7 +112,7 @@ chemins:
 # Brique satellite (V2, hors composite). Unité de temps : le mois civil (D15, point 1).
 # NDVI et NDMI : tout le département, par zone de `zones.yaml` et par classe de `nomenclature_ocs.yaml`.
 satellite:
-  version_methodo: "D15"     # indépendant de `indices.version_methodo` (composite, D14)
+  version_methodo: "D16"     # indépendant de `indices.version_methodo` (composite, D14)
   crue:
     # Surface de crue, en hectares bruts (jamais un taux), sur les marais ci-dessous.
     orbite_publiee: 81       # Q18 : une seule orbite relative pour la série publiée
@@ -121,6 +121,14 @@ satellite:
       seuil_vv_db: -16       # et VV filtré inférieur à ce seuil
       taches_min_px: 10      # taches plus petites supprimées
       filtre_median_px: 3    # médiane 3 x 3 sur le VV en dB (chatoiement)
+    reference:               # référence sèche : médiane d'été du même pixel et de la même orbite
+      mois: [7, 8, 9]
+      # Été de référence d'un passage (D16, chiffré sur 2015-2026) :
+      #   fixe  : médiane des étés de la période de référence `periode_reference.sentinel1` (retenue)
+      #   hydro : le dernier été complet avant le passage (été N de octobre N à septembre N+1) ;
+      #           contrôle seulement, sensible à un été atypique (hiver 2015-16 du Marais breton)
+      variante: fixe
+      controles: [hydro]
     eau_permanente:          # masque fixe (comparabilité de la série), réuni aux surfaces permanentes de la BD TOPO
       mois: [7, 8, 9]
       part_min: 0.5          # part des passages sombres sur la période
@@ -139,7 +147,8 @@ satellite:
         motif_site: "Marais poitevin"
         orbites_controle: [8, 30]
         station_maree: "La Pallice"
-        regimes: epmp        # surface publiée aussi par régime (Q14) ; licence de l'EPMP à demander (Q17)
+        # régimes de l'EPMP (Q14) : nom -> code de rasters/crue/regimes_marais_poitevin.tif ; licence à demander (Q17)
+        regimes: {mouille: 1, intermediaire: 2, desseche: 3}
       - id: marais_breton
         nom: "Marais breton"
         motif_site: "Marais [Bb]reton"

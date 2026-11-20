@@ -36,6 +36,8 @@ make indices       # indices hebdomadaires de tout l'historique -> data/indices/
 make classes       # [V2] classes de la brique satellite mises à la grille -> rasters/classes/ (réseau)
 make crue          # [V2] surface de crue Sentinel-1 par passage -> data/satellite/crue_passages.parquet (réseau, plusieurs heures)
 make crue-mois     # [V2] crue par mois et tendance d'hiver -> data/satellite/ (sans réseau)
+make composites    # [V2] NDVI et NDMI mensuels de Sentinel-2 -> rasters/mensuel/ (réseau, plusieurs heures, reprenable)
+make composites-controle  # [V2] qualité et dérive radiométrique des composites -> data/satellite/ (sans réseau)
 make validation    # indices confrontés aux arrêtés sécheresse (VigiEau) -> docs/validation.md
 make hebdo         # job hebdomadaire
 make qgis          # projet QGIS (QGIS en Docker) -> qgis/ et PostGIS

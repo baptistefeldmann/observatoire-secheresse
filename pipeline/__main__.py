@@ -97,6 +97,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     mois = sous.add_parser("crue-mois", help="[V2] crue par mois et tendance d'hiver (sans réseau)")
     mois.add_argument("--pct-valides-min", type=float, default=0.0, help="part observable minimale")
+    comp = sous.add_parser(
+        "composites", help="[V2] NDVI et NDMI mensuels de Sentinel-2 -> rasters/mensuel/"
+    )
+    comp.add_argument("--annee", type=int, action="append", help="année (défaut : toutes)")
+    comp.add_argument("--mois", type=int, action="append", help="mois 1 à 12 (défaut : tous)")
+    comp.add_argument("--actualiser", action="store_true", help="recalcule les mois déjà écrits")
+    sous.add_parser(
+        "composites-controle",
+        help="[V2] rapports de qualité et contrôle de dérive des composites -> data/satellite/",
+    )
     valider = sous.add_parser("validation", help="indices confrontés aux arrêtés sécheresse")
     valider.add_argument(
         "--hors-ligne", action="store_true", help="réutilise les arrêtés de data/validation/"
@@ -150,6 +160,20 @@ def main(argv: list[str] | None = None) -> int:
 
         for nom, agregat in agregats_crue.calculer(config, args.pct_valides_min).items():
             print(f"{nom:<14} {len(agregat):>6} lignes")
+        return 0
+    if args.commande == "composites":
+        from pipeline.raster import composite
+
+        ecrits = composite.construire(config, date.today(), args.annee, args.mois, args.actualiser)
+        print(f"{len(ecrits)} mois écrits dans {composite.dossier_mensuel(config)}")
+        return 0
+    if args.commande == "composites-controle":
+        from pipeline.indices import derive
+
+        tables = derive.calculer(config)
+        for nom, agregat in tables.items():
+            print(f"{nom:<22} {len(agregat):>6} lignes")
+        print(derive.resume(tables))
         return 0
     if args.commande == "validation":
         client = None if args.hors_ligne else ClientHttp(config.sources.http)

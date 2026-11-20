@@ -113,6 +113,15 @@ chemins:
 # NDVI et NDMI : tout le département, par zone de `zones.yaml` et par classe de `nomenclature_ocs.yaml`.
 satellite:
   version_methodo: "D16"     # indépendant de `indices.version_methodo` (composite, D14)
+  composites:
+    # NDVI et NDMI mensuels de Sentinel-2 (médiane des dates du mois), tout le département.
+    bloc_px: 2048            # côté des blocs calculés d'un coup
+    integrite_max_pct: 2.0   # au-delà, le nodata de SCL et celui des bandes diffèrent : lecture corrompue, relue
+    cibles_derive: [pin_maritime, chenes_decidus]   # classes stables du contrôle de dérive radiométrique
+    seuil_derive: 0.03       # écart d'indice (NDVI, NDMI) jugé anormal entre satellites ou baselines (D15, point 5)
+    derive_fenetre_jours: 7  # un plan est comparé aux autres plans de ± 7 jours (même saison : la phénologie s'annule)
+    derive_couverture_min: 0.5   # plans écartés s'ils voient moins de la moitié de la classe (nuages)
+    derive_plans_min: 5      # plans minimum par groupe et par année pour comparer
   crue:
     # Surface de crue, en hectares bruts (jamais un taux), sur les marais ci-dessous.
     orbite_publiee: 81       # Q18 : une seule orbite relative pour la série publiée

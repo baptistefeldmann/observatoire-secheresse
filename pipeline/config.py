@@ -273,11 +273,24 @@ class Crue(_Modele):
         return self
 
 
+class Composites(_Modele):
+    """Composites mensuels de Sentinel-2 (NDVI, NDMI) : calcul par blocs, contrôle de dérive."""
+
+    bloc_px: int = Field(ge=256)  # côté des blocs lus et calculés d'un coup (mémoire)
+    integrite_max_pct: float = Field(ge=0, le=100)  # écart toléré SCL / bandes (nodata)
+    cibles_derive: list[str] = Field(min_length=1)  # classes stables (identifiants de nomenclature)
+    seuil_derive: float = Field(gt=0)  # écart d'indice jugé anormal entre groupes de scènes
+    derive_fenetre_jours: int = Field(ge=1)  # voisinage (± jours) de référence d'un plan
+    derive_couverture_min: float = Field(gt=0, le=1)  # part minimale de la classe vue par un plan
+    derive_plans_min: int = Field(ge=1)  # plans minimum d'un groupe et d'une année
+
+
 class Satellite(_Modele):
     """Brique satellite (V2), hors composite : version de méthode propre (D15)."""
 
     version_methodo: str = Field(min_length=1)
     crue: Crue
+    composites: Composites
 
 
 class Projet(_Modele):
@@ -657,6 +670,16 @@ class Config(_Modele):
     stations: Stations
     nomenclature_ocs: NomenclatureOcs
     sources: Sources
+
+    @model_validator(mode="after")
+    def _cibles_de_derive_connues(self) -> Config:
+        """Les classes stables du contrôle de dérive existent dans la nomenclature."""
+        connues = {c.id for c in self.nomenclature_ocs.foret.classes}
+        connues |= {c.id for c in self.nomenclature_ocs.cultures.classes}
+        inconnues = set(self.projet.satellite.composites.cibles_derive) - connues
+        if inconnues:
+            raise ValueError(f"cibles de dérive absentes de la nomenclature : {sorted(inconnues)}")
+        return self
 
 
 def _lire_yaml(chemin: Path) -> object:

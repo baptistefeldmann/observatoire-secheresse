@@ -579,6 +579,54 @@ Scènes du catalogue STAC sur le département (`n6_fenetre_reference_s2.py`, auc
 
 **Fenêtre retenue : 2018-2025**, figée à 2025 (D10), l'analyse allant de 2018 à l'année en cours. Pour Sentinel-1 : 2015-2026 pour la tendance (valeurs brutes en hectares), la référence figée de 2015-2025 ne servant qu'à situer une année par son rang.
 
+### 4.5 Composites mensuels 2018-2026 : contrôles et seuils laissés ouverts (V2.2d, 2026-11-16)
+
+**Production.** 107 mois (2018-01 à 2026-11, le dernier incomplet), 3 855 scènes trouvées, 3 266 retenues (589 doublons de baseline écartés, **0 scène sans baseline**), aucune relecture corrompue. Part moyenne de pixels jamais valides : 3,1 % par mois (pire : 29 % en février 2024). Observations moyennes par pixel : 1,3 au plus bas (février 2025).
+
+**Dérive radiométrique, contrôlée sur le pin maritime et les chênes décidus.** Comparer des plans de dates différentes mélange dérive et phénologie (première version : 144 mois « anormaux » sur 192, à tort). Chaque plan est donc comparé à la médiane des autres plans de ± 7 jours, plans voyant moins de la moitié de la classe écartés (`pipeline/indices/derive.py`).
+
+| Contrôle | Écart maximal de NDVI | de NDMI | Seuil 0,03 |
+|---|---|---|---|
+| Offset BOA (−1000 / 0), toute la période | 0,005 (pin) | 0,002 | respecté : l'offset est bien corrigé |
+| Plateforme (2A, 2B, 2C), par classe et année | 0,052 (pin 2018) ; 0,029 (chênes 2026) ; autres ≤ 0,029 | 0,028 | une alerte sur 16 |
+
+Sentinel-2C (depuis 2025) : + 0,01 à + 0,02 de NDVI par rapport aux voisins, sous le seuil. **Alerte : en 2018 (baseline 02.12), Sentinel-2B est 0,05 sous Sentinel-2A sur le pin**, de janvier à septembre, puis l'écart disparaît (≤ 0,02 les années suivantes). 2018 est l'une des 8 années de la référence.
+
+**Règle 2 (NDVI d'été sous un seuil = plus un arbre)**, part des pixels de forêt retirés (classes de 2025, moyenne de juillet et août, médiane des années 2018-2025) :
+
+| Seuil | pin maritime | autres conifères | chênes | feuillus mélangés | mélange feuillus-conifères | pin en 2022 (sèche) |
+|---|---|---|---|---|---|---|
+| 0,30 | 0,1 % | 0,0 % | 0,0 % | 0,1 % | 0,0 % | 0,12 % |
+| 0,40 | 0,5 % | 0,1 % | 0,0 % | 0,2 % | 0,1 % | 0,55 % |
+| 0,50 | 1,7 % | 0,5 % | 0,0 % | 0,4 % | 0,4 % | 2,0 % |
+
+Le NDVI d'été des classes de forêt est de 0,75 à 0,89 (médiane) : la sécheresse de 2022 ne les fait pas passer sous 0,4 (5e centile du pin : 0,57), donc le seuil ne retire pas les arbres secs. Les landes et la peupleraie sont exemptées (`controle_foret: false`) ; les landes seraient amputées de 20 % à 0,4.
+
+**Règle 3 (écart de NDVI été − hiver, janvier-février, médiane des années)** : médiane des écarts : chênes 0,30, feuillus mélangés 0,24, peupleraie 0,23, autres conifères 0,00, pin − 0,04 ; mélange feuillus-conifères 0,12 (très étalé). Un pixel de classe « persistant » est suspect si son écart dépasse un seuil haut, un pixel « caduc » si son écart est sous un seuil bas.
+
+| Option | Seuils | Persistant pris pour caduc | Caduc pris pour persistant |
+|---|---|---|---|
+| 1. Seuil unique | 0,125 | 8,8 % | 8,2 % |
+| 2. Bande morte | bas 0,075, haut 0,175 | 5,1 % | 4,4 % |
+| 3. Bande large | bas 0,05, haut 0,20 | 3,9 % | 3,3 % |
+
+Au seuil de 0,125, 48 % du mélange feuillus-conifères est vu comme caduc : le mélange n'est pas contrôlé.
+
+**Observations valides par pixel et par mois** (part des pixels sous k dates, toutes zones, 2018-2025) :
+
+| Mois | sous 1 date | sous 2 | sous 3 |
+|---|---|---|---|
+| juillet | 0,3 % | 2,3 % | 5,4 % |
+| juin, août | 0,3-0,5 % | 3-4 % | 13-14 % |
+| avril, mai, septembre | 3 % | 8-9 % | 18-19 % |
+| octobre, novembre | 3-6 % | 12-14 % | 32 % |
+| janvier, février | 2-8 % | 16-25 % | 39-40 % |
+| décembre | 8 % | 32 % | 63 % |
+
+Sur 1 152 couples zone × mois (12 zones, 2018-2025) : 9,6 % ont plus de 10 % de pixels sans aucune date, 3,6 % plus de 25 %, 0,9 % (10 cas) plus de 50 % ; 22 des 42 cas de plus de 25 % sont de 2024 (hiver très nuageux). Le Bocage vendéen est le plus pauvre (8,6 % de pixels sans date en moyenne, jusqu'à 99,8 % en février 2025).
+
+**Cohérence avec 4.2** : médianes de juillet 2025 sur tout le département (maïs 0,74, prairies permanentes 0,41, tournesol 0,64, blé 0,19) ; les chiffres de 4.2 portaient sur une fenêtre de 15 × 15 km (maïs 0,70, prairies 0,48), donc de même ordre sans être comparables.
+
 ## 5. Conséquences pour l'architecture
 
 1. **Q9 est reprise** : pas de seuil fixe sur VV. Méthode retenue pour la suite : **détection par changement** (VV d'hiver inférieur de 3 dB à la médiane d'été du même pixel et de la même orbite, **et** VV ≤ −16 dB ; pixels déjà sombres en été écartés), **filtre spatial** (médiane 3 × 3, taches de moins de 10 pixels supprimées). Mesures : eau libre du déversoir à F1 de 0,81 et précision de 0,92 ; bruit d'été de 15 à 204 ha (section 3.7). Sentinel-2 valide l'eau libre, **pas les prairies inondées** (section 3.6) : il faut une autre vérité de terrain pour le marais mouillé. **Sur les trois fenêtres de contrôle, l'utilisateur confirme que le radar détecte bien de l'eau** (section 3.6) : la méthode est retenue pour les prairies inondées, avec les mesures face à Sentinel-2 lues comme des bornes basses.

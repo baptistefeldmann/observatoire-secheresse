@@ -159,11 +159,27 @@ def test_config_satellite_du_depot() -> None:
     assert sat.crue.reference.variante == "fixe"
     assert sat.crue.reference.variantes == ["fixe", "hydro"]
     assert sat.crue.orbite_publiee == 81
+    comp = sat.composites
+    assert comp.bloc_px >= 256 and comp.seuil_derive == 0.03
+    assert comp.cibles_derive == ["pin_maritime", "chenes_decidus"]
+    assert comp.derive_fenetre_jours == 7 and comp.derive_plans_min == 5
+    assert 0 < comp.derive_couverture_min <= 1
     assert [m.id for m in sat.crue.marais] == ["marais_poitevin", "marais_breton"]
     ref = config.projet.periode_reference
     # D10 : références figées à 2025, 2026 n'y entre jamais
     assert (ref.sentinel2.debut, ref.sentinel2.fin, ref.sentinel2.annee_gel) == (2018, 2025, 2025)
     assert (ref.sentinel1.debut, ref.sentinel1.fin, ref.sentinel1.annee_gel) == (2015, 2025, 2025)
+
+
+def test_cibles_de_derive_inconnues(copie_config: Path) -> None:
+    """Une cible de dérive absente de la nomenclature est refusée au chargement."""
+    _modifier_imbrique(
+        copie_config / "projet.yaml",
+        ["satellite", "composites", "cibles_derive"],
+        ["classe_inconnue"],
+    )
+    with pytest.raises(ValidationError, match="classe_inconnue"):
+        charger_config(copie_config)
 
 
 def test_orbite_publiee_aussi_en_controle(copie_config: Path) -> None:

@@ -154,6 +154,8 @@ make indices              # indices de 1991 à la dernière semaine complète (~
 make classes              # [V2] classes BD Forêt + RPG mises à la grille 10 m -> rasters/classes/ (réseau, non versionné)
 make crue                 # [V2] surface de crue Sentinel-1 par passage -> data/satellite/ (réseau, ~4 h, reprenable)
 make crue-mois            # [V2] crue par mois et tendance d'hiver -> data/satellite/ (sans réseau)
+make composites           # [V2] NDVI et NDMI mensuels de Sentinel-2 -> rasters/mensuel/ (réseau, ~12 min par mois, reprenable, non versionné)
+make composites-controle  # [V2] qualité et dérive radiométrique -> data/satellite/ (sans réseau)
 make db-rebuild
 make validation           # indices confrontés aux arrêtés sécheresse -> docs/validation.md (~5 s)
 ```
